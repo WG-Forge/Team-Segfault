@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import IntEnum
 
 
-class Action(Enum):
+class Action(IntEnum):
     LOGIN = 1
     LOGOUT = 2
     MAP = 3
@@ -13,7 +13,7 @@ class Action(Enum):
     SHOOT = 102
 
 
-class Result(Enum):
+class Result(IntEnum):
     OKEY = 0
     BAD_COMMAND = 1
     ACCESS_DENIED = 2
