@@ -22,6 +22,3 @@ class Service:
 
     def disconnect(self) -> None:
         self.__socket.close()
-
-    def function(self) -> None:
-        pass

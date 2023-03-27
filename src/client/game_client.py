@@ -26,7 +26,6 @@ class GameClient:
         :param name: username
         :return: user dict
         """
-
         return self.__send_and_receive_data({"name": name}, Action.LOGIN)
 
     def logout(self) -> None:
