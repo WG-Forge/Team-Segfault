@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Action(Enum):
     LOGIN = 1
     LOGOUT = 2
@@ -10,6 +11,7 @@ class Action(Enum):
     CHAT = 100
     MOVE = 101
     SHOOT = 102
+
 
 class Result(Enum):
     OKEY = 0
