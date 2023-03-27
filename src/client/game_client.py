@@ -6,18 +6,6 @@ from server_enum import Result
 from service import Service
 
 
-def result_handler(result: Result) -> int:
-    """
-    Prints an error message if server response says action was invalid
-    :param result: the server code
-    :return: 0 if valid, -1 otherwise
-    """
-    if result == Result.OKEY:
-        return 0
-
-    return -1
-
-
 def unpack_helper(data) -> (Result, str):
     (resp_code, msg_len), data = struct.unpack("ii", data[:8]), data[8:]
     msg = data[:msg_len]
