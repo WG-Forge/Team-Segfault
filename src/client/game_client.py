@@ -15,7 +15,6 @@ def result_handler(result: Result) -> int:
     if result == Result.OKEY:
         return 0
 
-    print("Error: ", result.name)
     return -1
 
 
@@ -43,17 +42,31 @@ class GameClient:
             "name": name
         }
 
-        ret = self.__send_and_receive_dict(d, Action.LOGIN)
-
-        print(ret)
+        ret = self.__send_and_receive_data(d, Action.LOGIN)
 
         if ret is None:
             return -1
 
         return ret["idx"]
 
-    def __send_and_receive_dict(self, d: dict, a: Action) -> dict:
-        msg: bytes = bytes(json.dumps(d), 'utf-8')
+    def logout(self) -> int:
+        """
+        User logout
+        :param
+        :return: 0 if valid, -1 otherwise
+        """
+
+        ret = self.__send_and_receive_data({}, Action.LOGOUT, True)
+
+        if ret is None:
+            return -1
+
+        return 0
+
+    def __send_and_receive_data(self, d: dict, a: Action, empty: bool = False) -> dict:
+        msg: bytes = b''
+        if not empty:
+            msg = bytes(json.dumps(d), 'utf-8')
         out: bytes = struct.pack('ii', a, len(msg)) + msg
 
         self.__service.send_data(out)
@@ -61,13 +74,17 @@ class GameClient:
 
         resp_code, msg = unpack_helper(ret)
 
-        if result_handler(resp_code) < 0:
-            return {}
-        else:
+        if resp_code != Result.OKEY:
+            d: dict = json.loads(msg)
+            raise ConnectionError(f"Error {resp_code}: {d['error_message']}")
+        elif len(msg) > 0:
             return json.loads(msg)
+
+        return {}
 
 
 if __name__ == "__main__":
     c = GameClient()
-    id = c.login("MegatronJeremy")
-    print(id)
+    r = c.login("MegatronJeremy")
+    print(r)
+    r = c.logout()
