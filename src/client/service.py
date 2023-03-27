@@ -3,6 +3,7 @@ import socket
 
 class Service:
     def __init__(self) -> None:
+        self.__buffer_size = 4096
         self.__socket: socket = socket.socket()
 
     def __del__(self) -> None:
@@ -16,7 +17,7 @@ class Service:
         return ret
 
     def receive_data(self) -> bytes:
-        msg: bytes = self.__socket.recv(1024)
+        msg: bytes = self.__socket.recv(self.__buffer_size)
         return msg
 
     def disconnect(self) -> None:
