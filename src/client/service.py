@@ -15,8 +15,8 @@ class Service:
         ret: bool = self.__socket.send(out) > 0
         return ret
 
-    def receive_data(self) -> str:
-        msg: str = self.__socket.recv(1024).decode()
+    def receive_data(self) -> bytes:
+        msg: bytes = self.__socket.recv(1024)
         return msg
 
     def disconnect(self) -> None:
