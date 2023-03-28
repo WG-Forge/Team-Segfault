@@ -1,5 +1,6 @@
 import json
-import turtle
+
+import matplotlib.pyplot as plt
 
 from hex import Hex
 from src.entity.entity import Entity
@@ -8,6 +9,7 @@ from src.entity.tank import Tank
 
 class GameMap:
     def __init__(self, game_map: str):
+        self.__size: int = 0
         self.__entities: dict[Hex, Entity] = {}
         # tank_id -> hex
         self.__tanks: dict[int, Hex] = {}
@@ -16,6 +18,7 @@ class GameMap:
 
     def parse_map(self, game_map: str) -> None:
         game_map = json.loads(game_map)
+        self.__size = game_map["size"]
         for entity, coordinates in game_map["content"].items():
             for coordinate in coordinates:
                 h = Hex([coordinate["x"], coordinate["y"], coordinate["z"]])
@@ -57,7 +60,29 @@ class GameMap:
                 self.__entities[new_position] = Tank(vehicle_id, vehicle_info)
 
     def draw_map(self) -> None:
-        pass
+        # TODO: optimize, since special hexes are drawn twice and adjacent hexes have some same edges
+        plt.figure()
+        # draw the whole map
+        for x in range(-self.__size, self.__size + 1):
+            for y in range(-self.__size, self.__size + 1):
+                for z in range(-self.__size, self.__size + 1):
+                    if x + y + z == 0:
+                        coords = Hex.hex_corners([x, y, z])
+                        coords.append(coords[0])
+                        xs, ys = zip(*coords)
+                        plt.plot(xs, ys, 'k')
+        # draw special hexes
+        for h, entity in self.__entities.items():
+            coords = Hex.hex_corners(h.get_coordinates())
+            coords.append(coords[0])
+            xs, ys = zip(*coords)
+            # default obstacle
+            color = "r"
+            if entity.get_type() == "base":
+                color = "g"
+            plt.plot(xs, ys, color)
+        plt.axis('off')
+        plt.show()
 
     def set_entity(self, hex_coord: Hex, entity: Entity) -> None:
         self.__entities[hex_coord] += entity
@@ -67,18 +92,6 @@ class GameMap:
 
     def get_entities(self) -> dict[Hex, Entity]:
         return self.__entities
-
-
-# Define the hexagon function
-
-def draw_hex(x, y, size):
-    turtle.penup()
-    turtle.goto(x, y)
-    turtle.pendown()
-    turtle.setheading(0)
-    for i in range(6):
-        turtle.forward(size)
-        turtle.right(60)
 
 
 if __name__ == '__main__':
