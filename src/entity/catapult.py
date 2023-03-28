@@ -2,5 +2,5 @@ from entity import Entity
 
 
 class Catapult(Entity):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self):
+        super().__init__("catapult")

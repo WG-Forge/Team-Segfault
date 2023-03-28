@@ -2,17 +2,17 @@ class Game:
     def __init__(self) -> None:
         pass
 
-    def addPlayer(self) -> None:
+    def add_player(self) -> None:
         pass
 
-    def startGame(self) -> None:
+    def start_game(self) -> None:
         pass
 
-    def actionNoResponse(self, msg: str) -> None:
+    def action_no_response(self, msg: str) -> None:
         pass
 
-    def actionResponse(self, msg: str) -> str:
+    def action_response(self, msg: str) -> str:
         pass
 
-    def endGame(self) -> None:
+    def end_game(self) -> None:
         pass
