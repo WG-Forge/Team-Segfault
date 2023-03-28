@@ -9,7 +9,7 @@ from src.entity.tank import Tank
 
 class GameMap:
     def __init__(self, game_map: str):
-        self.__size: int = 0
+        self.__map_size: int = 0
         self.__entities: dict[Hex, Entity] = {}
         # tank_id -> hex
         self.__tanks: dict[int, Hex] = {}
@@ -18,7 +18,7 @@ class GameMap:
 
     def parse_map(self, game_map: str) -> None:
         game_map = json.loads(game_map)
-        self.__size = game_map["size"]
+        self.__map_size = game_map["size"]
         for entity, coordinates in game_map["content"].items():
             for coordinate in coordinates:
                 h = Hex([coordinate["x"], coordinate["y"], coordinate["z"]])
@@ -63,30 +63,32 @@ class GameMap:
         # TODO: optimize, since special hexes are drawn twice and adjacent hexes have some same edges
         plt.figure()
         # draw the whole map
-        for x in range(-self.__size, self.__size + 1):
-            for y in range(-self.__size, self.__size + 1):
-                for z in range(-self.__size, self.__size + 1):
-                    if x + y + z == 0:
-                        coords = Hex.get_corners([x, y, z])
-                        coords.append(coords[0])
-                        xs, ys = zip(*coords)
-                        plt.plot(xs, ys, 'k')
-        # draw special hexes
+        for x in range(-self.__map_size, self.__map_size + 1):
+            for y in range(-self.__map_size, self.__map_size + 1):
+                z = -x - y
+                if self.__map_size >= z >= -self.__map_size:
+                    coords = Hex.get_corners([x, y, z])
+                    coords.append(coords[0])
+                    xs, ys = zip(*coords)
+                    plt.plot(xs, ys, 'k')
+        # draw entities
         for h, entity in self.__entities.items():
+            color = "blue"
             if isinstance(entity, Tank):
                 tank_dot = Hex.get_center(h.get_coordinates())
-                plt.plot(tank_dot[0], tank_dot[1], marker='o', markersize='4', markerfacecolor="blue")
+                plt.plot(tank_dot[0], tank_dot[1], marker='o', markersize='6', markerfacecolor=color)
                 continue
-            coords = Hex.get_corners(h.get_coordinates())
-            coords.append(coords[0])
-            xs, ys = zip(*coords)
-            color = ""
+
             entity_type = entity.get_type()
             if entity_type == "base":
                 color = "g"
             elif entity_type == "obstacle":
                 color = "r"
+            coords = Hex.get_corners(h.get_coordinates())
+            coords.append(coords[0])
+            xs, ys = zip(*coords)
             plt.plot(xs, ys, color)
+
         plt.axis('off')
         plt.show()
 
