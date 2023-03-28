@@ -67,19 +67,25 @@ class GameMap:
             for y in range(-self.__size, self.__size + 1):
                 for z in range(-self.__size, self.__size + 1):
                     if x + y + z == 0:
-                        coords = Hex.hex_corners([x, y, z])
+                        coords = Hex.get_corners([x, y, z])
                         coords.append(coords[0])
                         xs, ys = zip(*coords)
                         plt.plot(xs, ys, 'k')
         # draw special hexes
         for h, entity in self.__entities.items():
-            coords = Hex.hex_corners(h.get_coordinates())
+            if isinstance(entity, Tank):
+                tank_dot = Hex.get_center(h.get_coordinates())
+                plt.plot(tank_dot[0], tank_dot[1], marker='o', markersize='4', markerfacecolor="blue")
+                continue
+            coords = Hex.get_corners(h.get_coordinates())
             coords.append(coords[0])
             xs, ys = zip(*coords)
-            # default obstacle
-            color = "r"
-            if entity.get_type() == "base":
+            color = ""
+            entity_type = entity.get_type()
+            if entity_type == "base":
                 color = "g"
+            elif entity_type == "obstacle":
+                color = "r"
             plt.plot(xs, ys, color)
         plt.axis('off')
         plt.show()
