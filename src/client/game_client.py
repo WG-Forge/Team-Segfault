@@ -150,3 +150,4 @@ if __name__ == "__main__":
     c.force_turn()
     print(c.get_game_actions())
     c.logout()
+
