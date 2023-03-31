@@ -1,15 +1,9 @@
 import json
 import struct
 
-from server_enum import Action
-from server_enum import Result
-from service import Service
-
-
-def unpack_helper(data) -> (Result, str):
-    (resp_code, msg_len), data = struct.unpack("ii", data[:8]), data[8:]
-    msg = data[:msg_len]
-    return resp_code, msg
+from src.client.server_enum import Action
+from src.client.server_enum import Result
+from src.client.service import Service
 
 
 class GameClient:
@@ -20,13 +14,32 @@ class GameClient:
     def __del__(self) -> None:
         self.__service.disconnect()
 
-    def login(self, name: str) -> dict:
+    def login(self, name: str, password: str = None, game_name: str = None,
+              num_turns: int = None, num_players: int = None,
+              is_observer: bool = None) -> dict:
         """
         User login
-        :param name: username
+        :param name: player username
+        :param password: player password
+        :param game_name: define the game name to create or join if it already exists
+        :param num_turns: number of game turns (if creating a game)
+        :param num_players: number of game players (if creating a game)
+        :param is_observer: define if joining as an observer
         :return: user dict
         """
-        return self.__send_and_receive_data({"name": name}, Action.LOGIN)
+
+        d: dict = {
+            "name": name,
+            "password": password,
+            "game": game_name,
+            "num_turns": num_turns,
+            "num_players": num_players,
+            "is_observer": is_observer
+        }
+
+        d = {k: v for k, v in d.items() if v is not None}
+
+        return self.__send_and_receive_data(d, Action.LOGIN)
 
     def logout(self) -> None:
         """
@@ -54,8 +67,7 @@ class GameClient:
     def get_game_actions(self) -> dict:
         """
         Game actions request, returns the actions that happened in the previous turn.
-        Represents changes between turns.
-        :param
+        Represent changes between turns.
         :return: game actions dict
         """
         return self.__send_and_receive_data({}, Action.GAME_ACTIONS)
@@ -116,6 +128,12 @@ class GameClient:
         }
         self.__send_and_receive_data(dct, Action.SHOOT)
 
+    @staticmethod
+    def __unpack_helper(data) -> (Result, str):
+        (resp_code, msg_len), data = struct.unpack("ii", data[:8]), data[8:]
+        msg = data[:msg_len]
+        return resp_code, msg
+
     def __send_and_receive_data(self, dct: dict, act: Action) -> dict:
         msg: bytes = b''
         if dct:
@@ -125,7 +143,7 @@ class GameClient:
         self.__service.send_data(out)
         ret = self.__service.receive_data()
 
-        resp_code, msg = unpack_helper(ret)
+        resp_code, msg = self.__unpack_helper(ret)
 
         if resp_code == Result.TIMEOUT:
             dct: dict = json.loads(msg)
@@ -137,17 +155,4 @@ class GameClient:
             return json.loads(msg)
 
         return {}
-
-
-if __name__ == "__main__":
-    c = GameClient()
-    r = c.login("MegatronJeremy")
-    idx: int = r["idx"]
-    print(c.get_map())
-    print(c.get_game_actions())
-    print(c.get_game_state())
-    c.move(1, -8, -2, 10)
-    c.force_turn()
-    print(c.get_game_actions())
-    c.logout()
 

@@ -6,16 +6,16 @@ sqrt3 = sqrt(3)
 class Hex:
     """Class that represents one Hex"""
 
-    def __init__(self, args: list):
+    def __init__(self, args: [int]):
         self.__x = args[0]
         self.__y = args[1]
         self.__z = args[2]
 
-    def get_coordinates(self) -> list[int]:
+    def get_coordinates(self) -> [int]:
         return [self.__x, self.__y, self.__z]
 
     @staticmethod
-    def get_center(coordinates: list[3]):
+    def get_center(coordinates: [3]):
         """Returns the center of a given hex in cartesian co-ordinates"""
         x = coordinates[0]
         y = coordinates[1]
@@ -24,7 +24,7 @@ class Hex:
                 (sqrt3 / 2 * y - sqrt3 / 2 * z)]
 
     @staticmethod
-    def get_corners(coordinates: list[3]) -> list[6]:
+    def get_corners(coordinates: [3]) -> [6]:
         """Returns cartesian coordinates of the six corners for a given array of hex coordinates"""
         x = coordinates[0]
         y = coordinates[1]

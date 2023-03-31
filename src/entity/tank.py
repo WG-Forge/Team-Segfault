@@ -1,8 +1,10 @@
+from abc import ABC
+
 from src.entity.entity import Entity
 from src.map.hex import Hex
 
 
-class Tank(Entity):
+class Tank(Entity, ABC):
     def __init__(self, tank_id: int, tank_info: dict):
         # tank_info = json.loads(tank_info)
         self.__tank_id = tank_id
@@ -16,9 +18,9 @@ class Tank(Entity):
         self.__capture_points = tank_info["capture_points"]
         super().__init__(self.__tank_type)
 
-    def reset(self) -> None:
-        self.__hp = 2
-
     def update(self, hp: int, capture_pts: int):
         self.__hp = hp
         self.__capture_points = capture_pts
+
+    def reset(self) -> None:
+        self.__hp = 2

@@ -1,14 +1,12 @@
-import json
-
 import matplotlib.pyplot as plt
 
-from hex import Hex
 from src.entity.entity import Entity
 from src.entity.tank import Tank
+from src.map.hex import Hex
 
 
 class GameMap:
-    def __init__(self, game_map: str):
+    def __init__(self, game_map: dict):
         self.__map_size: int = 0
         self.__entities: dict[Hex, Entity] = {}
         # tank_id -> hex
@@ -16,16 +14,14 @@ class GameMap:
         self.__tanks_in_base: list[Tank] = []
         self.parse_map(game_map)
 
-    def parse_map(self, game_map: str) -> None:
-        game_map = json.loads(game_map)
+    def parse_map(self, game_map: dict) -> None:
         self.__map_size = game_map["size"]
         for entity, coordinates in game_map["content"].items():
             for coordinate in coordinates:
                 h = Hex([coordinate["x"], coordinate["y"], coordinate["z"]])
                 self.__entities[h] = Entity(entity)
 
-    def update(self, game_state: str) -> None:
-        game_state = json.loads(game_state)
+    def update(self, game_state: dict) -> None:
         vehicles = game_state["vehicles"]
         for vehicle_id, vehicle_info in vehicles.items():
             vehicle_id = int(vehicle_id)
@@ -56,7 +52,7 @@ class GameMap:
                 # first occurrence; add this tank to entities and tanks hash map
                 self.__tanks[vehicle_id] = new_position
                 # add tank to list, since
-                print(vehicle_info)
+                # print(vehicle_info)
                 self.__entities[new_position] = Tank(vehicle_id, vehicle_info)
 
     def draw_map(self) -> None:
@@ -98,21 +94,5 @@ class GameMap:
     def get_tank_position(self, tank_id: int) -> Hex:
         return self.__tanks[tank_id]
 
-    def get_entities(self) -> dict[Hex, Entity]:
+    def get_entities(self) -> dict:
         return self.__entities
-
-
-if __name__ == '__main__':
-    with open('../../map.json') as f:
-        gm = GameMap(f.read())
-        d = gm.get_entities()
-        for k, v in d.items():
-            print(f'hex: {k}; entity: {v.get_type()}')
-
-        with open("../../game_state.json") as f1:
-            gm.update(f1.read())
-            d = gm.get_entities()
-            for k, v in d.items():
-                print(f'hex: {k}; entity: {v.get_type()}')
-
-            gm.draw_map()

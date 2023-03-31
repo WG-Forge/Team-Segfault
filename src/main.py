@@ -1,4 +1,7 @@
 from game import Game
 
-new_game = Game()
-new_game.start_game()
+if __name__ == '__main__':
+    game = Game()
+    game.add_player(name="Ricardo", is_bot=False)
+    game.start_game()
+    game.join()
