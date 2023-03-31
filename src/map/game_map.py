@@ -59,10 +59,10 @@ class GameMap:
         # TODO: optimize, since special hexes are drawn twice and adjacent hexes have some same edges
         plt.figure()
         # draw the whole map
-        for x in range(-self.__map_size, self.__map_size + 1):
-            for y in range(-self.__map_size, self.__map_size + 1):
+        for x in range(-self.__map_size + 1, self.__map_size):
+            for y in range(-self.__map_size + 1, self.__map_size):
                 z = -x - y
-                if self.__map_size >= z >= -self.__map_size:
+                if self.__map_size > z > -self.__map_size:
                     coords = Hex.get_corners([x, y, z])
                     coords.append(coords[0])
                     xs, ys = zip(*coords)
@@ -72,7 +72,8 @@ class GameMap:
             color = "blue"
             if isinstance(entity, Tank):
                 tank_dot = Hex.get_center(h.get_coordinates())
-                plt.plot(tank_dot[0], tank_dot[1], marker='o', markersize='6', markerfacecolor=color)
+                plt.plot(tank_dot[0], tank_dot[1], marker='o', markersize='6',
+                         markerfacecolor=color, markeredgewidth=0.0)
                 continue
 
             entity_type = entity.get_type()

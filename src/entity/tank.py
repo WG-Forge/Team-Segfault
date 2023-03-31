@@ -6,7 +6,6 @@ from src.map.hex import Hex
 
 class Tank(Entity, ABC):
     def __init__(self, tank_id: int, tank_info: dict):
-        # tank_info = json.loads(tank_info)
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         # change this when they give us info for other vehicle types
