@@ -13,7 +13,7 @@ class Player:
         self.password = password
         self.__damage_points = 0
         self.__capture_points = 0
-        self.__tanks: list[Tank]
+        self.__tanks: list[Tank] = []
 
     def add_to_game(self, player_info: dict):
         self.id: int = player_info["idx"]
@@ -22,5 +22,8 @@ class Player:
         self.__capture_points: int = 0
 
     @abstractmethod
-    def play_move(self) -> str:
+    def play_move(self) -> (dict, dict):
         pass
+
+    def add_tank(self, tank: Tank):
+        self.__tanks.append(tank)

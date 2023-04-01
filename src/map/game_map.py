@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 
+from src.client.server_enum import Action
 from src.entity.entity import Entity
 from src.entity.tank import Tank
 from src.map.hex import Hex
@@ -22,6 +23,30 @@ class GameMap:
                 self.__entities[h] = Entity(entity)
 
     def update(self, game_state: dict) -> None:
+        """
+        Updates the map information based on passed dictionary
+        :param game_state: either a GAME_ACTIONS dict or GAME_STATE dict
+        """
+        if "actions" in game_state:
+            for action in game_state["actions"]:
+                data = action["data"]
+                new_position = Hex([data['target']['x'], data['target']['y'], data['target']['z']])
+
+                if action["action_type"] == Action.MOVE:
+                    self.__entities[new_position] = self.__entities[self.__tanks[data["vehicle_id"]]]
+                    del self.__entities[self.__tanks[data["vehicle_id"]]]
+                    self.__tanks[data["vehicle_id"]] = new_position
+
+                if action["action_type"] == Action.SHOOT:
+                    tank: Tank = self.__entities[new_position]
+                    if tank.reduce_hp():
+                        spawn = tank.get_spawn_coordinate()
+                        del self.__entities[new_position]
+                        self.__entities[spawn] = tank
+                        self.__tanks[tank.get_id()] = spawn
+
+            return
+
         vehicles = game_state["vehicles"]
         for vehicle_id, vehicle_info in vehicles.items():
             vehicle_id = int(vehicle_id)

@@ -23,3 +23,17 @@ class Tank(Entity, ABC):
 
     def reset(self) -> None:
         self.__hp = 2
+
+    def reduce_hp(self) -> bool:
+        """
+        Registers tank hit.
+        :return: True if tank is destroyed, False otherwise"""
+        self.__hp -= 1
+        if self.__hp <= 0:
+            self.reset()
+
+    def get_spawn_coordinate(self) -> Hex:
+        return self.__spawn_coordinate
+
+    def get_id(self) -> int:
+        return self.__tank_id

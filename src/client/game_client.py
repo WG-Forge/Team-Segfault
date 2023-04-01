@@ -92,41 +92,18 @@ class GameClient:
         """
         self.__send_and_receive_data({"message": msg}, Action.CHAT)
 
-    def move(self, vehicle_id: int, x: int, y: int, z: int) -> None:
+    def move(self, move_dict: dict) -> None:
         """
         Changes vehicle position
-        :param vehicle_id: id of vehicle
-        :param x: coordinate x
-        :param y: coordinate y
-        :param z: coordinate z
         """
-        dct: dict = {
-            "vehicle_id": vehicle_id,
-            "target": {
-                "x": x,
-                "y": y,
-                "z": z
-            }
-        }
-        self.__send_and_receive_data(dct, Action.MOVE)
+        self.__send_and_receive_data(move_dict, Action.MOVE)
 
-    def shoot(self, vehicle_id: int, x: int, y: int, z: int) -> None:
+    def shoot(self, shoot_dict: dict) -> None:
         """
-        Shoot to target position
-        :param vehicle_id: id of vehicle
-        :param x: coordinate x
-        :param y: coordinate y
-        :param z: coordinate z
+
         """
-        dct: dict = {
-            "vehicle_id": vehicle_id,
-            "target": {
-                "x": x,
-                "y": y,
-                "z": z
-            }
-        }
-        self.__send_and_receive_data(dct, Action.SHOOT)
+
+        self.__send_and_receive_data(shoot_dict, Action.SHOOT)
 
     @staticmethod
     def __unpack_helper(data) -> (Result, str):
