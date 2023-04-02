@@ -146,7 +146,7 @@ class GameMap:
 
         plt.axis('off')
         # uncomment this for a delay
-        plt.pause(2)
+        plt.pause(4)
         plt.show(block=False)
         plt.close("all")
 
