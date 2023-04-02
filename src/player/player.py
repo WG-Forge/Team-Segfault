@@ -8,14 +8,17 @@ from src.map.game_map import GameMap
 @dataclass
 class Player:
     def __init__(self, name: str, password: str = None, is_observer: bool = None):
-        self.id = None
+        self.id: int = -1
         self.is_observer = is_observer
         self.name = name
         self.password = password
         self._damage_points = 0
         self._capture_points = 0
         self._tanks: list[Tank] = []
-        self._game_map: GameMap = None
+        self._game_map = None
+
+    def __hash__(self):
+        return hash(self.name)
 
     def add_to_game(self, player_info: dict):
         self.id: int = player_info["idx"]

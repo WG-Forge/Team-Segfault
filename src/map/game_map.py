@@ -144,7 +144,8 @@ class GameMap:
             plt.plot(xs, ys, color)
 
         plt.axis('off')
-        plt.pause(3)
+        # uncomment this for a delay
+        # plt.pause(1)
         plt.show(block=False)
         plt.close("all")
 

@@ -8,10 +8,13 @@ from src.player.player import Player
 class BotPlayer(Player, ABC):
     def __init__(self, name: str, password: str = None, is_observer: bool = None):
         super().__init__(name, password, is_observer)
+        self.__current_tank: int = 0
 
     def play_move(self) -> (Action, dict):
-        tank_id = self._tanks[0].get_id()
+        tank_id = self._tanks[self.__get_next_tank()].get_id()
+
         path = self._game_map.shortest_path(self._game_map.get_tank_position(tank_id), self._game_map.get_base()[0])
+
         next_hex_coords: []
         if len(path) >= 3 and not isinstance(self._game_map.get_entity_at(path[2]), Tank):
             next_hex_coords = path[2].get_coordinates()
@@ -30,3 +33,10 @@ class BotPlayer(Player, ABC):
         }
 
         return d, {}
+
+    def __get_next_tank(self):
+        # Get next tank using FIFO algorithm
+        next_tank: int = self.__current_tank
+        self.__current_tank += 1
+        self.__current_tank %= len(self._tanks)
+        return next_tank
