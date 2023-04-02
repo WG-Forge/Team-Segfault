@@ -106,6 +106,10 @@ class Game(Thread):
             tank = Tank(int(vehicle_id), vehicle_info)
             self.__active_players[vehicle_info["player_id"]].add_tank(tank)
 
+        # pass GameMap reference to players
+        for _, player in self.__active_players.items():
+            player.add_map(self.__game_map)
+
     def __start_next_turn(self) -> None:
         game_state: dict = self.__game_client.get_game_state()
         current_turn: int = game_state["current_turn"]

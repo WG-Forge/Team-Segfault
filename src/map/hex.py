@@ -48,7 +48,7 @@ class Hex:
         return self.get_coordinates() == other.get_coordinates()
 
     # calculates the distance between 2 hexes
-    def __sub__(self, other):
+    def __sub__(self, other) -> int:
         other_coords = other.get_coordinates()
         return (abs(self.__x - other_coords[0]) +
                 abs(self.__y - other_coords[1]) +
