@@ -237,3 +237,6 @@ class GameMap:
 
     def get_entities(self) -> dict:
         return self.__entities
+
+    def get_base(self) -> [Hex]:
+        return self.__base
