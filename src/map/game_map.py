@@ -42,6 +42,7 @@ class GameMap:
         :return: None
         """
         if "actions" in game_state:
+            # todo make another function that updates tank positions only
             for action in game_state["actions"]:
                 data = action["data"]
                 tank_id = data["vehicle_id"]
@@ -145,7 +146,7 @@ class GameMap:
 
         plt.axis('off')
         # uncomment this for a delay
-        # plt.pause(1)
+        plt.pause(2)
         plt.show(block=False)
         plt.close("all")
 

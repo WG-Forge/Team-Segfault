@@ -69,13 +69,13 @@ class Game(Thread):
             self.__game_map.draw_map()
 
             if self.__current_player.id in self.__active_players:
-                move_dict, shoot_dict = self.__current_player.play_move()
+                move_list, shoot_list = self.__current_player.play_move()
 
                 try:
-                    if move_dict:
-                        self.__current_client.move(move_dict)
-                    if shoot_dict:
-                        self.__current_client.shoot(shoot_dict)
+                    for move in move_list:
+                        self.__current_client.move(move)
+                    for shoot in shoot_list:
+                        self.__current_client.shoot(shoot)
                 except Exception as e:
                     print(e)
 
