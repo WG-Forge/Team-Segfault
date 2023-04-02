@@ -144,7 +144,9 @@ class GameMap:
             plt.plot(xs, ys, color)
 
         plt.axis('off')
-        plt.show()
+        plt.pause(3)
+        plt.show(block=False)
+        plt.close("all")
 
     def shortest_path(self, start: Hex, end: Hex) -> [Hex]:
         """
