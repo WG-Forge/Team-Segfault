@@ -240,3 +240,8 @@ class GameMap:
 
     def get_base(self) -> [Hex]:
         return self.__base
+
+    def get_entity_at(self, hex_pos: Hex):
+        if hex_pos in self.__entities:
+            return self.__entities[hex_pos]
+        return None
