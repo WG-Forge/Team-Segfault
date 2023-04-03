@@ -7,8 +7,8 @@ from src.player.player import Player
 
 class BotPlayer(Player, ABC):
     def __init__(self, name: str, password: str, is_observer: bool,
-                 next_turn_sem: Semaphore, turn_played_sem: Semaphore, current_player: list[1]):
-        super().__init__(name, password, is_observer, next_turn_sem, turn_played_sem, current_player)
+                 turn_played_sem: Semaphore, current_player: list[1]):
+        super().__init__(name, password, is_observer, turn_played_sem, current_player)
 
     def _play_move(self) -> None:
         free_base_hexes = self._game_map.get_base().copy()

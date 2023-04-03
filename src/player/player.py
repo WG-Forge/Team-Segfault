@@ -10,18 +10,18 @@ from src.map.game_map import GameMap
 @dataclass
 class Player(Thread):
     def __init__(self, name: str, password: str, is_observer: bool,
-                 next_turn_sem: Semaphore, turn_played_sem: Semaphore, current_player: list[1]):
+                 turn_played_sem: Semaphore, current_player: list[1]):
         super().__init__(daemon=True)
         self.idx: int = -1
         self.name = name
         self.password = password
         self.is_observer: bool = is_observer
+        self.next_turn_sem = Semaphore(0)
         self._damage_points = 0
         self._capture_points = 0
         self._tanks: list[Tank] = []
         self._game_map = None
         self._game_client = None
-        self.__next_turn_sem = next_turn_sem
         self.__turn_played_sem = turn_played_sem
         self.__current_player = current_player
 
@@ -51,16 +51,14 @@ class Player(Thread):
     def run(self) -> None:
         while True:
             # wait for condition
-            self.__next_turn_sem.acquire()
+            self.next_turn_sem.acquire()
 
             # play your move if you are the current player
             if self.__current_player[0] == self.idx:
                 self._play_move()
-            ret: int = -1
 
-            while ret < 0:
-                # force next turn
-                ret = self._game_client.force_turn()
+            # force next turn
+            self._game_client.force_turn()
 
             # notify condition
             self.__turn_played_sem.release()

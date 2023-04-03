@@ -30,7 +30,6 @@ class Game:
         self.__game_clients: dict[Player, GameClient] = {}
         self.__active_players: dict[int, Player] = {}
 
-        self.__next_turn_sem: Semaphore = Semaphore(0)
         self.__turn_played_sem: Semaphore = Semaphore(0)
         self.__current_player_idx: list[1] = [-1]
 
@@ -89,8 +88,10 @@ class Game:
         while self.__active:
             self.__game_map.draw_map()
 
-            # release all players
-            self.__next_turn_sem.release(self.__num_players)
+            # release all players using their private semaphores
+            for player in self.__active_players.values():
+                player.next_turn_sem.release()
+
             # wait for everyone to finish their turns
             for _ in range(self.__num_players):
                 self.__turn_played_sem.acquire()
@@ -172,9 +173,9 @@ class Game:
                 print(CE)
 
     def __create_human_player(self, name: str, password: str = None, is_observer: bool = None) -> Player:
-        return HumanPlayer(name, password, is_observer, self.__next_turn_sem, self.__turn_played_sem,
+        return HumanPlayer(name, password, is_observer, self.__turn_played_sem,
                            self.__current_player_idx)
 
     def __create_bot_player(self, name: str, password: str = None, is_observer: bool = None) -> Player:
-        return BotPlayer(name, password, is_observer, self.__next_turn_sem, self.__turn_played_sem,
+        return BotPlayer(name, password, is_observer, self.__turn_played_sem,
                          self.__current_player_idx)
