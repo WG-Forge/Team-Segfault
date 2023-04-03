@@ -1,11 +1,14 @@
 from collections import defaultdict
 
+import matplotlib
 import matplotlib.pyplot as plt
 
 from src.client.server_enum import Action
 from src.entity.entity import Entity
 from src.entity.tank import Tank
 from src.map.hex import Hex
+
+matplotlib.interactive(False)
 
 
 class GameMap:
@@ -145,8 +148,8 @@ class GameMap:
             plt.plot(xs, ys, color)
 
         plt.axis('off')
-        # uncomment this for a delay
-        plt.pause(4)
+        # comment this if using SciView
+        plt.pause(3)
         plt.show(block=False)
         plt.close("all")
 

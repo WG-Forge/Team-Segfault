@@ -31,6 +31,9 @@ class Tank(Entity, ABC):
         self.__hp -= 1
         if self.__hp <= 0:
             self.reset()
+            return True
+
+        return False
 
     def get_spawn_coordinate(self) -> Hex:
         return self.__spawn_coordinate

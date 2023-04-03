@@ -7,11 +7,11 @@ from src.map.game_map import GameMap
 
 @dataclass
 class Player:
-    def __init__(self, name: str, password: str = None, is_observer: bool = None):
-        self.id: int = -1
-        self.is_observer = is_observer
+    def __init__(self, name: str, password: str = None, is_observer: bool = False):
+        self.idx: int = -1
         self.name = name
         self.password = password
+        self.is_observer = is_observer
         self._damage_points = 0
         self._capture_points = 0
         self._tanks: list[Tank] = []
@@ -20,8 +20,16 @@ class Player:
     def __hash__(self):
         return hash(self.name)
 
+    def __str__(self):
+        out: str
+        if self.is_observer:
+            out = str.format(f'Player {self.name}: observer.')
+        else:
+            out = str.format(f'Player {self.idx}: {self.name}.')
+        return out
+
     def add_to_game(self, player_info: dict):
-        self.id: int = player_info["idx"]
+        self.idx: int = player_info["idx"]
         self.is_observer: bool = player_info["is_observer"]
         self._damage_points: int = 0
         self._capture_points: int = 0
