@@ -1,3 +1,6 @@
+import atexit
+from threading import Semaphore
+
 from src.client.game_client import GameClient
 from src.entity.tank import Tank
 from src.map.game_map import GameMap
@@ -7,15 +10,16 @@ from src.player.player import Player
 
 
 class Game:
-    def __init__(self, game_name: str = None, num_turns: int = None, num_players: int = 1) -> None:
+    def __init__(self, game_name: str = None, num_turns: int = None, max_players: int = 1) -> None:
         super().__init__()
         self.__game_map: GameMap
         self.__game_name: str = game_name
 
         self.__active: bool = False
         self.__num_turns: int = num_turns
-        self.__max_players: int = num_players
+        self.__max_players: int = max_players
         self.__num_players: int = 0
+        self.__lobby_players: int = 0
         self.__winner = None
 
         self.__players_queue: [Player] = []
@@ -25,7 +29,12 @@ class Game:
 
         self.__game_clients: dict[Player, GameClient] = {}
         self.__active_players: dict[int, Player] = {}
-        self.__observers: dict[int, Player] = {}
+
+        self.__next_turn_sem: Semaphore = Semaphore(0)
+        self.__turn_played_sem: Semaphore = Semaphore(0)
+        self.__current_player_idx: list[1] = [-1]
+
+        atexit.register(self.__cleanup)
 
     def __str__(self):
         out: str = ""
@@ -36,15 +45,21 @@ class Game:
         for player in self.__active_players.values():
             out += "\n" + str(player)
 
-        for player in self.__observers.values():
-            out += "\n" + str(player)
-
         return out
 
-    def add_player(self, name: str, password: str = None, is_bot: bool = False, is_observer: bool = False) -> None:
+    def add_player(self, name: str, password: str = None, is_bot: bool = False, is_observer: bool = None) -> None:
         """
-        Will connect the player if game has started, else put the player in the queue.
+        Will connect the player if game has started.
+        If the game is full, player will be connected as an observer.
         """
+        if self.__lobby_players >= self.__max_players:
+            is_observer = True
+
+        if not is_observer:
+            self.__lobby_players += 1
+
+        self.__num_players += 1
+
         player: Player
         if is_bot:
             player = self.__create_bot_player(name, password, is_observer)
@@ -74,15 +89,12 @@ class Game:
         while self.__active:
             self.__game_map.draw_map()
 
-            if self.__current_player.idx in self.__active_players:
-                move_list, shoot_list = self.__current_player.play_move()
+            # release all players
+            self.__next_turn_sem.release(self.__num_players)
+            # wait for everyone to finish their turns
+            for _ in range(self.__num_players):
+                self.__turn_played_sem.acquire()
 
-                for move in move_list:
-                    self.__current_client.move(move)
-                for shoot in shoot_list:
-                    self.__current_client.shoot(shoot)
-
-            self.__current_client.force_turn()
             self.__start_next_turn()
 
         self.__end_game()
@@ -93,16 +105,13 @@ class Game:
                                                             self.__game_name, self.__num_turns,
                                                             self.__max_players, player.is_observer)
 
-        player.add_to_game(user_info)
+        player.add_to_game(user_info, self.__game_clients[player])
+        player.start()
 
-        if not player.is_observer:
-            self.__active_players[player.idx] = player
+        self.__active_players[player.idx] = player
 
-            # first active player added is the current client-server connection
-            if not self.__current_client:
-                self.__current_client = self.__game_clients[player]
-        else:
-            self.__observers[player.idx] = player
+        # current client is last one added
+        self.__current_client = self.__game_clients[player]
 
     def __init_game_state(self) -> None:
         game_map: dict = self.__current_client.get_map()
@@ -133,8 +142,8 @@ class Game:
             game_state = self.__current_client.get_game_state()
 
         self.__current_turn = game_state["current_turn"]
-        current_player_idx: int = game_state["current_player_idx"]
-        self.__current_player = self.__active_players[current_player_idx]
+        self.__current_player_idx[0] = game_state["current_player_idx"]
+        self.__current_player = self.__active_players[self.__current_player_idx[0]]
         self.__current_client = self.__game_clients[self.__current_player]
 
         print(f"Current turn: {self.__current_turn}, "
@@ -154,13 +163,18 @@ class Game:
         else:
             print('The game is a draw.')
 
+    def __cleanup(self) -> None:
         for client in self.__game_clients.values():
-            client.logout()
+            try:
+                client.logout()
+                client.disconnect()
+            except ConnectionError as CE:
+                print(CE)
 
-    @staticmethod
-    def __create_human_player(name: str, password: str = None, is_observer: bool = None) -> Player:
-        return HumanPlayer(name, password, is_observer)
+    def __create_human_player(self, name: str, password: str = None, is_observer: bool = None) -> Player:
+        return HumanPlayer(name, password, is_observer, self.__next_turn_sem, self.__turn_played_sem,
+                           self.__current_player_idx)
 
-    @staticmethod
-    def __create_bot_player(name: str, password: str = None, is_observer: bool = None) -> Player:
-        return BotPlayer(name, password, is_observer)
+    def __create_bot_player(self, name: str, password: str = None, is_observer: bool = None) -> Player:
+        return BotPlayer(name, password, is_observer, self.__next_turn_sem, self.__turn_played_sem,
+                         self.__current_player_idx)

@@ -1,16 +1,16 @@
 from abc import ABC
+from threading import Semaphore
 
 from src.entity.tank import Tank
 from src.player.player import Player
 
 
 class BotPlayer(Player, ABC):
-    def __init__(self, name: str, password: str = None, is_observer: bool = None):
-        super().__init__(name, password, is_observer)
-        self.__current_tank: int = 0
+    def __init__(self, name: str, password: str, is_observer: bool,
+                 next_turn_sem: Semaphore, turn_played_sem: Semaphore, current_player: list[1]):
+        super().__init__(name, password, is_observer, next_turn_sem, turn_played_sem, current_player)
 
-    def play_move(self) -> ([], []):
-        moves, shoots = [], []
+    def _play_move(self) -> None:
         free_base_hexes = self._game_map.get_base().copy()
         for tank in self._tanks:
             if self._game_map.is_tank_in_base(tank.get_id()):
@@ -36,11 +36,13 @@ class BotPlayer(Player, ABC):
                     next_hex_coords = path[1].get_coordinates()
                 else:
                     continue
-                moves.append({
+
+                move = {
                     "vehicle_id": tank.get_id(),
                     "target": {
                         "x": next_hex_coords[0],
                         "y": next_hex_coords[1],
-                        "z": next_hex_coords[2]}})
-                self._game_map.update({"actions": [{"action_type": 101, "data": moves[len(moves) - 1]}]})
-        return moves, shoots
+                        "z": next_hex_coords[2]}}
+
+                self._game_client.move(move)
+                self._game_map.update({"actions": [{"action_type": 101, "data": move}]})

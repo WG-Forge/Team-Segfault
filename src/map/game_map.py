@@ -146,7 +146,7 @@ class GameMap:
 
         plt.axis('off')
         # comment this if using SciView
-        plt.pause(3)
+        plt.pause(2)
         plt.show(block=False)
         plt.close("all")
 

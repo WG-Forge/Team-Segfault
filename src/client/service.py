@@ -6,11 +6,17 @@ class Service:
         self.__buffer_size = 4096
         self.__socket: socket = socket.socket()
 
-    def __del__(self) -> None:
+    def __enter__(self):
+        return Service
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.disconnect()
 
     def connect(self, host: str, port: int) -> None:
         self.__socket.connect((host, port))
+
+    def disconnect(self) -> None:
+        self.__socket.close()
 
     def send_data(self, out: bytes) -> bool:
         ret: bool = self.__socket.send(out) > 0
@@ -19,6 +25,3 @@ class Service:
     def receive_data(self) -> bytes:
         msg: bytes = self.__socket.recv(self.__buffer_size)
         return msg
-
-    def disconnect(self) -> None:
-        self.__socket.close()

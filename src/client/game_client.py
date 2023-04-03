@@ -11,7 +11,13 @@ class GameClient:
         self.__service = Service()
         self.__service.connect("wgforge-srv.wargaming.net", 443)
 
-    def __del__(self) -> None:
+    def __enter__(self):
+        return GameClient
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.disconnect()
+
+    def disconnect(self) -> None:
         self.__service.disconnect()
 
     def login(self, name: str, password: str = None, game_name: str = None,
@@ -118,7 +124,10 @@ class GameClient:
         out: bytes = struct.pack('ii', act, len(msg)) + msg
 
         self.__service.send_data(out)
-        ret = self.__service.receive_data()
+        if Action != Action.TURN:
+            ret = self.__service.receive_data()
+        else:
+            return {}
 
         resp_code, msg = self.__unpack_helper(ret)
 
