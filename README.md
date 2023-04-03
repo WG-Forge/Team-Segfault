@@ -1,3 +1,5 @@
 # Team-Segfault
 
-TODO
+## Game description
+
+The game can have human, bot players, and observers. It is played on a hexagonal map with a certain number of turns. The game class manages the game state, initializes the players and client connections, runs the game in a loop.
