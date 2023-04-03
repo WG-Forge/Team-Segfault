@@ -43,8 +43,7 @@ class Game:
 
     def add_player(self, name: str, password: str = None, is_bot: bool = False, is_observer: bool = False) -> None:
         """
-        Will connect as a player if the game has started and the game is not full,
-        or as an observer if the game is full, and allows observers.
+        Will connect the player if game has started, else put the player in the queue.
         """
         player: Player
         if is_bot:
