@@ -7,7 +7,7 @@ from src.map.game_map import GameMap
 
 @dataclass
 class Player:
-    def __init__(self, name: str, password: str = None, is_observer: bool = False):
+    def __init__(self, name: str, password: str = None, is_observer: bool = None):
         self.idx: int = -1
         self.name = name
         self.password = password
@@ -21,11 +21,10 @@ class Player:
         return hash(self.name)
 
     def __str__(self):
-        out: str
+        out = str.format(f'Player {self.idx}: {self.name}')
         if self.is_observer:
-            out = str.format(f'Player {self.name}: observer.')
-        else:
-            out = str.format(f'Player {self.idx}: {self.name}.')
+            out += ', observer'
+
         return out
 
     def add_to_game(self, player_info: dict):

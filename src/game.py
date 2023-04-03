@@ -25,7 +25,7 @@ class Game:
 
         self.__game_clients: dict[Player, GameClient] = {}
         self.__active_players: dict[int, Player] = {}
-        self.__observers: set = set()  # TODO currently observers do not register on server
+        self.__observers: dict[int, Player] = {}
 
     def __str__(self):
         out: str = ""
@@ -36,7 +36,7 @@ class Game:
         for player in self.__active_players.values():
             out += "\n" + str(player)
 
-        for player in self.__observers:
+        for player in self.__observers.values():
             out += "\n" + str(player)
 
         return out
@@ -89,24 +89,21 @@ class Game:
         self.__end_game()
 
     def __connect_player(self, player: Player) -> None:
-        if self.__num_players < self.__max_players and not player.is_observer:
-            self.__num_players += 1
-        else:
-            player.is_observer = True
-            self.__observers.add(player)
-            return  # TODO - connect player as an observer
-
         self.__game_clients[player] = GameClient()
         user_info: dict = self.__game_clients[player].login(player.name, player.password,
                                                             self.__game_name, self.__num_turns,
                                                             self.__max_players, player.is_observer)
 
         player.add_to_game(user_info)
-        self.__active_players[player.idx] = player
 
-        # first one added is the current client-server connection
-        if not self.__current_client:
-            self.__current_client = self.__game_clients[player]
+        if not player.is_observer:
+            self.__active_players[player.idx] = player
+
+            # first active player added is the current client-server connection
+            if not self.__current_client:
+                self.__current_client = self.__game_clients[player]
+        else:
+            self.__observers[player.idx] = player
 
     def __init_game_state(self) -> None:
         game_map: dict = self.__current_client.get_map()
@@ -162,9 +159,9 @@ class Game:
             client.logout()
 
     @staticmethod
-    def __create_human_player(name: str, password: str = None, is_observer: bool = False) -> Player:
+    def __create_human_player(name: str, password: str = None, is_observer: bool = None) -> Player:
         return HumanPlayer(name, password, is_observer)
 
     @staticmethod
-    def __create_bot_player(name: str, password: str = None, is_observer: bool = False) -> Player:
+    def __create_bot_player(name: str, password: str = None, is_observer: bool = None) -> Player:
         return BotPlayer(name, password, is_observer)
