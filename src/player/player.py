@@ -53,12 +53,17 @@ class Player(Thread):
             # wait for condition
             self.next_turn_sem.acquire()
 
-            # play your move if you are the current player
-            if self.__current_player[0] == self.idx:
-                self._play_move()
+            try:
+                # play your move if you are the current player
+                if self.__current_player[0] == self.idx:
+                    self._play_move()
 
-            # force next turn
-            self._game_client.force_turn()
+                # force next turn
+                self._game_client.force_turn()
+
+            except ConnectionError as CE:
+                # TODO try to do something else here
+                print(CE)
 
             # notify condition
             self.__turn_played_sem.release()
