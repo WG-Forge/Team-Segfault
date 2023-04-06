@@ -11,8 +11,13 @@ class BotPlayer(Player, ABC):
         super().__init__(name, password, is_observer, turn_played_sem, current_player)
 
     def _play_move(self) -> None:
+        # tank movement order: SPGs, light tanks, heavy tanks, medium tanks, tank destroyers
+        # TODO: fix this function so it moves tanks accordingly
         free_base_hexes = self._game_map.get_base().copy()
         for tank in self._tanks:
+            # print(tank.get_type())
+            if tank.get_type() != "light_tank":
+                continue
             if self._game_map.is_tank_in_base(tank.get_id()):
                 continue
 
@@ -30,9 +35,9 @@ class BotPlayer(Player, ABC):
                 free_base_hexes.remove(closest_base_hex)
                 path = self._game_map.shortest_path(tank_pos, closest_base_hex)
                 next_hex_coords: []
-                if len(path) >= 3 and not isinstance(self._game_map.get_entity_at(path[2]), Tank):
-                    next_hex_coords = path[2].get_coordinates()
-                elif len(path) >= 2 and not isinstance(self._game_map.get_entity_at(path[1]), Tank):
+                # if len(path) >= 3 and not isinstance(self._game_map.get_entity_at(path[2]), Tank):
+                #     next_hex_coords = path[2].get_coordinates()
+                if len(path) >= 2 and not isinstance(self._game_map.get_entity_at(path[1]), Tank):
                     next_hex_coords = path[1].get_coordinates()
                 else:
                     continue

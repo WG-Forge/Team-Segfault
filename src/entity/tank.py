@@ -40,3 +40,18 @@ class Tank(Entity, ABC):
 
     def get_id(self) -> int:
         return self.__tank_id
+
+    def get_type(self) -> str:
+        return self.__tank_type
+
+    def get_drawing_symbol(self) -> str:
+        if self.__tank_type == 'spg':
+            return 's'
+        if self.__tank_type == 'at_spg':
+            return 'v'
+        if self.__tank_type == 'heavy_tank':
+            return 'H'
+        if self.__tank_type == 'medium_tank':
+            return '*'
+        if self.__tank_type == 'light_tank':
+            return 'D'

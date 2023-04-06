@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
+from sortedcontainers import SortedSet
 
 from src.client.server_enum import Action
 from src.entity.entity import Entity
@@ -128,11 +129,13 @@ class GameMap:
             plt.plot(xs, ys, 'g')
 
         # draw entities
+        marker = 'o'
         for h, entity in self.__entities.items():
             color = "blue"
             if isinstance(entity, Tank):
+                marker = entity.get_drawing_symbol()
                 tank_dot = Hex.get_center(h.get_coordinates())
-                plt.plot(tank_dot[0], tank_dot[1], marker='o', markersize='6',
+                plt.plot(tank_dot[0], tank_dot[1], marker=marker, markersize='6',
                          markerfacecolor=color, markeredgewidth=0.0)
                 continue
 
@@ -157,8 +160,13 @@ class GameMap:
         :param end: target hex
         :return: list of hexes that represent the shortest path
         """
-        open_list = {start}
-        closed_list = set()
+        # O(log n) adding, removing and finding the best hex
+        open_list = SortedSet()
+        open_list.add((end - start, start))
+        # O(1) checking if hex is in the open_list
+        open_list_check: dict[Hex, bool] = {start: True}
+
+        closed_list: dict[Hex, bool] = {}
 
         parent: dict = {start: None}
 
@@ -174,17 +182,10 @@ class GameMap:
         cheapest_path = defaultdict(lambda: float('inf'))
         cheapest_path[start] = 0
 
-        def get_best() -> Hex:
-            result, result_value = None, float('inf')
-            for h in open_list:
-                new_value = cheapest_path[h] + (h - end)
-                if result is None or new_value < result_value:
-                    result, result_value = h, new_value
-            return result
-
         path_found = False
         while len(open_list) > 0:
-            current = get_best()
+            # get the next best hex
+            current = open_list[0][1]
             if current == end:
                 path_found = True
                 break
@@ -192,21 +193,26 @@ class GameMap:
                 neighbour = current + movement
                 if not self.is_valid(neighbour) or \
                         (neighbour in self.__entities and self.__entities[neighbour].get_type() == 'obstacle'):
+                    # if hex is out of bounds or if there is an obstacle on that hex, skip
                     continue
-                path_to_neighbour_weight = cheapest_path[current] + 1
-                if neighbour not in open_list and neighbour not in closed_list:
-                    open_list.add(neighbour)
+                path_to_neighbour_cost = cheapest_path[current] + 1
+                if (neighbour not in open_list_check or open_list_check[neighbour] is False) \
+                        and (neighbour not in closed_list or closed_list[neighbour] is False):
+                    open_list.add((end - neighbour + path_to_neighbour_cost, neighbour))
+                    open_list_check[neighbour] = True
                     parent[neighbour] = current
-                    cheapest_path[neighbour] = path_to_neighbour_weight
-                elif path_to_neighbour_weight < cheapest_path[neighbour]:
+                    cheapest_path[neighbour] = path_to_neighbour_cost
+                elif path_to_neighbour_cost < cheapest_path[neighbour]:
                     parent[neighbour] = current
-                    cheapest_path[neighbour] = path_to_neighbour_weight
-                    if neighbour in closed_list:
-                        closed_list.remove(neighbour)
-                        open_list.add(neighbour)
+                    cheapest_path[neighbour] = path_to_neighbour_cost
+                    if neighbour in closed_list and closed_list[neighbour] is True:
+                        closed_list[neighbour] = False
+                        open_list.add((end - neighbour + path_to_neighbour_cost, neighbour))
+                        open_list_check[neighbour] = True
 
-            open_list.remove(current)
-            closed_list.add(current)
+            open_list.pop(0)
+            open_list_check[current] = False
+            closed_list[current] = True
 
         if path_found:
             path: [Hex] = []
