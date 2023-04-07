@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from threading import Thread, Semaphore
 
 from src.client.game_client import GameClient
-from src.entity.tank import Tank
+from src.entity.tanks.tank import Tank
 from src.map.game_map import GameMap
 
 

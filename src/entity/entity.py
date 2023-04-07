@@ -4,7 +4,7 @@ from abc import abstractmethod
 class Entity:
 
     def __init__(self, name: str):
-        self.__type = name
+        self._type = name
 
     @abstractmethod
     def draw(self) -> None:
@@ -16,4 +16,4 @@ class Entity:
 
     @abstractmethod
     def get_type(self) -> str:
-        return self.__type
+        return self._type

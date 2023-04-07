@@ -5,7 +5,7 @@ from sortedcontainers import SortedSet
 
 from src.client.server_enum import Action
 from src.entity.entity import Entity
-from src.entity.tank import Tank
+from src.entity.tanks.tank import Tank
 from src.map.hex import Hex
 
 

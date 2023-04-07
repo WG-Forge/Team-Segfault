@@ -2,11 +2,11 @@ import atexit
 from threading import Semaphore
 
 from src.client.game_client import GameClient
-from src.entity.tank import Tank
 from src.map.game_map import GameMap
 from src.player.bot_player import BotPlayer
 from src.player.human_player import HumanPlayer
 from src.player.player import Player
+from src.entity.tanks.tank_maker import TankMaker
 
 
 class Game:
@@ -124,8 +124,9 @@ class Game:
         self.__max_players = game_state["num_players"]
 
         # add tanks to players
+        tank_maker = TankMaker()
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
-            tank = Tank(int(vehicle_id), vehicle_info)
+            tank = tank_maker.create_tank(int(vehicle_id), vehicle_info)
             self.__active_players[vehicle_info["player_id"]].add_tank(tank)
 
         # pass GameMap reference to players

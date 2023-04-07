@@ -1,7 +1,7 @@
 from abc import ABC
 from threading import Semaphore
 
-from src.entity.tank import Tank
+from src.entity.tanks.tank import Tank
 from src.player.player import Player
 
 
