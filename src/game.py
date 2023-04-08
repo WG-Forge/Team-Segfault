@@ -6,7 +6,9 @@ from src.map.game_map import GameMap
 from src.player.bot_player import BotPlayer
 from src.player.human_player import HumanPlayer
 from src.player.player import Player
-from src.entity.tanks.tank_maker import TankMaker
+from entity.tanks.hex_deltas import HexDeltas
+from entity.tanks.tank_maker import TankMaker
+
 
 
 class Game:

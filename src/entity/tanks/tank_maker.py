@@ -1,9 +1,9 @@
-from src.entity.tanks.tank import Tank
-from src.entity.tanks.artillery import Artillery
-from src.entity.tanks.destoryer import TankDestroyer
-from src.entity.tanks.heavy import HeavyTank
-from src.entity.tanks.light import LightTank
-from src.entity.tanks.medium import MediumTank
+from entity.tanks.tank import Tank
+from entity.tanks.artillery import Artillery
+from entity.tanks.destoryer import TankDestroyer
+from entity.tanks.heavy import HeavyTank
+from entity.tanks.light import LightTank
+from entity.tanks.medium import MediumTank
 
 
 class TankMaker:

@@ -108,7 +108,6 @@ class GameClient:
         """
         Shoot at a hex position
         """
-
         self.__send_and_receive_data(shoot_dict, Action.SHOOT)
 
     @staticmethod
