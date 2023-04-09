@@ -3,8 +3,9 @@ from abc import abstractmethod
 
 class Entity:
 
-    def __init__(self, name: str):
-        self._type = name
+    def __init__(self, name: str, is_tank: bool = True):
+        self._type: str = name
+        self.__is_tank: bool = is_tank
 
     @abstractmethod
     def draw(self) -> None:
@@ -17,3 +18,6 @@ class Entity:
     @abstractmethod
     def get_type(self) -> str:
         return self._type
+
+    def is_tank(self) -> bool:
+        return self.__is_tank

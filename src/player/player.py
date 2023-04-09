@@ -10,8 +10,10 @@ from src.map.game_map import GameMap
 @dataclass
 class Player(Thread):
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
+    __possible_colours = ('blue', 'black', 'green')
+
     def __init__(self, name: str, password: str, is_observer: bool,
-                 turn_played_sem: Semaphore, current_player: list[1]):
+                 turn_played_sem: Semaphore, current_player: list[1], player_index: int):
         super().__init__(daemon=True)
         self.idx: int = -1
         self.name = name
@@ -25,6 +27,7 @@ class Player(Thread):
         self._game_client = None
         self.__turn_played_sem = turn_played_sem
         self.__current_player = current_player
+        self.__player_colour = Player.__possible_colours[player_index]
 
     def __hash__(self):
         return hash(self.name)
@@ -74,3 +77,6 @@ class Player(Thread):
     @abstractmethod
     def _play_move(self) -> None:
         pass
+
+    def get_colour(self) -> str:
+        return self.__player_colour

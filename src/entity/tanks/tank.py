@@ -5,15 +5,16 @@ from src.map.hex import Hex
 
 
 class Tank(Entity, ABC):
-    def __init__(self, tank_id: int, tank_info: dict):
+    def __init__(self, tank_id: int, tank_info: dict, colour: str):
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
         self.__capture_points = tank_info["capture_points"]
         self.__spawn_coordinate: Hex = Hex([tank_info["position"]["x"],
-                                           tank_info["position"]["y"],
-                                           tank_info["position"]["z"]])
+                                            tank_info["position"]["y"],
+                                            tank_info["position"]["z"]])
         self.__damage = 1
+        self.__tank_colour: str = colour
 
         super().__init__(tank_info["vehicle_type"])
 
@@ -51,4 +52,7 @@ class Tank(Entity, ABC):
             return '*'
         if self._type == 'light_tank':
             return 'D'
+
+    def get_colour(self) -> str:
+        return self.__tank_colour
 

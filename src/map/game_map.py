@@ -101,13 +101,6 @@ class GameMap:
                     tank.update(vehicle_info["health"], vehicle_info["capture_points"])
                     self.__tank_positions[vehicle_id] = new_position
 
-            else:
-                # first occurrence; add this tank to entities and tanks hash map
-                self.__tank_positions[vehicle_id] = new_position
-                tank = Tank(vehicle_id, vehicle_info)
-                self.__entities[new_position] = tank
-                self.__tanks[vehicle_id] = tank
-
     def draw_map(self) -> None:
         # TODO: optimize, since special hexes are drawn twice and adjacent hexes have some same edges
         plt.figure()
@@ -129,23 +122,24 @@ class GameMap:
             plt.plot(xs, ys, 'g')
 
         # draw entities
-        marker = 'o'
         for h, entity in self.__entities.items():
-            color = "blue"
-            if isinstance(entity, Tank):
+            if entity.is_tank():
+                colour = entity.get_colour()
                 marker = entity.get_drawing_symbol()
                 tank_dot = Hex.get_center(h.get_coordinates())
                 plt.plot(tank_dot[0], tank_dot[1], marker=marker, markersize='6',
-                         markerfacecolor=color, markeredgewidth=0.0)
+                         markerfacecolor=colour, markeredgewidth=0.0)
                 continue
 
             entity_type = entity.get_type()
             if entity_type == "obstacle":
-                color = "r"
+                colour = "red"
+            else:
+                colour = 'yellow'
             coords = Hex.get_corners(h.get_coordinates())
             coords.append(coords[0])
             xs, ys = zip(*coords)
-            plt.plot(xs, ys, color)
+            plt.plot(xs, ys, colour)
 
         plt.axis('off')
         # comment this if using SciView
@@ -255,3 +249,11 @@ class GameMap:
         if hex_pos in self.__entities:
             return self.__entities[hex_pos]
         return None
+
+    def set_tanks(self, tanks: dict[int: Tank]):
+        # Tanks set from Game class so just one set of tanks is created
+        self.__tanks = tanks
+        for tank_id, tank in tanks.items():
+            spawn_position = tank.get_spawn_coordinate()
+            self.__tank_positions[tank_id] = spawn_position
+            self.__entities[spawn_position] = tank

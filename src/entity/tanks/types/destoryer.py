@@ -11,8 +11,8 @@ class TankDestroyer(Tank, ABC):
     __fire_deltas: tuple = tuple(filter(lambda t: 0 not in t, tuple(HexDeltas.rings[:2])))
     __possible_shot_num: int = len(__fire_deltas)
 
-    def __init__(self, tank_id: int, tank_info: dict):
-        super().__init__(tank_id, tank_info)
+    def __init__(self, tank_id: int, tank_info: dict, colour: str):
+        super().__init__(tank_id, tank_info, colour)
 
     def get_possible_shots(self, position: tuple) -> tuple:
         x, y, z = position

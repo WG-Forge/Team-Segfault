@@ -3,7 +3,6 @@ class HexDeltas:
 
     @classmethod
     def make_rings(cls):
-        print("has made rings")
         max_range = 3  # Change if maximum range of any tank is > 3 hexes
         cls.rings = [cls.make_ring_coords(i) for i in range(1, max_range + 1)]
 
