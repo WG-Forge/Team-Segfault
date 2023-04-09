@@ -9,6 +9,7 @@ from src.map.game_map import GameMap
 
 @dataclass
 class Player(Thread):
+    __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
     def __init__(self, name: str, password: str, is_observer: bool,
                  turn_played_sem: Semaphore, current_player: list[1]):
         super().__init__(daemon=True)
@@ -42,8 +43,15 @@ class Player(Thread):
         self._capture_points: int = 0
         self._game_client: GameClient = game_client
 
-    def add_tank(self, tank: Tank):
-        self._tanks.append(tank)
+    def add_tank(self, new_tank: Tank) -> None:
+        # Adds the tank in order of who gets priority movement
+        new_tank_priority = Player.__type_order.index(new_tank.get_type())
+        for i, old_tank in enumerate(self._tanks):
+            old_tank_priority = Player.__type_order.index(old_tank.get_type())
+            if new_tank_priority <= old_tank_priority:
+                self._tanks.insert(i, new_tank)
+                return
+        self._tanks.append(new_tank)
 
     def add_map(self, game_map: GameMap):
         self._game_map = game_map

@@ -14,5 +14,5 @@ class HeavyTank(Tank, ABC):
         super().__init__(tank_id, tank_info)
 
     def get_possible_shots(self, position: tuple) -> tuple:
-        dx, dy, dz = position
-        return tuple([(dx+x, dy+y, dz+z) for (x, y, z) in HeavyTank.__fire_deltas])
+        x, y, z = position
+        return tuple([(dx+x, dy+y, dz+z) for (dx, dy, dz) in HeavyTank.__fire_deltas])

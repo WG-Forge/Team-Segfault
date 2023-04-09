@@ -15,9 +15,6 @@ class BotPlayer(Player, ABC):
         # TODO: fix this function so it moves tanks accordingly
         free_base_hexes = self._game_map.get_base().copy()
         for tank in self._tanks:
-            # print(tank.get_type())
-            if tank.get_type() != "light_tank":
-                continue
             if self._game_map.is_tank_in_base(tank.get_id()):
                 continue
 

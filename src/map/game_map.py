@@ -28,7 +28,6 @@ class GameMap:
         :return: None
         """
         self.__map_size = game_map["size"]
-        print('self.__map_size',self.__map_size)
         for entity, coordinates in game_map["content"].items():
             for coordinate in coordinates:
                 h = Hex([coordinate["x"], coordinate["y"], coordinate["z"]])
