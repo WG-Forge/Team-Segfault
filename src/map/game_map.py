@@ -3,6 +3,7 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 from sortedcontainers import SortedSet
 
+from entity.base import Base
 from src.client.server_enum import Action
 from src.entity.entity import Entity
 from src.entity.tanks.tank import Tank
@@ -10,7 +11,7 @@ from src.map.hex import Hex
 
 
 class GameMap:
-    def __init__(self, game_map: dict):
+    def __init__(self, client_map: dict):
         self.__map_size: int = 0
         self.__entities: dict[Hex, Entity] = {}
         # tank_id -> hex
@@ -18,23 +19,22 @@ class GameMap:
         self.__tanks: dict[int, Tank] = {}
         # tanks_in_base could probably be deleted
         self.__tanks_in_base: list[int] = []
-        self.__base: [Hex] = []
-        self.parse_map(game_map)
+        #        self.__base: [Hex] = []
+        self.parse_map(client_map)
+        self.__base: Base
 
-    def parse_map(self, game_map: dict) -> None:
+    def parse_map(self, client_map: dict) -> None:
         """
         Saves entity data
-        :param game_map: dict of GAME_MAP response
+        :param client_map: dict of GAME_MAP response
         :return: None
         """
-        self.__map_size = game_map["size"]
-        for entity, coordinates in game_map["content"].items():
-            for coordinate in coordinates:
-                h = Hex([coordinate["x"], coordinate["y"], coordinate["z"]])
-                if entity == "base":
-                    self.__base.append(h)
-                else:
-                    self.__entities[h] = Entity(entity)
+        self.__map_size = client_map["size"]
+        for entity, coords in client_map["content"].items():
+            if entity == "base":
+                self.__base = Base(coords)
+            else:
+                print("Support for other entities needed")
 
     def update(self, game_state: dict) -> None:
         """
@@ -47,99 +47,78 @@ class GameMap:
             for action in game_state["actions"]:
                 data = action["data"]
                 tank_id = data["vehicle_id"]
-                new_position = Hex([data['target']['x'], data['target']['y'], data['target']['z']])
+                action_pos = Hex([data['target']['x'], data['target']['y'], data['target']['z']])
 
                 tank = self.__tanks[tank_id]
                 if action["action_type"] == Action.MOVE:
                     # if tank was in base before movement, remove it from tanks_in_base
-                    if self.__tank_positions[tank_id] in self.__base:
-                        self.__tanks_in_base.remove(tank_id)
+                    if self.__base.is_in(tank.get_coords()):
+                        self.__base.leave(tank.get_coords())
 
-                    self.__entities[new_position] = tank
-                    del self.__entities[self.__tank_positions[tank_id]]
-                    self.__tank_positions[tank_id] = new_position
+                    tank.set_pos(action_pos)
 
-                    if new_position in self.__base:
+                    if self.__base.is_in(action_pos.get_coords()):
+                        self.__base.occupy(action_pos.get_coords())
+                    if self.__base.is_in(action_pos.get_coords()):
                         self.__tanks_in_base.append(tank_id)
 
                 if action["action_type"] == Action.SHOOT:
-                    tank: Tank = self.__entities[new_position]
-                    if tank.reduce_hp():
-                        spawn = tank.get_spawn_coordinate()
-                        del self.__entities[new_position]
-                        self.__entities[spawn] = tank
-                        self.__tank_positions[tank.get_id()] = spawn
+                    shot_tank = self.tank_in_pos(action_pos)
+                    if shot_tank.reduce_hp():
+                        respawn_pos = shot_tank.get_spawn_pos()
+                        shot_tank.set_pos(respawn_pos)
             return
 
         vehicles = game_state["vehicles"]
         for vehicle_id, vehicle_info in vehicles.items():
             vehicle_id = int(vehicle_id)
-            new_position = Hex([vehicle_info["position"]["x"],
-                                vehicle_info["position"]["y"],
-                                vehicle_info["position"]["z"]])
+            action_pos = Hex([vehicle_info["position"]["x"],
+                              vehicle_info["position"]["y"],
+                              vehicle_info["position"]["z"]])
 
-            if vehicle_id in self.__tank_positions:
-                old_position = self.__tank_positions[vehicle_id]
-                if old_position == new_position:
+            if vehicle_id in self.__tanks:
+                tank = self.__tanks[vehicle_id]
+                old_position = tank.get_pos()
+                if old_position == action_pos:
                     # this tank did not move, only update hp and capture points
-                    self.__entities[new_position].update(vehicle_info["health"], vehicle_info["capture_points"])
+                    tank.update(vehicle_info["health"], vehicle_info["capture_points"])
                 else:
                     # this tank did move -> update its position and after that update its hp and capture points
-                    tank = self.__entities[old_position]
-                    if old_position in self.__base:
-                        self.__tanks_in_base.remove(tank.get_id())
+                    if self.__base.is_in(old_position.get_coords()):
+                        self.__base.leave(old_position.get_coords())
 
-                    del self.__entities[old_position]
-                    if new_position in self.__base:
-                        # tank moved to the base, append it to tanks_in_base list
-                        self.__tanks_in_base.append(tank.get_id())
+                    # tank moved to the base, append it to tanks_in_base list
+                    if self.__base.is_in(action_pos.get_coords()):
+                        self.__base.occupy(action_pos.get_coords())
 
                     # if light or hard repair was there, overwrite hex with this tank and
                     # update tank vehicle_info from server response
-                    self.__entities[new_position] = tank
-
                     tank.update(vehicle_info["health"], vehicle_info["capture_points"])
-                    self.__tank_positions[vehicle_id] = new_position
+                    tank.set_pos(action_pos)
 
     def draw_map(self) -> None:
-        # TODO: optimize, since special hexes are drawn twice and adjacent hexes have some same edges
+        # TODO: optimize, adjacent hexes have some same edges & implement drawing obstacles
         plt.figure()
+        # draw base
+        base_coords = self.__base.get_coords()
+        for coord in base_coords:
+            xs, ys = zip(*Hex.get_corners(coord))
+            plt.plot(xs, ys, 'g')
+
         # draw the whole map
         for x in range(-self.__map_size + 1, self.__map_size):
             for y in range(-self.__map_size + 1, self.__map_size):
                 z = -x - y
-                if self.__map_size > z > -self.__map_size:
-                    coords = Hex.get_corners([x, y, z])
-                    coords.append(coords[0])
-                    xs, ys = zip(*coords)
+                if self.__map_size > z > -self.__map_size and (x, y, z) not in base_coords:
+                    xs, ys = zip(*Hex.get_corners((x, y, z)))
                     plt.plot(xs, ys, 'k')
 
-        # draw base
-        for h in self.__base:
-            coords = Hex.get_corners(h.get_coordinates())
-            coords.append(coords[0])
-            xs, ys = zip(*coords)
-            plt.plot(xs, ys, 'g')
-
-        # draw entities
-        for h, entity in self.__entities.items():
-            if entity.is_tank():
-                colour = entity.get_colour()
-                marker = entity.get_drawing_symbol()
-                tank_dot = Hex.get_center(h.get_coordinates())
-                plt.plot(tank_dot[0], tank_dot[1], marker=marker, markersize='6',
-                         markerfacecolor=colour, markeredgewidth=0.0)
-                continue
-
-            entity_type = entity.get_type()
-            if entity_type == "obstacle":
-                colour = "red"
-            else:
-                colour = 'yellow'
-            coords = Hex.get_corners(h.get_coordinates())
-            coords.append(coords[0])
-            xs, ys = zip(*coords)
-            plt.plot(xs, ys, colour)
+        # Draw tanks
+        for tank_id, tank in self.__tanks.items():
+            colour = tank.get_colour()
+            marker = tank.get_symbol()
+            x, y = Hex.get_center(tank.get_coords())
+            plt.plot(x, y, marker=marker, markersize='6', markerfacecolor=colour, markeredgewidth=0.0)
 
         plt.axis('off')
         # comment this if using SciView
@@ -185,8 +164,8 @@ class GameMap:
                 break
             for movement in movements:
                 neighbour = current + movement
-                if not self.is_valid(neighbour) or \
-                        (neighbour in self.__entities and self.__entities[neighbour].get_type() == 'obstacle'):
+                if not self.is_valid(neighbour):# or \ #Uncomment when implementing obstacles
+                        #(neighbour in self.__entities and self.__entities[neighbour].get_type() == 'obstacle'):
                     # if hex is out of bounds or if there is an obstacle on that hex, skip
                     continue
                 path_to_neighbour_cost = cheapest_path[current] + 1
@@ -224,7 +203,7 @@ class GameMap:
         :param target_hex:
         :return: True if valid, False otherwise
         """
-        coords = target_hex.get_coordinates()
+        coords = target_hex.get_coords()
         if sum(coords) != 0:
             return False
 
@@ -233,27 +212,20 @@ class GameMap:
     def is_tank_in_base(self, tank_id: int) -> bool:
         return tank_id in self.__tanks_in_base
 
-    def set_entity(self, hex_coord: Hex, entity: Entity) -> None:
-        self.__entities[hex_coord] += entity
-
     def get_tank_position(self, tank_id: int) -> Hex:
-        return self.__tank_positions[tank_id]
-
-    def get_entities(self) -> dict:
-        return self.__entities
-
-    def get_base(self) -> [Hex]:
-        return self.__base
-
-    def get_entity_at(self, hex_pos: Hex):
-        if hex_pos in self.__entities:
-            return self.__entities[hex_pos]
-        return None
+        return self.__tanks[tank_id].get_pos()
 
     def set_tanks(self, tanks: dict[int: Tank]):
-        # Tanks set from Game class so just one set of tanks is created
+        # Tanks set from Game
         self.__tanks = tanks
         for tank_id, tank in tanks.items():
-            spawn_position = tank.get_spawn_coordinate()
-            self.__tank_positions[tank_id] = spawn_position
+            spawn_position = tank.get_spawn_pos()
             self.__entities[spawn_position] = tank
+
+    def tank_in_pos(self, pos: Hex) -> Tank:
+        for tank_id, tank in self.__tanks.items():
+            if tank.get_pos() == pos:
+                return tank
+
+    def get_base(self):
+        return self.__base

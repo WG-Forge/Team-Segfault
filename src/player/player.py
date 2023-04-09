@@ -66,7 +66,7 @@ class Player(Thread):
 
             # play your move if you are the current player
             if self.__current_player[0] == self.idx:
-                self._play_move()
+                self._make_turn_plays()
 
             # force next turn
             self._game_client.force_turn()
@@ -75,7 +75,7 @@ class Player(Thread):
             self.__turn_played_sem.release()
 
     @abstractmethod
-    def _play_move(self) -> None:
+    def _make_turn_plays(self) -> None:
         pass
 
     def get_colour(self) -> str:

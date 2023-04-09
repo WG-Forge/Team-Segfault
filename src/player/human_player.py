@@ -9,5 +9,5 @@ class HumanPlayer(Player, ABC):
                  turn_played_sem: Semaphore, current_player: list[1], player_index: int):
         super().__init__(name, password, is_observer, turn_played_sem, current_player, player_index)
 
-    def _play_move(self) -> None:
+    def _make_turn_plays(self) -> None:
         pass

@@ -5,15 +5,17 @@ from src.map.hex import Hex
 
 
 class Tank(Entity, ABC):
+    __damage = 1
+
     def __init__(self, tank_id: int, tank_info: dict, colour: str):
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
         self.__capture_points = tank_info["capture_points"]
-        self.__spawn_coordinate: Hex = Hex([tank_info["position"]["x"],
-                                            tank_info["position"]["y"],
-                                            tank_info["position"]["z"]])
-        self.__damage = 1
+        self.__spawn_pos: Hex = Hex([tank_info["position"]["x"],
+                                     tank_info["position"]["y"],
+                                     tank_info["position"]["z"]])
+        self.__position: Hex = self.__spawn_pos
         self.__tank_colour: str = colour
 
         super().__init__(tank_info["vehicle_type"])
@@ -35,13 +37,13 @@ class Tank(Entity, ABC):
             return True
         return False
 
-    def get_spawn_coordinate(self) -> Hex:
-        return self.__spawn_coordinate
+    def get_spawn_pos(self) -> Hex:
+        return self.__spawn_pos
 
     def get_id(self) -> int:
         return self.__tank_id
 
-    def get_drawing_symbol(self) -> str:
+    def get_symbol(self) -> str:
         if self._type == 'spg':
             return 's'
         if self._type == 'at_spg':
@@ -56,3 +58,11 @@ class Tank(Entity, ABC):
     def get_colour(self) -> str:
         return self.__tank_colour
 
+    def get_pos(self) -> Hex:
+        return self.__position
+
+    def get_coords(self) -> tuple:
+        return self.__position.get_coords()
+
+    def set_pos(self, position: Hex) -> None:
+        self.__position = position

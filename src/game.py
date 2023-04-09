@@ -117,11 +117,11 @@ class Game:
         self.__current_client = self.__game_clients[player]
 
     def __init_game_state(self) -> None:
-        game_map: dict = self.__current_client.get_map()
+        client_map: dict = self.__current_client.get_map()
         game_state: dict = self.__current_client.get_game_state()
 
         # initialize the game map
-        self.__game_map = GameMap(game_map)
+        self.__game_map = GameMap(client_map)
         self.__num_turns = game_state["num_turns"]
         self.__max_players = game_state["num_players"]
 

@@ -1,11 +1,12 @@
 from abc import abstractmethod
 
+from map.hex import Hex
 
+
+# TODO: Implement obstacles as entities
 class Entity:
-
-    def __init__(self, name: str, is_tank: bool = True):
+    def __init__(self, name: str):
         self._type: str = name
-        self.__is_tank: bool = is_tank
 
     @abstractmethod
     def draw(self) -> None:
@@ -18,6 +19,3 @@ class Entity:
     @abstractmethod
     def get_type(self) -> str:
         return self._type
-
-    def is_tank(self) -> bool:
-        return self.__is_tank

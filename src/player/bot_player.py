@@ -1,6 +1,8 @@
+import math
 from abc import ABC
 from threading import Semaphore
 
+from map.hex import Hex
 from src.entity.tanks.tank import Tank
 from src.player.player import Player
 
@@ -10,32 +12,38 @@ class BotPlayer(Player, ABC):
                  turn_played_sem: Semaphore, current_player: list[1], player_index: int):
         super().__init__(name, password, is_observer, turn_played_sem, current_player, player_index)
 
-    def _play_move(self) -> None:
+    def move(self, who, where):
+        pass
+
+    def shoot(self, who, target):
+        pass
+    def _make_turn_plays(self) -> None:
         # tank movement order: SPGs, light tanks, heavy tanks, medium tanks, tank destroyers
         # TODO: fix this function so it moves tanks accordingly
-        free_base_hexes = self._game_map.get_base().copy()
+        base = self._game_map.get_base()
+        free_base_coords = base.get_free_coords()
+
         for tank in self._tanks:
-            if self._game_map.is_tank_in_base(tank.get_id()):
+            if base.is_in(tank):
                 continue
 
-            tank_pos = self._game_map.get_tank_position(tank.get_id())
-            closest_base_hex, closest_base_hex_distance = None, float('inf')
-            for base_hex in free_base_hexes:
-                if isinstance(self._game_map.get_entity_at(base_hex), Tank):
-                    free_base_hexes.remove(base_hex)
-                    continue
-                if base_hex - tank_pos <= closest_base_hex_distance:
-                    closest_base_hex_distance = base_hex - tank_pos
-                    closest_base_hex = base_hex
+            tank_pos = tank.get_pos()
+            tank_coord = tank.get_coords()
+            closest_base_coord, closest_base_dist = None, float('inf')
+            for coord in free_base_coords:
+                dist = self.distance(coord, tank_coord)
+                if dist <= closest_base_dist:
+                    closest_base_dist = dist
+                    closest_base_coord = coord
 
-            if closest_base_hex is not None:
-                free_base_hexes.remove(closest_base_hex)
-                path = self._game_map.shortest_path(tank_pos, closest_base_hex)
+            if closest_base_coord is not None:
+                free_base_coords.remove(closest_base_coord)
+                path = self._game_map.shortest_path(tank_pos, Hex(closest_base_coord))
                 next_hex_coords: []
                 # if len(path) >= 3 and not isinstance(self._game_map.get_entity_at(path[2]), Tank):
                 #     next_hex_coords = path[2].get_coordinates()
-                if len(path) >= 2 and not isinstance(self._game_map.get_entity_at(path[1]), Tank):
-                    next_hex_coords = path[1].get_coordinates()
+                if len(path) >= 2 and not self._game_map.tank_in_pos(path[1]):
+                    next_hex_coords = path[1].get_coords()
                 else:
                     continue
 
@@ -48,3 +56,8 @@ class BotPlayer(Player, ABC):
 
                 self._game_client.move(move)
                 self._game_map.update({"actions": [{"action_type": 101, "data": move}]})
+
+    def distance(self, a: tuple, b: tuple):
+        x1, y1, z1 = a
+        x2, y2, z2 = b
+        return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2)
