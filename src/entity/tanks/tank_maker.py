@@ -15,8 +15,8 @@ class TankMaker:
         "spg": Artillery
     }
 
-    @classmethod
-    def create_tank(cls, tank_id: int, tank_info: dict, tank_colour: str) -> Tank:
-        tank_class = cls.TANK_TYPES[tank_info["vehicle_type"]]
+    @staticmethod
+    def create_tank(tank_id: int, tank_info: dict, tank_colour: str) -> Tank:
+        tank_class = TankMaker.TANK_TYPES[tank_info["vehicle_type"]]
         tank = tank_class(tank_id, tank_info, tank_colour)
         return tank

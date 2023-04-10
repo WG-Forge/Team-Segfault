@@ -1,14 +1,11 @@
 import atexit
 from threading import Semaphore
 
-from entity.tanks.tank import Tank
 from src.client.game_client import GameClient
 from src.map.game_map import GameMap
 from src.player.bot_player import BotPlayer
 from src.player.human_player import HumanPlayer
 from src.player.player import Player
-from entity.tanks.tank_maker import TankMaker
-
 
 
 class Game:
@@ -120,24 +117,14 @@ class Game:
         client_map: dict = self.__current_client.get_map()
         game_state: dict = self.__current_client.get_game_state()
 
-        # initialize the game map
-        self.__game_map = GameMap(client_map)
+        # initialize the game map (now adds tanks to players & game_map too)
+        self.__game_map = GameMap(client_map, game_state, self.__active_players)
         self.__num_turns = game_state["num_turns"]
         self.__max_players = game_state["num_players"]
 
-        # add tanks to players & game_map
-        tanks: dict[int: Tank] = {}
-        for vehicle_id, vehicle_info in game_state["vehicles"].items():
-            player = self.__active_players[vehicle_info["player_id"]]
-            player_colour = player.get_colour()
-            tank = TankMaker.create_tank(int(vehicle_id), vehicle_info, player_colour)
-            player.add_tank(tank)
-            tanks[int(vehicle_id)] = tank
-        self.__game_map.set_tanks(tanks)
-
         # pass GameMap reference to players
         for player in self.__active_players.values():
-            player.add_map(self.__game_map)
+            player.add_maps(self.__game_map)
 
         # output the game info to console
         print(self)

@@ -24,6 +24,7 @@ class Player(Thread):
         self._capture_points = 0
         self._tanks: list[Tank] = []
         self._game_map = None
+        self._map = None
         self._game_client = None
         self.__turn_played_sem = turn_played_sem
         self.__current_player = current_player
@@ -56,8 +57,9 @@ class Player(Thread):
                 return
         self._tanks.append(new_tank)
 
-    def add_map(self, game_map: GameMap):
+    def add_maps(self, game_map: GameMap):
         self._game_map = game_map
+        self._map = game_map.get_map()
 
     def run(self) -> None:
         while True:

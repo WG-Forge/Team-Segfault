@@ -1,7 +1,6 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from src.entity.entity import Entity
-from src.map.hex import Hex
 
 
 class Tank(Entity, ABC):
@@ -12,10 +11,8 @@ class Tank(Entity, ABC):
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
         self.__capture_points = tank_info["capture_points"]
-        self.__spawn_pos: Hex = Hex([tank_info["position"]["x"],
-                                     tank_info["position"]["y"],
-                                     tank_info["position"]["z"]])
-        self.__position: Hex = self.__spawn_pos
+        self.__spawn_coord: tuple = (tank_info["position"]["x"], tank_info["position"]["y"], tank_info["position"]["z"])
+        self.__coord: tuple = self.__spawn_coord
         self.__tank_colour: str = colour
 
         super().__init__(tank_info["vehicle_type"])
@@ -37,8 +34,8 @@ class Tank(Entity, ABC):
             return True
         return False
 
-    def get_spawn_pos(self) -> Hex:
-        return self.__spawn_pos
+    def get_spawn_coord(self) -> tuple:
+        return self.__spawn_coord
 
     def get_id(self) -> int:
         return self.__tank_id
@@ -58,11 +55,12 @@ class Tank(Entity, ABC):
     def get_colour(self) -> str:
         return self.__tank_colour
 
-    def get_pos(self) -> Hex:
-        return self.__position
+    def get_coord(self) -> tuple:
+        return self.__coord
 
-    def get_coords(self) -> tuple:
-        return self.__position.get_coords()
+    def set_coord(self, coord: tuple) -> None:
+        self.__coord = coord
 
-    def set_pos(self, position: Hex) -> None:
-        self.__position = position
+    @abstractmethod
+    def get_speed(self) -> int:
+        pass
