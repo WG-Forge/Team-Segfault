@@ -127,68 +127,6 @@ class GameMap:
             else:
                 return next_best
 
-    def shortest_path(self, start: tuple, end: tuple) -> [tuple]:
-        """
-        Determines the shortest path between two coords(x,y,z)
-        :param start: start hex
-        :param end: target hex
-        :return: list of hexes that represent the shortest path
-        """
-        # O(log n) adding, removing and finding the best hex
-        open_list = SortedSet()
-        open_list.add((Hex.abs_dist(end, start), start))
-
-        # O(1) checking if hex is in the open_list
-        open_list_check: dict[tuple, bool] = {start: True}
-        closed_list: dict[tuple, bool] = {}
-        parent: dict = {start: None}
-
-        movements = ((1, 0, -1), (0, 1, -1), (1, -1, 0), (-1, 0, 1), (0, -1, 1), (-1, 1, 0))
-
-        cheapest_path = defaultdict(lambda: float('inf'))
-        cheapest_path[start] = 0
-
-        path_found = False
-        while len(open_list) > 0:
-            # get the next best coord
-            current = open_list[0][1]
-            if current == end:
-                path_found = True
-                break
-            for movement in movements:
-                neighbour = Hex.coord_sum(current, movement)
-
-                if not self.__map.is_valid(neighbour):
-                    continue
-
-                path_to_neighbour_cost = cheapest_path[current] + 1
-                if (neighbour not in open_list_check or open_list_check[neighbour] is False) \
-                        and (neighbour not in closed_list or closed_list[neighbour] is False):
-                    open_list.add((Hex.abs_dist(end, neighbour) + path_to_neighbour_cost, neighbour))
-                    open_list_check[neighbour] = True
-                    parent[neighbour] = current
-                    cheapest_path[neighbour] = path_to_neighbour_cost
-                elif path_to_neighbour_cost < cheapest_path[neighbour]:
-                    parent[neighbour] = current
-                    cheapest_path[neighbour] = path_to_neighbour_cost
-                    if neighbour in closed_list and closed_list[neighbour] is True:
-                        closed_list[neighbour] = False
-                        open_list.add((Hex.abs_dist(end, neighbour) + path_to_neighbour_cost, neighbour))
-                        open_list_check[neighbour] = True
-
-            open_list.pop(0)
-            open_list_check[current] = False
-            closed_list[current] = True
-
-        if path_found:
-            path: [] = []
-            while end is not None:
-                path.append(end)
-                end = parent[end]
-            path.reverse()
-            return tuple(path)
-        else:
-            return ()
 
     def set_tanks(self, tanks: dict[int: Tank]):
         self.__tanks = tanks  # Tanks set from Game
