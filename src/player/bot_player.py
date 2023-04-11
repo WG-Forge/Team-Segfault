@@ -16,9 +16,19 @@ class BotPlayer(Player, ABC):
     def __move_to_base(self, tank: Tank):
         closest_base_coord = self._map.get_closest_base_coord(tank)
         path = self._game_map.shortest_path(tank.get_coord(), closest_base_coord)
+        if path is None:
+            return
         speed = tank.get_speed()
-        print(path)
+        for i in range(speed, -1, -1):
+            if len(path) >= i + 1:
+                if self._map.get_tank_at((path[i])) is not None:
+                    continue
+                next_move = {"vehicle_id": tank.get_id(), "target": {"x": path[i][0], "y": path[i][1], "z": path[i][2]}}
+                self._game_client.move(next_move)
+                self._game_map.update({"actions": [{"action_type": 101, "data": next_move}]})
+                break
 
+        # print(path)
 
     def __shoot(self, who, target):
         pass
@@ -27,7 +37,6 @@ class BotPlayer(Player, ABC):
         for tank in self._tanks:
             break
         pass
-
 
     def _make_turn_plays(self) -> None:
         for tank in self._tanks:

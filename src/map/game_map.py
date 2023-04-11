@@ -1,4 +1,5 @@
 from collections import defaultdict
+
 from sortedcontainers import SortedSet
 
 from entity.tanks.tank_maker import TankMaker
@@ -12,6 +13,7 @@ class GameMap:
     def __init__(self, client_map: dict, game_state: dict, active_players: dict):
         self.__tanks: dict[int, Tank] = {}
         self.__map = self.parse_map(client_map, game_state, active_players)
+        self.__attack_matrix: dict[int, [int]]
 
     def parse_map(self, client_map: dict, game_state: dict, active_players: dict) -> Map:
         parsed_map = Map(client_map["size"])
@@ -24,6 +26,9 @@ class GameMap:
             self.__tanks[int(vehicle_id)] = tank
             parsed_map.set_tank_at(tank, tank.get_coord())
             player.add_tank(tank)
+            parsed_map.set_spawn((vehicle_info["spawn_position"]["x"],
+                                  vehicle_info["spawn_position"]["y"],
+                                  vehicle_info["spawn_position"]["z"]))
 
         for entity, coords in client_map["content"].items():
             if entity == "base":
@@ -40,7 +45,6 @@ class GameMap:
         :return: None
         """
         if "actions" in game_state:
-            # todo make another function that updates tank positions only
             for action in game_state["actions"]:
                 data = action["data"]
                 tank_id = data["vehicle_id"]
@@ -51,6 +55,7 @@ class GameMap:
                     self.__map.set_tank_at(tank, action_coord)
 
                 if action["action_type"] == Action.SHOOT:
+                    # todo: add to attack matrix
                     shot_tank = self.__map.get_tank_at(action_coord)
                     if shot_tank.reduce_hp():
                         self.__map.set_tank_at(shot_tank, shot_tank.get_spawn_coord)
@@ -109,8 +114,8 @@ class GameMap:
                 break
             for movement in movements:
                 neighbour = Hex.coord_sum(current, movement)
-
                 if not self.__map.is_valid(neighbour):
+                    # if hex is out of bounds or if there is an obstacle on that hex, skip
                     continue
 
                 path_to_neighbour_cost = cheapest_path[current] + 1
@@ -145,6 +150,5 @@ class GameMap:
     def set_tanks(self, tanks: dict[int: Tank]):
         self.__tanks = tanks  # Tanks set from Game
 
-    def get_map(self) -> tuple:
+    def get_map(self) -> Map:
         return self.__map
-

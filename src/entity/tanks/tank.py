@@ -23,6 +23,7 @@ class Tank(Entity, ABC):
 
     def reset(self) -> None:
         self.__hp = self.__og_hp
+        self.__coord = self.__spawn_coord
 
     def reduce_hp(self) -> bool:
         """

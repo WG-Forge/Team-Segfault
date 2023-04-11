@@ -31,7 +31,6 @@ class Map:
         tank.set_coord(coord)  # tank has new position
 
     def set_base(self, coords: dict) -> None:
-        #TODO: take away the adjacent edge of empty hexes next to base
         self.__base_coords = tuple([tuple(coord.values()) for coord in coords])
         for coord in self.__base_coords:
             self.__map[coord]['feature'] = Base(coord)
@@ -59,28 +58,33 @@ class Map:
         ring_num = sum(abs(c) for c in coord) / 2
         # May be inefficient due to last condition always being true but untested
         if sum(coord) == 0 and ring_num <= self.__size and all(abs(c) <= ring_num for c in coord):
-            print('True')
+            # print('True')
             return True
-        print('False')
+        # print('False')
         return False
 
     def draw(self):
-        # TODO: optimize, adjacent hexes have some same edges
-
+        feature_hexes: [] = []
         plt.figure()
         for coord, entities in self.__map.items():
             feature, tank = entities['feature'], entities['tank']
-
-            # Draw feature
-            xs, ys = zip(*feature.get_corners())
-            plt.plot(xs, ys, feature.get_color())
-
             # Draw tank if any
             if tank is not None:
                 color = tank.get_colour()
                 marker = tank.get_symbol()
                 x, y = feature.get_center()
                 plt.plot(x, y, marker=marker, markersize='6', markerfacecolor=color, markeredgewidth=0.0)
+
+            if isinstance(feature, Base) or isinstance(feature, Spawn) or isinstance(feature, Obstacle):
+                feature_hexes.append(feature)
+                continue
+            # Draw feature
+            xs, ys = zip(*feature.get_corners())
+            plt.plot(xs, ys, feature.get_color())
+
+        for feature in feature_hexes:
+            xs, ys = zip(*feature.get_corners())
+            plt.plot(xs, ys, feature.get_color(), fillstyle='none')
 
         plt.axis('off')
         # comment this if using SciView
