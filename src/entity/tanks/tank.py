@@ -6,14 +6,15 @@ from src.entity.entity import Entity
 class Tank(Entity, ABC):
     __damage = 1
 
-    def __init__(self, tank_id: int, tank_info: dict, colour: str):
+    def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
         self.__capture_points = tank_info["capture_points"]
         self.__spawn_coord: tuple = (tank_info["position"]["x"], tank_info["position"]["y"], tank_info["position"]["z"])
-        self.__coord: tuple = self.__spawn_coord
+        self._coord: tuple = self.__spawn_coord
         self.__tank_colour: str = colour
+        self.__player_index: int = player_index
 
         super().__init__(tank_info["vehicle_type"])
 
@@ -40,6 +41,9 @@ class Tank(Entity, ABC):
     def get_id(self) -> int:
         return self.__tank_id
 
+    def get_player_index(self) -> int:
+        return self.__player_index
+
     def get_symbol(self) -> str:
         if self._type == 'spg':
             return 's'
@@ -56,11 +60,15 @@ class Tank(Entity, ABC):
         return self.__tank_colour
 
     def get_coord(self) -> tuple:
-        return self.__coord
+        return self._coord
 
     def set_coord(self, coord: tuple) -> None:
         self.__coord = coord
 
     @abstractmethod
     def get_speed(self) -> int:
+        pass
+
+    @abstractmethod
+    def get_possible_shots(self):
         pass

@@ -13,6 +13,7 @@ class Map:
         # __map = {(0,0,0) : obj[] -> {'feature': Base or Obstacle..., 'tank': Tank or None], (-1,0,-1): {...}}
         self.__map: dict = self.__make_map(size)
         self.__base_coords: tuple = ()
+        self.__players = ()
 
     def __make_map(self, size):
         rings = [Hex.make_ring_coords(ring_num) for ring_num in range(size)]
@@ -63,6 +64,31 @@ class Map:
             return None
         return min(free_base_coords, key=lambda coord: Hex.abs_dist(to_where_coord, coord))
 
+    def closest_enemy(self, friendly_tank: Tank) -> Tank:
+        friendly_index = friendly_tank.get_player_index()
+        enemies = []
+        for player in self.__players:
+            if player.get_index() != friendly_index:
+                enemies.append(player)
+
+        friendly_tank_coord = friendly_tank.get_coord()
+        closest_tank_coord = (1000, 1000, 1000)
+        closest_tank_dist = 1000
+        for enemy in enemies:
+            enemy_tanks = enemy.get_tanks()
+            for enemy_tank in enemy_tanks:
+                enemy_tank_coord = enemy_tank.get_coord()
+                distance = Hex.abs_dist(enemy_tank.get_coord(), friendly_tank_coord)
+                if distance < closest_tank_dist:
+                    closest_tank_coord = enemy_tank_coord
+                    closest_tank_dist = distance
+
+        if closest_tank_dist != 1000:
+            return self.__map[closest_tank_coord]['tank']
+
+    def set_players(self, players: tuple) -> None:
+        self.__players = players
+
     def draw(self):
         feature_hexes: [] = []
         plt.figure()
@@ -88,6 +114,6 @@ class Map:
 
         plt.axis('off')
         # comment this if using SciView
-        plt.pause(1)
+        plt.pause(2)
         plt.show(block=False)
         plt.close("all")

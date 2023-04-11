@@ -1,6 +1,4 @@
 import heapq
-from collections import defaultdict
-from sortedcontainers import SortedSet
 
 from entity.tanks.tank_maker import TankMaker
 from map.hex import Hex
@@ -18,17 +16,24 @@ class GameMap:
 
     def parse_map(self, client_map: dict, game_state: dict, active_players: dict) -> Map:
         parsed_map = Map(client_map["size"])
+        players = [None, None, None]
 
         # put tanks in self.__tanks & add tanks to players
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             player = active_players[vehicle_info["player_id"]]
-            player_colour = player.get_colour()
-            tank, spawn = TankMaker.create_tank(int(vehicle_id), vehicle_info, player_colour)
+            if players[player.get_index()] is None:
+                players[player.get_index()] = player
+
+            color = player.get_colour()
+            index = player.get_index()
+            tank, spawn = TankMaker.create_tank(int(vehicle_id), vehicle_info, color, index)
             self.__tanks[int(vehicle_id)] = tank
             tank_coord = tank.get_coord()
             parsed_map.set_tank(tank, tank_coord)
             parsed_map.set_spawn(spawn, tank_coord)
             player.add_tank(tank)
+
+        parsed_map.set_players(tuple(players))
 
         for entity, coords in client_map["content"].items():
             if entity == "base":
@@ -87,7 +92,7 @@ class GameMap:
         cnt = 0
 
         # TODO: make more efficient
-        while cnt < 15:
+        while cnt < 25:
             while frontier:
                 current = heapq.heappop(frontier)[1]
 

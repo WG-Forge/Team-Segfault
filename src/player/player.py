@@ -29,6 +29,7 @@ class Player(Thread):
         self.__turn_played_sem = turn_played_sem
         self.__current_player = current_player
         self.__player_colour = Player.__possible_colours[player_index]
+        self._player_index = player_index
 
     def __hash__(self):
         return hash(self.name)
@@ -82,3 +83,9 @@ class Player(Thread):
 
     def get_colour(self) -> str:
         return self.__player_colour
+
+    def get_index(self):
+        return self._player_index
+
+    def get_tanks(self):
+        return self._tanks

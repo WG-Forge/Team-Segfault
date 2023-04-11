@@ -55,6 +55,4 @@ class Hex:
             first
         )
 
-
-
 Hex.make_rings()
