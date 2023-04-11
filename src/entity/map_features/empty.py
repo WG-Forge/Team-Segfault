@@ -1,22 +1,13 @@
 from abc import ABC
 
-from entity.entity import Entity
-from map.hex import Hex
+from entity.map_features.feature import Feature
 
 
-class Empty(Entity, ABC):
+class Empty(Feature, ABC):
     __color = 'black'
 
     def __init__(self, coord: tuple):
-        self.__corners = Hex.make_corners(coord)
-        self.__center = Hex.make_center(coord)
-        super().__init__('empty')
-
-    def get_corners(self) -> tuple:
-        return self.__corners
-
-    def get_center(self) -> tuple:
-        return self.__center
+        super().__init__('empty', coord)
 
     def get_color(self) -> str:
         return Empty.__color

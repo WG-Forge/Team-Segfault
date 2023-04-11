@@ -14,29 +14,22 @@ class BotPlayer(Player, ABC):
         pass
 
     def __move_to_base(self, tank: Tank):
-        closest_base_coord = self._map.get_closest_base_coord(tank)
-        path = self._game_map.shortest_path(tank.get_coord(), closest_base_coord)
-        if path is None:
-            return
-        speed = tank.get_speed()
-        for i in range(speed, -1, -1):
-            if len(path) >= i + 1:
-                if self._map.get_tank_at((path[i])) is not None:
-                    continue
-                next_move = {"vehicle_id": tank.get_id(), "target": {"x": path[i][0], "y": path[i][1], "z": path[i][2]}}
-                self._game_client.move(next_move)
-                self._game_map.update({"actions": [{"action_type": 101, "data": next_move}]})
-                break
+        tank_coord = tank.get_coord()
+        tank_speed = tank.get_speed()
+        tank_id = tank.get_id()
+        closest_base_coord = self._map.closest_base(tank_coord)
+        next_best = self._game_map.next_best(tank_coord, closest_base_coord, tank_speed, tank_id)
+        self.__make_move(tank_id, next_best)
 
-        # print(path)
 
     def __shoot(self, who, target):
         pass
 
-    def _play(self) -> None:
-        for tank in self._tanks:
-            break
-        pass
+    def __make_move(self, tank_id: int, move_coord: tuple) :
+        x, y, z = move_coord
+        move_dict = {"vehicle_id": tank_id, "target": {"x": x, "y": y, "z": z}}
+        self._game_client.move(move_dict)
+        self._game_map.update({"actions": [{"action_type": 101, "data": move_dict}]})
 
     def _make_turn_plays(self) -> None:
         for tank in self._tanks:

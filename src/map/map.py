@@ -13,7 +13,6 @@ class Map:
         # __map = {(0,0,0) : obj[] -> {'feature': Base or Obstacle..., 'tank': Tank or None], (-1,0,-1): {...}}
         self.__map: dict = self.__make_map(size)
         self.__base_coords: tuple = ()
-        self.__size = size
 
     def __make_map(self, size):
         rings = [Hex.make_ring_coords(ring_num) for ring_num in range(size)]
@@ -22,46 +21,47 @@ class Map:
     def get_feature_at(self, coord: tuple):
         return self.__map[coord]['feature']
 
-    def get_tank_at(self, coord: tuple):
+    def get_tank(self, coord: tuple):
         return self.__map[coord]['tank']
 
-    def set_tank_at(self, tank: Tank, coord: tuple) -> None:
+    def set_tank(self, tank: Tank, coord: tuple) -> None:
         self.__map[tank.get_coord()]['tank'] = None  # Old pos is now empty
         self.__map[coord]['tank'] = tank  # New pos has now tank
         tank.set_coord(coord)  # tank has new position
 
     def set_base(self, coords: dict) -> None:
+        #TODO: take away the adjacent edge of empty hexes next to base
         self.__base_coords = tuple([tuple(coord.values()) for coord in coords])
         for coord in self.__base_coords:
             self.__map[coord]['feature'] = Base(coord)
 
-    def set_spawn(self, coord: tuple) -> None:
-        self.__map[coord]['feature'] = Spawn(coord)
+    def set_spawn(self, spawn: Spawn, coord: tuple) -> None:
+        self.__map[coord]['feature'] = spawn
 
     def set_obstacle(self, coord: tuple) -> None:
         self.__map[coord]['feature'] = Obstacle(coord)
 
-    def get_base_coords(self) -> tuple:
-        return self.__base_coords
+    def is_others_spawn(self, coord: tuple, tank_id: int) -> bool:
+        feature = self.__map[coord]['feature']
+        if isinstance(feature, Spawn):
+            if feature.get_belongs_id() != tank_id:
+                return True
+        return False
 
-    def is_base(self, coord: tuple) -> bool:
-        return True if isinstance(self.__map[coord]['feature'], Base) else False
+    def is_obstacle(self, coord: tuple) -> bool:
+        return True if isinstance(self.__map[coord]['feature'], Obstacle) else False
 
-    def get_closest_base_coord(self, tank: Tank) -> tuple:
+    def is_occupied(self, coord: tuple) -> bool:
+        return False if self.__map[coord]['tank'] is None else True
+
+    def has(self, coord: tuple) -> bool:
+        return coord in self.__map
+
+    def closest_base(self, to_where_coord: tuple) -> tuple:
         free_base_coords = tuple(coord for coord in self.__base_coords if self.__map[coord]['tank'] is None)
         if not free_base_coords:
             return None
-        tank_coord = tank.get_coord()
-        return min(free_base_coords, key=lambda coord: Hex.abs_dist(tank_coord, coord))
-
-    def is_valid(self, coord: tuple) -> bool:
-        ring_num = sum(abs(c) for c in coord) / 2
-        # May be inefficient due to last condition always being true but untested
-        if sum(coord) == 0 and ring_num <= self.__size and all(abs(c) <= ring_num for c in coord):
-            # print('True')
-            return True
-        # print('False')
-        return False
+        return min(free_base_coords, key=lambda coord: Hex.abs_dist(to_where_coord, coord))
 
     def draw(self):
         feature_hexes: [] = []

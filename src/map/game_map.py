@@ -1,5 +1,5 @@
+import heapq
 from collections import defaultdict
-
 from sortedcontainers import SortedSet
 
 from entity.tanks.tank_maker import TankMaker
@@ -10,10 +10,11 @@ from src.entity.tanks.tank import Tank
 
 
 class GameMap:
+    __movements = ((1, 0, -1), (0, 1, -1), (1, -1, 0), (-1, 0, 1), (0, -1, 1), (-1, 1, 0))
+
     def __init__(self, client_map: dict, game_state: dict, active_players: dict):
         self.__tanks: dict[int, Tank] = {}
         self.__map = self.parse_map(client_map, game_state, active_players)
-        self.__attack_matrix: dict[int, [int]]
 
     def parse_map(self, client_map: dict, game_state: dict, active_players: dict) -> Map:
         parsed_map = Map(client_map["size"])
@@ -22,13 +23,12 @@ class GameMap:
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             player = active_players[vehicle_info["player_id"]]
             player_colour = player.get_colour()
-            tank = TankMaker.create_tank(int(vehicle_id), vehicle_info, player_colour)
+            tank, spawn = TankMaker.create_tank(int(vehicle_id), vehicle_info, player_colour)
             self.__tanks[int(vehicle_id)] = tank
-            parsed_map.set_tank_at(tank, tank.get_coord())
+            tank_coord = tank.get_coord()
+            parsed_map.set_tank(tank, tank_coord)
+            parsed_map.set_spawn(spawn, tank_coord)
             player.add_tank(tank)
-            parsed_map.set_spawn((vehicle_info["spawn_position"]["x"],
-                                  vehicle_info["spawn_position"]["y"],
-                                  vehicle_info["spawn_position"]["z"]))
 
         for entity, coords in client_map["content"].items():
             if entity == "base":
@@ -45,6 +45,7 @@ class GameMap:
         :return: None
         """
         if "actions" in game_state:
+            # todo make another function that updates tank positions only
             for action in game_state["actions"]:
                 data = action["data"]
                 tank_id = data["vehicle_id"]
@@ -52,13 +53,12 @@ class GameMap:
 
                 tank = self.__tanks[tank_id]
                 if action["action_type"] == Action.MOVE:
-                    self.__map.set_tank_at(tank, action_coord)
+                    self.__map.set_tank(tank, action_coord)
 
                 if action["action_type"] == Action.SHOOT:
-                    # todo: add to attack matrix
-                    shot_tank = self.__map.get_tank_at(action_coord)
+                    shot_tank = self.__map.get_tank(action_coord)
                     if shot_tank.reduce_hp():
-                        self.__map.set_tank_at(shot_tank, shot_tank.get_spawn_coord)
+                        self.__map.set_tank(shot_tank, shot_tank.get_spawn_coord)
             return
 
         vehicles = game_state["vehicles"]
@@ -69,20 +69,63 @@ class GameMap:
             if vehicle_id in self.__tanks:
                 tank = self.__tanks[vehicle_id]
                 old_coord = tank.get_coord()
-                if old_coord == action_coord:
-                    # this tank did not move, only update hp and capture points
-                    tank.update(vehicle_info["health"], vehicle_info["capture_points"])
-                else:
-                    # this tank did move -> update its position and after that update its hp and capture points
-                    self.__map.set_tank_at(tank, action_coord)
-
-                    # if light or hard repair was there, overwrite hex with this tank and
-                    # update tank vehicle_info from server response
-                    tank.update(vehicle_info["health"], vehicle_info["capture_points"])
-                    tank.set_coord(action_coord)
+                tank.update(vehicle_info["health"], vehicle_info["capture_points"])
+                if old_coord != action_coord:
+                    self.__map.set_tank(tank, action_coord)  # this tank did move -> update its position
 
     def draw_map(self) -> None:
         self.__map.draw()
+
+    def next_best(self, start: tuple, finish: tuple, speed: int, tank_id: int):
+        frontier = []
+        heapq.heappush(frontier, (0, start))
+        came_from = {}
+        cost_so_far = {}
+        came_from[start] = None
+        cost_so_far[start] = 0
+        passable_obstacles = []
+
+        # TODO: Add support for impossible paths eg. blocked tank
+        while True:
+            while frontier:
+                current = heapq.heappop(frontier)[1]
+
+                if current == finish:
+                    break
+
+                for movement in GameMap.__movements:
+                    next = Hex.coord_sum(current, movement)
+
+                    if not self.__map.has(next): # First check if next exists in map
+                        continue
+                    elif self.__map.is_obstacle(next) or next in passable_obstacles: # Then, check if it is an obstacle
+                        continue
+
+                    new_cost = cost_so_far[current] + 1
+                    if next not in cost_so_far or new_cost < cost_so_far[next]:
+                        cost_so_far[next] = new_cost
+                        priority = new_cost + Hex.abs_dist(finish, next)
+                        heapq.heappush(frontier, (priority, next))
+                        came_from[next] = current
+
+            path = []
+            current = finish
+            while current != start:
+                path.append(current)
+                current = came_from[current]
+            path.append(start)
+            path.reverse()
+
+            if speed >= len(path):
+                speed = len(path)-1
+            next_best = path[speed]
+
+            # If next_best is a tank or base, append to passable_obstacles and try again
+            if self.__map.is_others_spawn(next_best, tank_id) or self.__map.is_occupied(next_best):
+                passable_obstacles.append(next_best)
+                continue
+            else:
+                return next_best
 
     def shortest_path(self, start: tuple, end: tuple) -> [tuple]:
         """
@@ -114,8 +157,8 @@ class GameMap:
                 break
             for movement in movements:
                 neighbour = Hex.coord_sum(current, movement)
+
                 if not self.__map.is_valid(neighbour):
-                    # if hex is out of bounds or if there is an obstacle on that hex, skip
                     continue
 
                 path_to_neighbour_cost = cheapest_path[current] + 1
@@ -145,10 +188,10 @@ class GameMap:
             path.reverse()
             return tuple(path)
         else:
-            return None
+            return ()
 
     def set_tanks(self, tanks: dict[int: Tank]):
         self.__tanks = tanks  # Tanks set from Game
 
-    def get_map(self) -> Map:
+    def get_map(self) -> tuple:
         return self.__map
