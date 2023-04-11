@@ -18,8 +18,10 @@ class BotPlayer(Player, ABC):
         tank_speed = tank.get_speed()
         tank_id = tank.get_id()
         closest_base_coord = self._map.closest_base(tank_coord)
-        next_best = self._game_map.next_best(tank_coord, closest_base_coord, tank_speed, tank_id)
-        self.__make_move(tank_id, next_best)
+        if closest_base_coord is not None:
+            next_best = self._game_map.next_best(tank_coord, closest_base_coord, tank_speed, tank_id)
+            if next_best is not None:
+                self.__make_move(tank_id, next_best)
 
 
     def __shoot(self, who, target):

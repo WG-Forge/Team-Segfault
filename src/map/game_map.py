@@ -84,9 +84,10 @@ class GameMap:
         came_from[start] = None
         cost_so_far[start] = 0
         passable_obstacles = []
+        cnt = 0
 
-        # TODO: Add support for impossible paths eg. blocked tank
-        while True:
+        # TODO: make more efficient
+        while cnt < 15:
             while frontier:
                 current = heapq.heappop(frontier)[1]
 
@@ -123,6 +124,7 @@ class GameMap:
             # If next_best is a tank or base, append to passable_obstacles and try again
             if self.__map.is_others_spawn(next_best, tank_id) or self.__map.is_occupied(next_best):
                 passable_obstacles.append(next_best)
+                cnt += 1
                 continue
             else:
                 return next_best
