@@ -88,6 +88,6 @@ class Map:
 
         plt.axis('off')
         # comment this if using SciView
-        plt.pause(2)
+        plt.pause(1)
         plt.show(block=False)
         plt.close("all")
