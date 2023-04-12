@@ -141,6 +141,9 @@ class Game:
         self.__current_player = self.__active_players[self.__current_player_idx[0]]
         self.__current_client = self.__game_clients[self.__current_player]
 
+        # Update current player attackers (delete attacks from 2 turns ago make empty list for this turns' attacks)
+        self.__current_player.register_new_turn()
+
         print(f"Current turn: {self.__current_turn}, "
               f"current player: {self.__current_player.name}")
 

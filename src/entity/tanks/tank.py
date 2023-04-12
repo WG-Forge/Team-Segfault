@@ -44,9 +44,7 @@ class Tank(Entity, ABC):
     def get_player_index(self) -> int:
         return self.__player_index
 
-
-
-    def get_colour(self) -> str:
+    def get_color(self) -> str:
         return self.__tank_colour
 
     def get_coord(self) -> tuple:

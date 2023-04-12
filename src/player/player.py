@@ -1,3 +1,4 @@
+import queue
 from abc import abstractmethod
 from dataclasses import dataclass
 from threading import Thread, Semaphore
@@ -29,6 +30,7 @@ class Player(Thread):
         self.__current_player = current_player
         self.__player_colour = Player.__possible_colours[player_index]
         self._player_index = player_index
+        self.__attackers = [[], []]  # Holds two lists of attacker indexes -> [[prev turns'], [this turns']]
 
     def __hash__(self):
         return hash(self.name)
@@ -79,7 +81,7 @@ class Player(Thread):
     def _make_turn_plays(self) -> None:
         pass
 
-    def get_colour(self) -> str:
+    def get_color(self) -> str:
         return self.__player_colour
 
     def get_index(self):
@@ -87,3 +89,16 @@ class Player(Thread):
 
     def get_tanks(self):
         return self._tanks
+
+    def _was_attacked_by(self, attacker_index: int) -> bool:
+        # True if this player was attacked by 'attacker_index' in the previous turn
+        return attacker_index in self.__attackers[0]
+
+    def register_attacker(self, attacker_index: int) -> None:
+        # Appends attacker to this turns' attackers which will become last turns' attackers next turn
+        if attacker_index not in self.__attackers[1]:
+            self.__attackers[1].append(attacker_index)
+
+    def register_new_turn(self) -> None:  # Call this for every player at the beginning of every turn
+        self.__attackers.pop(0)  # Delete list of attackers of two turns ago
+        self.__attackers.append([])  # Append a new empty list to register this turns' attackers

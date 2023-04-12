@@ -15,13 +15,14 @@ class Map:
     __movements = ((1, 0, -1), (0, 1, -1), (1, -1, 0), (-1, 0, 1), (0, -1, 1), (-1, 1, 0))
 
     def __init__(self, client_map: dict, game_state: dict, active_players: dict):
-        self.__players = self.__add_players(active_players)
+        self.__players = Map.__add_players(active_players)
         self.__tanks: dict[int, Tank] = {}
         self.__map: dict = {}
         self.__base_coords: tuple = ()
         self.__make_map(client_map, game_state, active_players)
 
-    def __add_players(self, active_players: dict) -> tuple:
+    @staticmethod
+    def __add_players(active_players: dict) -> tuple:
         players = [None, None, None]
         for player_id, player in active_players.items():
             if not player.is_observer:
@@ -36,17 +37,22 @@ class Map:
         # put tanks in tanks & map & put spawns in map
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             player = active_players[vehicle_info["player_id"]]
-            tank, spawn = TankMaker.create_tank(int(vehicle_id), vehicle_info, player.get_colour(), player.get_index())
+            tank, spawn = TankMaker.create_tank(int(vehicle_id), vehicle_info, player.get_color(), player.get_index())
             tank_coord = tank.get_coord()
             self.__map[tank_coord]['tank'] = tank
             self.__map[tank_coord]['feature'] = spawn
             self.__tanks[int(vehicle_id)] = tank
             player.add_tank(tank)
 
+        print(client_map["content"].items())
+
         # Put bases in map
-        for entity, coords in client_map["content"].items():
+        for entity, info in client_map["content"].items():
+            print(entity)
             if entity == "base":
-                self.__set_base(coords)
+                self.__set_base(info)
+            if entity == 'obstacle':
+                self.__set_obstacles(info)
             else:
                 print("Support for other entities needed")
 
@@ -54,6 +60,11 @@ class Map:
         self.__base_coords = tuple([tuple(coord.values()) for coord in coords])
         for coord in self.__base_coords:
             self.__map[coord]['feature'] = Base(coord)
+
+    def __set_obstacles(self, obstacles: []) -> None:
+        for d in obstacles:
+            coord = (d['x'], d['y'], d['z'])
+            self.__map[coord]['feature'] = Obstacle(coord)
 
     def update_game_state(self, game_state: dict) -> None:
         # Updates the map information based on passed dictionary
@@ -86,6 +97,12 @@ class Map:
             if feature.get_belongs_id() != tank_id:
                 return True
         return False
+
+    def get_players(self):
+        return self.__players
+
+    def get_player(self, index: int):
+        return self.__players[index]
 
     def __is_obstacle(self, coord: tuple) -> bool:
         return True if isinstance(self.__map[coord]['feature'], Obstacle) else False
@@ -185,7 +202,7 @@ class Map:
             feature, tank = entities['feature'], entities['tank']
             # Draw tank if any
             if tank is not None:
-                color = tank.get_colour()
+                color = tank.get_color()
                 marker = tank.get_symbol()
                 x, y = feature.get_center()
                 plt.plot(x, y, marker=marker, markersize='6', markerfacecolor=color, markeredgewidth=0.0)
