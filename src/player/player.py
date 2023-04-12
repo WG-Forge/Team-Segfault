@@ -1,4 +1,3 @@
-import queue
 from abc import abstractmethod
 from dataclasses import dataclass
 from threading import Thread, Semaphore
@@ -67,15 +66,18 @@ class Player(Thread):
             # wait for condition
             self.next_turn_sem.acquire()
 
-            # play your move if you are the current player
-            if self.__current_player[0] == self.idx:
-                self._make_turn_plays()
+            try:
+                # play your move if you are the current player
+                if self.__current_player[0] == self.idx:
+                    self._make_turn_plays()
 
-            # force next turn
-            self._game_client.force_turn()
-
-            # notify condition
-            self.__turn_played_sem.release()
+                # force next turn
+                self._game_client.force_turn()
+            except ConnectionError or TimeoutError as err:
+                print(err)
+            finally:
+                # notify condition
+                self.__turn_played_sem.release()
 
     @abstractmethod
     def _make_turn_plays(self) -> None:
