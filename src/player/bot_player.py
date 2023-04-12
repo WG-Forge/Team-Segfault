@@ -12,11 +12,27 @@ class BotPlayer(Player, ABC):
 
     def _make_turn_plays(self) -> None:
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
+
+        # multiplayer game:
         for tank in self._tanks:
             if tank.get_type() == 'light_tank':
                 self.__move_to_base(tank)
+            elif tank.get_type() == 'at_spg':
+                # todo: handle it, below is only some kind of an example
+                directions = [0, 2]
+                potential_shooting_options = tank.get_possible_shots()
+                true_shooting_options: tuple = ()
+                for direction in directions:
+                    for i in range(3):
+                        if self._map.is_obstacle(potential_shooting_options[i * 6 + direction]):
+                            break
+                        true_shooting_options += potential_shooting_options[i * 6 + direction]
             else:
                 self.__move_to_shoot_closest_enemy(tank)
+
+        # single player:
+        # for tank in self._tanks:
+        #     self.__move_to_base(tank)
 
     def can_shoot(self, enemy: Tank) -> bool:
         # Implements logic of the neutrality rule
@@ -32,13 +48,15 @@ class BotPlayer(Player, ABC):
 
     def __move_to_base(self, tank: Tank):
         closest_base_coord = self._map.closest_base(tank.get_coord())
+        if closest_base_coord == tank.get_coord():
+            return
         if closest_base_coord is not None:
             self.__move_to(tank, closest_base_coord)
 
     def __move_to_shoot_closest_enemy(self, tank: Tank):
         # Find the closest enemy
         enemy: Tank = self._map.closest_enemy(tank)
-        if self.can_shoot(enemy):
+        if enemy is not None and self.can_shoot(enemy):
             if tank.in_range(enemy.get_coord()):
                 self.__update_shot(tank, enemy)
             else:

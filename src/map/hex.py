@@ -4,6 +4,7 @@ from math import sqrt
 class Hex:
     __sqrt3 = sqrt(3)
     rings = []
+    movements = ((1, 0, -1), (0, 1, -1), (1, -1, 0), (-1, 0, 1), (0, -1, 1), (-1, 1, 0))
 
     @staticmethod
     def make_rings():
@@ -23,6 +24,20 @@ class Hex:
                 if abs(i) + abs(j) + abs(k) == required_abs_sum:
                     ring_coords.append((i, j, k))
         return tuple(ring_coords)
+
+    @staticmethod
+    def make_directions(shot_len: int) -> tuple[tuple[int, int, int]]:
+        """ used for finding TD shooting positions, not registering obstacles
+        :param shot_len: length of a line
+        :return: coordinates of straight lines in all 6 directions of length shot_len from (0,0,0)
+        """
+        direction_blocked: tuple = tuple(0 for _ in range(6))
+        ret = [movement for movement in Hex.movements]
+        for i in range(1, shot_len):
+            for j in range(6):
+                ret.append(Hex.coord_sum(ret[6 * (i - 1) + j], Hex.movements[j]))
+
+        return tuple(ret)
 
     @staticmethod
     def manhattan_dist(coord1: tuple, coord2: tuple) -> int:
@@ -54,5 +69,6 @@ class Hex:
             Hex.make_center((x + 1, y, z)),
             first
         )
+
 
 Hex.make_rings()

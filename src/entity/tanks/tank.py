@@ -69,4 +69,5 @@ class Tank(Entity, ABC):
     def get_possible_shots(self):
         pass
 
-
+    def get_hp(self) -> int:
+        return self.__hp

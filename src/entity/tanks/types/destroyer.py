@@ -1,14 +1,13 @@
 from abc import ABC
 
-from map.hex import Hex
 from entity.tanks.tank import Tank
+from map.hex import Hex
 
 
 class TankDestroyer(Tank, ABC):
     __sp: int = 1  # Speed Points
     __dp: int = 2  # Destruction Points
-    __fire_deltas: tuple = Hex.rings[0]
-    __possible_shot_num: int = len(__fire_deltas)
+    __fire_deltas: tuple = Hex.make_directions(3)
     __symbol: str = 'v'
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
