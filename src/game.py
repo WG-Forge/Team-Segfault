@@ -1,8 +1,8 @@
 import atexit
 from threading import Semaphore
 
+from map.map import Map
 from src.client.game_client import GameClient
-from src.map.game_map import GameMap
 from src.player.bot_player import BotPlayer
 from src.player.human_player import HumanPlayer
 from src.player.player import Player
@@ -11,7 +11,7 @@ from src.player.player import Player
 class Game:
     def __init__(self, game_name: str = None, num_turns: int = None, max_players: int = 1) -> None:
         super().__init__()
-        self.__game_map: GameMap
+        self.__map: Map
         self.__game_name: str = game_name
 
         self.__active: bool = False
@@ -85,7 +85,7 @@ class Game:
         self.__init_game_state()
 
         while self.__active:
-            self.__game_map.draw_map()
+            self.__map.draw()
 
             # release all players using their private semaphores
             for player in self.__active_players.values():
@@ -118,13 +118,13 @@ class Game:
         game_state: dict = self.__current_client.get_game_state()
 
         # initialize the game map (now adds tanks to players & game_map too)
-        self.__game_map = GameMap(client_map, game_state, self.__active_players)
+        self.__map = Map(client_map, game_state, self.__active_players)
         self.__num_turns = game_state["num_turns"]
         self.__max_players = game_state["num_players"]
 
-        # pass GameMap reference to players
+        # pass Map reference to players
         for player in self.__active_players.values():
-            player.add_maps(self.__game_map)
+            player.add_map(self.__map)
 
         # output the game info to console
         print(self)
@@ -141,10 +141,13 @@ class Game:
         self.__current_player = self.__active_players[self.__current_player_idx[0]]
         self.__current_client = self.__game_clients[self.__current_player]
 
+        # Update current player attackers (delete attacks from 2 turns ago make empty list for this turns' attacks)
+        self.__current_player.register_new_turn()
+
         print(f"Current turn: {self.__current_turn}, "
               f"current player: {self.__current_player.name}")
 
-        self.__game_map.update(game_state)
+        self.__map.update_game_state(game_state)
 
         if game_state["winner"] or self.__current_turn == self.__num_turns:
             self.__winner = game_state["winner"]

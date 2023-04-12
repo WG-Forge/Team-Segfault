@@ -6,61 +6,63 @@ from src.player.player import Player
 
 
 class BotPlayer(Player, ABC):
-    def __init__(self, name: str, password: str, is_observer: bool,
-                 turn_played_sem: Semaphore, current_player: list[1], player_index: int):
+    def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
+                 current_player: list[1], player_index: int):
         super().__init__(name, password, is_observer, turn_played_sem, current_player, player_index)
 
-    def __move(self, who: Tank, where: tuple):
-        pass
+    def _make_turn_plays(self) -> None:
+        # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
+        for tank in self._tanks:
+            if tank.get_type() == 'light_tank':
+                self.__move_to_base(tank)
+            else:
+                self.__move_to_shoot_closest_enemy(tank)
+
+    def can_shoot(self, enemy: Tank) -> bool:
+        # Implements logic of the neutrality rule
+        player_index = self._player_index
+        enemy_index = enemy.get_player_index()
+        other_index = next(iter({0, 1, 2} - {player_index, enemy_index}))
+        enemy_player = self._map.get_player(enemy_index)
+
+        enemy_has_attacked_player = self.was_attacked_by(enemy_index)
+        enemy_was_attacked_by_other = enemy_player.was_attacked_by(other_index)
+
+        return enemy_has_attacked_player or not enemy_was_attacked_by_other
 
     def __move_to_base(self, tank: Tank):
-        tank_coord = tank.get_coord()
-        tank_speed = tank.get_speed()
-        tank_id = tank.get_id()
-        closest_base_coord = self._map.closest_base(tank_coord)
+        closest_base_coord = self._map.closest_base(tank.get_coord())
         if closest_base_coord is not None:
-            next_best = self._game_map.next_best(tank_coord, closest_base_coord, tank_speed, tank_id)
-            if next_best is not None:
-                self.__make_move(tank_id, next_best)
+            self.__move_to(tank, closest_base_coord)
 
+    def __move_to_shoot_closest_enemy(self, tank: Tank):
+        # Find the closest enemy
+        enemy: Tank = self._map.closest_enemy(tank)
+        if self.can_shoot(enemy):
+            if tank.in_range(enemy.get_coord()):
+                self.__update_shot(tank, enemy)
+            else:
+                self.__move_to(tank, enemy.get_coord())
 
-    def __shoot(self, who, target):
-        pass
+    def __move_to(self, tank: Tank, where: tuple):
+        next_best = self._map.next_best(tank, where)
+        if next_best is not None:
+            self.__update_move(tank, next_best)
 
-    def __make_move(self, tank_id: int, move_coord: tuple) :
-        x, y, z = move_coord
-        move_dict = {"vehicle_id": tank_id, "target": {"x": x, "y": y, "z": z}}
-        self._game_client.move(move_dict)
-        self._game_map.update({"actions": [{"action_type": 101, "data": move_dict}]})
+    def __update_move(self, tank: Tank, action_coord: tuple) -> None:
+        print('has moved', 'id:', tank.get_id(), 'from:', tank.get_coord(), 'to:', action_coord)
+        x, y, z = action_coord
+        self._game_client.move({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
+        self._map.move(tank, action_coord)
 
-    def _make_turn_plays(self) -> None:
-        for tank in self._tanks:
-            self.__move_to_base(tank)
-        # free_base_coords = list(self._map.get_base_coords())
-        #
-        # for tank in self._tanks:
-        #     if self._map.is_base(tank.get_coord()):
-        #         continue
-        #
-        #     tank_coord = tank.get_coord()
-        #     closest_base_coord, closest_base_dist = None, float('inf')
-        #
-        #     for coord in free_base_coords:
-        #         dist = Hex.abs_dist(coord, tank_coord)
-        #         if dist <= closest_base_dist:
-        #             closest_base_dist = dist
-        #             closest_base_coord = coord
-        #
-        #     if closest_base_coord is not None:
-        #         free_base_coords.remove(closest_base_coord)
-        #         path = self._game_map.shortest_path(tank_coord, closest_base_coord)
-        #
-        #         if len(path) >= 2 and not self._map.get_tank_at(path[1]):
-        #             x, y, z = path[1]
-        #         else:
-        #             continue
-        #
-        #         next_move = {"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}}
-        #
-        #         self._game_client.move(next_move)
-        #         self._game_map.update({"actions": [{"action_type": 101, "data": next_move}]})
+    def __update_shot(self, tank: Tank, target: Tank):
+        print('has shot', 'id:', tank.get_id(), 'from:', tank.get_coord(), 'who:', target.get_id(), target.get_coord())
+        x, y, z = target.get_coord()
+
+        # Register that self has attacked target player
+        attacker_index = tank.get_player_index()
+        target_player = self._map.get_player(target.get_player_index())
+        target_player.register_attacker(attacker_index)
+
+        self._game_client.shoot({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
+        self._map.shoot(tank, target)

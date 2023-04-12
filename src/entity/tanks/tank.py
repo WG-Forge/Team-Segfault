@@ -6,14 +6,15 @@ from src.entity.entity import Entity
 class Tank(Entity, ABC):
     __damage = 1
 
-    def __init__(self, tank_id: int, tank_info: dict, colour: str):
+    def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
         self.__capture_points = tank_info["capture_points"]
         self.__spawn_coord: tuple = (tank_info["position"]["x"], tank_info["position"]["y"], tank_info["position"]["z"])
-        self.__coord: tuple = self.__spawn_coord
+        self._coord: tuple = self.__spawn_coord
         self.__tank_colour: str = colour
+        self.__player_index: int = player_index
 
         super().__init__(tank_info["vehicle_type"])
 
@@ -41,27 +42,31 @@ class Tank(Entity, ABC):
     def get_id(self) -> int:
         return self.__tank_id
 
-    def get_symbol(self) -> str:
-        if self._type == 'spg':
-            return 's'
-        if self._type == 'at_spg':
-            return 'v'
-        if self._type == 'heavy_tank':
-            return 'H'
-        if self._type == 'medium_tank':
-            return '*'
-        if self._type == 'light_tank':
-            return 'D'
+    def get_player_index(self) -> int:
+        return self.__player_index
 
-    def get_colour(self) -> str:
+    def get_color(self) -> str:
         return self.__tank_colour
 
     def get_coord(self) -> tuple:
-        return self.__coord
+        return self._coord
 
-    def set_coord(self, coord: tuple) -> None:
-        self.__coord = coord
+    def set_coord(self, new_coord: tuple) -> None:
+        self._coord = new_coord
+
+    def in_range(self, target: tuple) -> bool:
+        return target in self.get_possible_shots()
+
+    @abstractmethod
+    def get_symbol(self) -> str:
+        pass
 
     @abstractmethod
     def get_speed(self) -> int:
         pass
+
+    @abstractmethod
+    def get_possible_shots(self):
+        pass
+
+

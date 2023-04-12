@@ -2,9 +2,9 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from threading import Thread, Semaphore
 
+from map.map import Map
 from src.client.game_client import GameClient
 from src.entity.tanks.tank import Tank
-from src.map.game_map import GameMap
 
 
 @dataclass
@@ -23,12 +23,13 @@ class Player(Thread):
         self._damage_points = 0
         self._capture_points = 0
         self._tanks: list[Tank] = []
-        self._game_map = None
         self._map = None
         self._game_client = None
         self.__turn_played_sem = turn_played_sem
         self.__current_player = current_player
         self.__player_colour = Player.__possible_colours[player_index]
+        self._player_index = player_index
+        self.__attackers = [[], []]  # Holds two lists of attacker indexes -> [[prev turns'], [this turns']]
 
     def __hash__(self):
         return hash(self.name)
@@ -57,28 +58,49 @@ class Player(Thread):
                 return
         self._tanks.append(new_tank)
 
-    def add_maps(self, game_map: GameMap):
-        self._game_map = game_map
-        self._map = game_map.get_map()
+    def add_map(self, game_map: Map):
+        self._map = game_map
 
     def run(self) -> None:
         while True:
             # wait for condition
             self.next_turn_sem.acquire()
 
-            # play your move if you are the current player
-            if self.__current_player[0] == self.idx:
-                self._make_turn_plays()
+            try:
+                # play your move if you are the current player
+                if self.__current_player[0] == self.idx:
+                    self._make_turn_plays()
 
-            # force next turn
-            self._game_client.force_turn()
-
-            # notify condition
-            self.__turn_played_sem.release()
+                # force next turn
+                self._game_client.force_turn()
+            except ConnectionError or TimeoutError as err:
+                print(err)
+            finally:
+                # notify condition
+                self.__turn_played_sem.release()
 
     @abstractmethod
     def _make_turn_plays(self) -> None:
         pass
 
-    def get_colour(self) -> str:
+    def get_color(self) -> str:
         return self.__player_colour
+
+    def get_index(self):
+        return self._player_index
+
+    def get_tanks(self):
+        return self._tanks
+
+    def was_attacked_by(self, attacker_index: int) -> bool:
+        # True if this player was attacked by 'attacker_index' in the previous turn
+        return attacker_index in self.__attackers[0]
+
+    def register_attacker(self, attacker_index: int) -> None:
+        # Appends attacker to this turns' attackers which will become last turns' attackers next turn
+        if attacker_index not in self.__attackers[1]:
+            self.__attackers[1].append(attacker_index)
+
+    def register_new_turn(self) -> None:  # Call this for every player at the beginning of every turn
+        self.__attackers.pop(0)  # Delete list of attackers of two turns ago
+        self.__attackers.append([])  # Append a new empty list to register this turns' attackers

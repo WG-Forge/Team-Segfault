@@ -9,15 +9,19 @@ class LightTank(Tank, ABC):
     __dp: int = 1  # Destruction Points
     __fire_deltas: tuple = Hex.rings[1]  # Fires only in ring2
     __possible_shot_num: int = len(__fire_deltas)
+    __symbol: str = 'D'
 
-    def __init__(self, tank_id: int, tank_info: dict, colour: str):
-        super().__init__(tank_id, tank_info, colour)
+    def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
+        super().__init__(tank_id, tank_info, colour, player_index)
 
-    def get_possible_shots(self, position: tuple) -> tuple:
-        x, y, z = position
+    def get_possible_shots(self) -> tuple:
+        x, y, z = self._coord
         return tuple([(dx+x, dy+y, dz+z) for (dx, dy, dz) in LightTank.__fire_deltas])
 
     def get_speed(self) -> int:
         return self.__sp
+
+    def get_symbol(self) -> str:
+        return LightTank.__symbol
 
 
