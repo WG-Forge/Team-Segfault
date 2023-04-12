@@ -92,7 +92,7 @@ class Player(Thread):
     def get_tanks(self):
         return self._tanks
 
-    def _was_attacked_by(self, attacker_index: int) -> bool:
+    def was_attacked_by(self, attacker_index: int) -> bool:
         # True if this player was attacked by 'attacker_index' in the previous turn
         return attacker_index in self.__attackers[0]
 

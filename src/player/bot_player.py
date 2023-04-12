@@ -25,7 +25,7 @@ class BotPlayer(Player, ABC):
         other_index = next(iter({0, 1, 2} - {player_index, enemy_index}))
         enemy_player = self._map.get_player(enemy_index)
 
-        enemy_has_attacked_player = self._was_attacked_by(enemy_index)
+        enemy_has_attacked_player = self.was_attacked_by(enemy_index)
         enemy_was_attacked_by_other = enemy_player.was_attacked_by(other_index)
 
         return enemy_has_attacked_player or not enemy_was_attacked_by_other
@@ -38,11 +38,11 @@ class BotPlayer(Player, ABC):
     def __move_to_shoot_closest_enemy(self, tank: Tank):
         # Find the closest enemy
         enemy: Tank = self._map.closest_enemy(tank)
-
-        if tank.in_range(enemy.get_coord()):
-            self.__update_shot(tank, enemy)
-        else:
-            self.__move_to(tank, enemy.get_coord())
+        if self.can_shoot(enemy):
+            if tank.in_range(enemy.get_coord()):
+                self.__update_shot(tank, enemy)
+            else:
+                self.__move_to(tank, enemy.get_coord())
 
     def __move_to(self, tank: Tank, where: tuple):
         next_best = self._map.next_best(tank, where)
