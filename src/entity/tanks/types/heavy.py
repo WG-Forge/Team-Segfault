@@ -9,6 +9,7 @@ class HeavyTank(Tank, ABC):
     __dp: int = 3  # Destruction Points
     __fire_deltas: tuple = Hex.rings[0] + Hex.rings[1]   # Fires in rings 1&2
     __possible_shot_num: int = len(__fire_deltas)
+    __symbol: str = 'H'
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
         super().__init__(tank_id, tank_info, colour, player_index)
@@ -19,4 +20,7 @@ class HeavyTank(Tank, ABC):
 
     def get_speed(self) -> int:
         return self.__sp
+
+    def get_symbol(self) -> str:
+        return HeavyTank.__symbol
 

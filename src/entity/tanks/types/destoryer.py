@@ -9,6 +9,7 @@ class TankDestroyer(Tank, ABC):
     __dp: int = 2  # Destruction Points
     __fire_deltas: tuple = Hex.rings[0]
     __possible_shot_num: int = len(__fire_deltas)
+    __symbol: str = 'v'
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
         super().__init__(tank_id, tank_info, colour, player_index)
@@ -19,3 +20,6 @@ class TankDestroyer(Tank, ABC):
 
     def get_speed(self) -> int:
         return self.__sp
+
+    def get_symbol(self) -> str:
+        return TankDestroyer.__symbol

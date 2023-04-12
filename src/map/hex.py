@@ -8,10 +8,10 @@ class Hex:
     @staticmethod
     def make_rings():
         max_range = 3  # Change if maximum range of any tank is > 3 hexes
-        Hex.rings = [Hex.make_ring_coords(i) for i in range(1, max_range + 1)]
+        Hex.rings = [Hex.make_ring(i) for i in range(1, max_range + 1)]
 
     @staticmethod
-    def make_ring_coords(ring_num: int) -> tuple[tuple[int, int, int]]:
+    def make_ring(ring_num: int) -> tuple[tuple[int, int, int]]:
         # Makes all the possible coordinates in a given ring around (0,0,0)
         ring_coords = []
         max_crd = ring_num
@@ -25,7 +25,7 @@ class Hex:
         return tuple(ring_coords)
 
     @staticmethod
-    def abs_dist(coord1: tuple, coord2: tuple) -> int:
+    def manhattan_dist(coord1: tuple, coord2: tuple) -> int:
         x1, y1, z1 = coord1
         x2, y2, z2 = coord2
         return (abs(x1 - x2) + abs(y1 - y2) + abs(z1 - z2)) // 2

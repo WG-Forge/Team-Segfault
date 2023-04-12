@@ -44,17 +44,7 @@ class Tank(Entity, ABC):
     def get_player_index(self) -> int:
         return self.__player_index
 
-    def get_symbol(self) -> str:
-        if self._type == 'spg':
-            return 's'
-        if self._type == 'at_spg':
-            return 'v'
-        if self._type == 'heavy_tank':
-            return 'H'
-        if self._type == 'medium_tank':
-            return '*'
-        if self._type == 'light_tank':
-            return 'D'
+
 
     def get_colour(self) -> str:
         return self.__tank_colour
@@ -62,8 +52,15 @@ class Tank(Entity, ABC):
     def get_coord(self) -> tuple:
         return self._coord
 
-    def set_coord(self, coord: tuple) -> None:
-        self.__coord = coord
+    def set_coord(self, new_coord: tuple) -> None:
+        self._coord = new_coord
+
+    def in_range(self, target: tuple) -> bool:
+        return target in self.get_possible_shots()
+
+    @abstractmethod
+    def get_symbol(self) -> str:
+        pass
 
     @abstractmethod
     def get_speed(self) -> int:
@@ -72,3 +69,5 @@ class Tank(Entity, ABC):
     @abstractmethod
     def get_possible_shots(self):
         pass
+
+

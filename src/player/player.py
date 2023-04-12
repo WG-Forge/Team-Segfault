@@ -2,9 +2,9 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from threading import Thread, Semaphore
 
+from map.map import Map
 from src.client.game_client import GameClient
 from src.entity.tanks.tank import Tank
-from src.map.game_map import GameMap
 
 
 @dataclass
@@ -23,7 +23,6 @@ class Player(Thread):
         self._damage_points = 0
         self._capture_points = 0
         self._tanks: list[Tank] = []
-        self._game_map = None
         self._map = None
         self._game_client = None
         self.__turn_played_sem = turn_played_sem
@@ -58,9 +57,8 @@ class Player(Thread):
                 return
         self._tanks.append(new_tank)
 
-    def add_maps(self, game_map: GameMap):
-        self._game_map = game_map
-        self._map = game_map.get_map()
+    def add_map(self, game_map: Map):
+        self._map = game_map
 
     def run(self) -> None:
         while True:
