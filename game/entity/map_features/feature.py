@@ -1,7 +1,7 @@
 from abc import ABC
 
+from entity.entity import Entity
 from map.hex import Hex
-from ..entity import Entity
 
 
 class Feature(Entity, ABC):

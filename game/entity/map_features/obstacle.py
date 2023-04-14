@@ -1,6 +1,6 @@
 from abc import ABC
 
-from .feature import Feature
+from entity.map_features.feature import Feature
 
 
 class Obstacle(Feature, ABC):

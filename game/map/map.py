@@ -2,13 +2,13 @@ import heapq
 
 from matplotlib import pyplot as plt
 
-from .hex import Hex
-from ..entity.map_features.base import Base
-from ..entity.map_features.empty import Empty
-from ..entity.map_features.obstacle import Obstacle
-from ..entity.map_features.spawn import Spawn
-from ..entity.tanks.tank import Tank
-from ..entity.tanks.tank_maker import TankMaker
+from entity.map_features.base import Base
+from entity.map_features.empty import Empty
+from entity.map_features.obstacle import Obstacle
+from entity.map_features.spawn import Spawn
+from entity.tanks.tank import Tank
+from entity.tanks.tank_maker import TankMaker
+from map.hex import Hex
 
 
 class Map:

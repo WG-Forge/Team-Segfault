@@ -1,11 +1,10 @@
 import atexit
 from threading import Semaphore
 
-from .client.game_client import GameClient
-from .map.map import Map
-from .player.bot_player import BotPlayer
-from .player.human_player import HumanPlayer
-from .player.player import Player
+from client.game_client import GameClient
+from map.map import Map
+from player.player import Player
+from player.player_maker import PlayerMaker, PlayerTypes
 
 
 class Game:
@@ -59,10 +58,16 @@ class Game:
         self.__num_players += 1
 
         player: Player
+        player_type: PlayerTypes
         if is_bot:
-            player = self.__create_bot_player(name, password, is_observer)
+            player_type = PlayerTypes.Bot
         else:
-            player = self.__create_human_player(name, password, is_observer)
+            player_type = PlayerTypes.Human
+
+        player = PlayerMaker.create_player(player_type, name=name, password=password, is_observer=is_observer,
+                                           turn_played_sem=self.__turn_played_sem,
+                                           current_player_idx=self.__current_player_idx,
+                                           player_index=self.__lobby_players - 1)
 
         if self.__active:
             self.__connect_player(player)
@@ -168,11 +173,3 @@ class Game:
                 client.disconnect()
             except ConnectionError as CE:
                 print(CE)
-
-    def __create_human_player(self, name: str, password: str = None, is_observer: bool = None) -> Player:
-        return HumanPlayer(name, password, is_observer, self.__turn_played_sem,
-                           self.__current_player_idx, self.__lobby_players - 1)
-
-    def __create_bot_player(self, name: str, password: str = None, is_observer: bool = None) -> Player:
-        return BotPlayer(name, password, is_observer, self.__turn_played_sem,
-                         self.__current_player_idx, self.__lobby_players - 1)

@@ -1,10 +1,10 @@
-from .tank import Tank
-from .types.artillery import Artillery
-from .types.destroyer import TankDestroyer
-from .types.heavy import HeavyTank
-from .types.light import LightTank
-from .types.medium import MediumTank
-from ..map_features.spawn import Spawn
+from entity.map_features.spawn import Spawn
+from entity.tanks.tank import Tank
+from entity.tanks.types.artillery import Artillery
+from entity.tanks.types.destroyer import TankDestroyer
+from entity.tanks.types.heavy import HeavyTank
+from entity.tanks.types.light import LightTank
+from entity.tanks.types.medium import MediumTank
 
 
 class TankMaker:

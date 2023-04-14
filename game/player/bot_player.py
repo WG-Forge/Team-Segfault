@@ -1,8 +1,8 @@
 from abc import ABC
 from threading import Semaphore
 
-from .player import Player
-from ..entity.tanks.tank import Tank
+from entity.tanks.tank import Tank
+from player.player import Player
 
 
 class BotPlayer(Player, ABC):

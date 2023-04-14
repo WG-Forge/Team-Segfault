@@ -1,7 +1,7 @@
 from abc import ABC
 
+from entity.tanks.tank import Tank
 from map.hex import Hex
-from ..tank import Tank
 
 
 class TankDestroyer(Tank, ABC):

@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
 
-from ..entity import Entity
+from entity.entity import Entity
 
 
 class Tank(Entity, ABC):
     __damage = 1
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
+        self.__coord = None
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp

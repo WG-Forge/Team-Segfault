@@ -1,6 +1,6 @@
 from abc import ABC
 
-from ..entity import Entity
+from entity.entity import Entity
 
 
 class LightRepair(Entity, ABC):

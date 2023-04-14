@@ -1,9 +1,9 @@
 import json
 import struct
 
-from .server_enum import Action
-from .server_enum import Result
-from .service import Service
+from client.server_enum import Action
+from client.server_enum import Result
+from client.service import Service
 
 
 class GameClient:
