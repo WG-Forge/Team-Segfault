@@ -1,4 +1,4 @@
-from src.game import Game
+from game.game import Game
 
 
 def single_player_game():

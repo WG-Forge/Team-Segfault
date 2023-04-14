@@ -1,6 +1,6 @@
 import random
 
-from src.game import Game
+from game.game import Game
 
 
 def multiplayer_game():
