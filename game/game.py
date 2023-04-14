@@ -1,17 +1,17 @@
 import atexit
 from threading import Semaphore
 
-from client.game_client import GameClient
-from map.map import Map
-from player.bot_player import BotPlayer
-from player.human_player import HumanPlayer
-from player.player import Player
+from .client.game_client import GameClient
+from .map.map import Map
+from .player.bot_player import BotPlayer
+from .player.human_player import HumanPlayer
+from .player.player import Player
 
 
 class Game:
     def __init__(self, game_name: str = None, num_turns: int = None, max_players: int = 1) -> None:
         super().__init__()
-        self.__map: Map
+        self.__map = None
         self.__game_name: str = game_name
 
         self.__active: bool = False

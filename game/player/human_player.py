@@ -1,7 +1,7 @@
 from abc import ABC
 from threading import Semaphore
 
-from game.player.player import Player
+from .player import Player
 
 
 class HumanPlayer(Player, ABC):

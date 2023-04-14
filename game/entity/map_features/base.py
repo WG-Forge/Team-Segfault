@@ -1,6 +1,6 @@
 from abc import ABC
 
-from game.entity.map_features.feature import Feature
+from .feature import Feature
 
 
 class Base(Feature, ABC):

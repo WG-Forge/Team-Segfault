@@ -1,7 +1,7 @@
 from abc import ABC
 
-from game.entity.tanks.tank import Tank
-from game.map.hex import Hex
+from map.hex import Hex
+from ..tank import Tank
 
 
 class HeavyTank(Tank, ABC):
@@ -16,11 +16,10 @@ class HeavyTank(Tank, ABC):
 
     def get_possible_shots(self) -> tuple:
         x, y, z = self._coord
-        return tuple([(dx+x, dy+y, dz+z) for (dx, dy, dz) in HeavyTank.__fire_deltas])
+        return tuple([(dx + x, dy + y, dz + z) for (dx, dy, dz) in HeavyTank.__fire_deltas])
 
     def get_speed(self) -> int:
         return self.__sp
 
     def get_symbol(self) -> str:
         return HeavyTank.__symbol
-

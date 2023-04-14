@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from game.entity.entity import Entity
+from ..entity import Entity
 
 
 class Tank(Entity, ABC):

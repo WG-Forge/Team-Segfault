@@ -1,7 +1,7 @@
 from abc import ABC
 
-from game.entity.tanks.tank import Tank
-from game.map.hex import Hex
+from map.hex import Hex
+from ..tank import Tank
 
 
 class LightTank(Tank, ABC):

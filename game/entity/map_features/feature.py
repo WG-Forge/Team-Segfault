@@ -1,7 +1,7 @@
 from abc import ABC
 
-from game.entity.entity import Entity
-from game.map.hex import Hex
+from map.hex import Hex
+from ..entity import Entity
 
 
 class Feature(Entity, ABC):

@@ -2,9 +2,9 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from threading import Thread, Semaphore
 
-from game.client.game_client import GameClient
-from game.entity.tanks.tank import Tank
-from game.map.map import Map
+from ..client.game_client import GameClient
+from ..entity.tanks.tank import Tank
+from ..map.map import Map
 
 
 @dataclass
