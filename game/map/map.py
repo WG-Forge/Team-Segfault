@@ -20,15 +20,7 @@ class Map:
         self.__make_map(client_map, game_state, active_players)
         _ = plt.figure()
 
-    @staticmethod
-    def __add_players(active_players: dict) -> tuple:
-        players = [None, None, None]
-        for player_id, player in active_players.items():
-            if not player.is_observer:
-                players[player.get_index()] = player
-        return tuple(players)
-
-    def __make_map(self, client_map: dict, game_state: dict, active_players: dict) -> None:
+    def __make_map(self, client_map: dict, game_state: dict, active_players: dict) -> dict:
         # Make empty map
         rings = [Hex.make_ring(ring_num) for ring_num in range(client_map["size"])]
         self.__map = {coord: {'feature': Empty(coord), 'tank': None} for ring in rings for coord in ring}
@@ -36,18 +28,15 @@ class Map:
         # put tanks in tanks & map & put spawns in map
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             player = active_players[vehicle_info["player_id"]]
-            tank, spawn = TankMaker.create_tank(int(vehicle_id), vehicle_info, player.get_color(), player.get_index())
+            tank, spawn = TankMaker.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.get_color(), player.get_index())
             tank_coord = tank.get_coord()
             self.__map[tank_coord]['tank'] = tank
             self.__map[tank_coord]['feature'] = spawn
             self.__tanks[int(vehicle_id)] = tank
             player.add_tank(tank)
 
-        print(client_map["content"].items())
-
         # Put bases in map
         for entity, info in client_map["content"].items():
-            print(entity)
             if entity == "base":
                 self.__set_base(info)
             if entity == 'obstacle':
@@ -76,6 +65,7 @@ class Map:
             old_coord = tank.get_coord()
             tank.update(vehicle_info["health"], vehicle_info["capture_points"])
             if old_coord != action_coord:
+                print('Error')
                 self.move(tank, action_coord)  # this tank did move -> update its position
 
     def move(self, tank: Tank, new_coord: tuple) -> None:
@@ -88,6 +78,17 @@ class Map:
         is_killed = target.reduce_hp()
         if is_killed:
             self.move(tank, tank.get_spawn_coord())
+        self.__players[tank.get_player_index()].has_shot(target.get_player_index())
+
+    def can_shoot(self, player_index: int, enemy_index: int) -> bool:
+        other_index = next(iter({0, 1, 2} - {player_index, enemy_index}))
+        enemy = self.__players[enemy_index]
+        other = self.__players[other_index]
+
+        enemy_shot_player = enemy.has_shot(player_index)
+        other_shot_enemy = other.has_shot(enemy_index)
+
+        return enemy_shot_player or not other_shot_enemy
 
     def _is_others_spawn(self, spawn_coord: tuple, tank_id: int) -> bool:
         # If the feature at spawn_coord is a spawn object and it does not belong to the tank with tank_id return True
@@ -109,7 +110,7 @@ class Map:
     def __has_tank(self, coord: tuple) -> bool:
         return False if self.__map[coord]['tank'] is None else True
 
-    def closest_base(self, to_where_coord: tuple) -> None:
+    def closest_base(self, to_where_coord: tuple) -> tuple:
         free_base_coords = tuple(coord for coord in self.__base_coords
                                  if self.__map[coord]['tank'] is None or coord == to_where_coord)
         if not free_base_coords:
@@ -153,28 +154,28 @@ class Map:
             frontier = []
             heapq.heappush(frontier, (0, start))
             came_from = {}
-            cost_so_far = {start: 0}
+            cost_so_far = {}
             came_from[start] = None
+            cost_so_far[start] = 0
             while frontier:
                 current = heapq.heappop(frontier)[1]
                 if current == finish:
                     break
 
                 for movement in Hex.movements:
-                    next_coord = Hex.coord_sum(current, movement)
+                    next = Hex.coord_sum(current, movement)
 
-                    if next_coord not in self.__map:  # If next does not exist in map, continue
+                    if next not in self.__map:  # If next does not exist in map, continue
                         continue
-                    elif self.is_obstacle(next_coord) or next_coord in passable_obstacles:
-                        # Then, check if it is an obstacle
+                    elif self.is_obstacle(next) or next in passable_obstacles:  # Then, check if it is an obstacle
                         continue
 
                     new_cost = cost_so_far[current] + 1
-                    if next_coord not in cost_so_far or new_cost < cost_so_far[next_coord]:
-                        cost_so_far[next_coord] = new_cost
-                        priority = new_cost + Hex.manhattan_dist(finish, next_coord)
-                        heapq.heappush(frontier, (priority, next_coord))
-                        came_from[next_coord] = current
+                    if next not in cost_so_far or new_cost < cost_so_far[next]:
+                        cost_so_far[next] = new_cost
+                        priority = new_cost + Hex.manhattan_dist(finish, next)
+                        heapq.heappush(frontier, (priority, next))
+                        came_from[next] = current
 
             path = []
             current = finish
@@ -223,5 +224,14 @@ class Map:
 
         plt.axis('off')
         # comment this if using SciView
-        plt.pause(2)
+        plt.pause(0.5)
         plt.draw()
+
+    @staticmethod
+    def __add_players(active_players: dict) -> tuple:
+        players = [None, None, None]
+        for player_id, player in active_players.items():
+            if not player.is_observer:
+                players[player.get_index()] = player
+        return tuple(players)
+
