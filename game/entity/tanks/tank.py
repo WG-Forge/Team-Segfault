@@ -11,7 +11,7 @@ class Tank(Entity, ABC):
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
-        self.__capture_points = tank_info["capture_points"]
+        self.__cp = tank_info["capture_points"]
         self.__spawn_coord: tuple = (tank_info["position"]["x"], tank_info["position"]["y"], tank_info["position"]["z"])
         self._coord: tuple = self.__spawn_coord
         self.__tank_colour: str = colour
@@ -19,21 +19,16 @@ class Tank(Entity, ABC):
 
         super().__init__(tank_info["vehicle_type"])
 
-    def update(self, hp: int, capture_pts: int):
+    def update_hp(self, hp: int):
         self.__hp = hp
-        self.__capture_points = capture_pts
 
-    def reset(self) -> None:
-        self.__hp = self.__og_hp
-        self.__coord = self.__spawn_coord
+    def update_cp(self, capture_pts: int):
+        self.__cp = capture_pts
 
-    def reduce_hp(self) -> bool:
-        """
-        Registers tank hit.
-        :return: True if tank is destroyed, False otherwise"""
-        self.__hp -= self.__damage
-        if self.__hp <= 0:
-            self.reset()
+    def register_hit_return_destroyed(self) -> bool:
+        self.__hp -= 1  # All tanks do 1 damage
+        if self.__hp < 1:
+            self.__hp = self.__og_hp
             return True
         return False
 
@@ -58,6 +53,12 @@ class Tank(Entity, ABC):
     def in_range(self, target: tuple) -> bool:
         return target in self.get_possible_shots()
 
+    def get_hp(self) -> int:
+        return self.__hp
+
+    def get_cp(self) -> int:
+        return self.__cp
+
     @abstractmethod
     def get_symbol(self) -> str:
         pass
@@ -69,6 +70,3 @@ class Tank(Entity, ABC):
     @abstractmethod
     def get_possible_shots(self):
         pass
-
-    def get_hp(self) -> int:
-        return self.__hp

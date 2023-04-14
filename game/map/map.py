@@ -39,10 +39,10 @@ class Map:
         for entity, info in client_map["content"].items():
             if entity == "base":
                 self.__set_base(info)
-            if entity == 'obstacle':
+            elif entity == 'obstacle':
                 self.__set_obstacles(info)
             else:
-                print("Support for other entities needed")
+                print(f"Support for {entity} needed")
 
     def __set_base(self, coords: dict) -> None:
         self.__base_coords = tuple([tuple(coord.values()) for coord in coords])
@@ -55,18 +55,28 @@ class Map:
             self.__map[coord]['feature'] = Obstacle(coord)
 
     def update_game_state(self, game_state: dict) -> None:
-        # Updates the map information based on passed dictionary
+        # Updates the map information based on passed dictionary from server map
 
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             vehicle_id = int(vehicle_id)
-            action_coord = (vehicle_info["position"]["x"], vehicle_info["position"]["y"], vehicle_info["position"]["z"])
+            server_coord = (vehicle_info["position"]["x"], vehicle_info["position"]["y"], vehicle_info["position"]["z"])
+            server_hp = vehicle_info['health']
+            server_cp = vehicle_info["capture_points"]
 
             tank = self.__tanks[vehicle_id]
-            old_coord = tank.get_coord()
-            tank.update(vehicle_info["health"], vehicle_info["capture_points"])
-            if old_coord != action_coord:
-                print('Error')
-                self.move(tank, action_coord)  # this tank did move -> update its position
+            local_coord = tank.get_coord()
+            local_hp = tank.get_hp()
+            local_cp = tank.get_cp()
+
+            if server_coord != local_coord:
+                print('move update id', vehicle_id, 'local', local_coord, 'server', server_coord)
+                self.move(tank, server_coord)
+            if server_hp != local_hp:
+                print('hp update')
+                tank.update_hp(server_hp)
+            if server_cp != local_cp:
+                print('cp update')
+                tank.update_cp(server_cp)
 
     def move(self, tank: Tank, new_coord: tuple) -> None:
         old_coord = tank.get_coord()
@@ -75,9 +85,9 @@ class Map:
         tank.set_coord(new_coord)  # tank has new position
 
     def shoot(self, tank: Tank, target: Tank):
-        is_killed = target.reduce_hp()
-        if is_killed:
-            self.move(tank, tank.get_spawn_coord())
+        destroyed = target.register_hit_return_destroyed()
+        if destroyed:
+            self.move(target, target.get_spawn_coord())
         self.__players[tank.get_player_index()].has_shot(target.get_player_index())
 
     def can_shoot(self, player_index: int, enemy_index: int) -> bool:

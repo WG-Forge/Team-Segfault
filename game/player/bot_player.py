@@ -15,20 +15,22 @@ class BotPlayer(Player, ABC):
 
         # multiplayer game:
         for tank in self._tanks:
-            if tank.get_type() == 'light_tank':
-                self.__move_to_base(tank)
-            elif tank.get_type() == 'at_spg':
-                # todo: handle it, below is only some kind of an example
-                directions = [0, 2]
-                potential_shooting_options = tank.get_possible_shots()
-                true_shooting_options: tuple = ()
-                for direction in directions:
-                    for i in range(3):
-                        if self._map.is_obstacle(potential_shooting_options[i * 6 + direction]):
-                            break
-                        true_shooting_options += potential_shooting_options[i * 6 + direction]
-            else:
+            if tank.get_type() != 'at_spg':
                 self.__move_to_shoot_closest_enemy(tank)
+            # if tank.get_type() == 'light_tank':
+            #     self.__move_to_shoot_closest_enemy(tank)
+            # elif tank.get_type() == 'at_spg':
+            #     # todo: handle it, below is only some kind of an example
+            #     directions = [0, 2]
+            #     potential_shooting_options = tank.get_possible_shots()
+            #     true_shooting_options: tuple = ()
+            #     for direction in directions:
+            #         for i in range(3):
+            #             if self._map.is_obstacle(potential_shooting_options[i * 6 + direction]):
+            #                 break
+            #             true_shooting_options += potential_shooting_options[i * 6 + direction]
+            # else:
+            #     self.__move_to_shoot_closest_enemy(tank)
 
         # single player:
         # for tank in self._tanks:
@@ -54,14 +56,14 @@ class BotPlayer(Player, ABC):
             self.__update_move(tank, next_best)
 
     def __update_move(self, tank: Tank, action_coord: tuple) -> None:
-        # print('has moved', 'id:', tank.get_id(), 'from:', tank.get_coord(), 'to:', action_coord)
+        print('has moved', 'id:', tank.get_id(), 'from:', tank.get_coord(), 'to:', action_coord)
         x, y, z = action_coord
         self._game_client.move({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
         self._map.move(tank, action_coord)
 
     def __update_shot(self, tank: Tank, target: Tank):
-        print('has shot', 'id:', tank.get_player_index(), tank.get_coord(), 'who:', target.get_player_index(),
-              target.get_coord())
+        print('player', tank.get_player_index(), 'tank', tank.get_id(), tank.get_coord(), 'target',
+              target.get_player_index(), 'tank', target.get_coord())
         x, y, z = target.get_coord()
 
         self._game_client.shoot({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
