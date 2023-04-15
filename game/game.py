@@ -1,15 +1,30 @@
 import atexit
+import os
 from threading import Semaphore
 
+import pygame.display
+from pygame import Surface
+
 from client.game_client import GameClient
+from consts import FPS_MAX
 from map.map import Map
 from player.player import Player
 from player.player_maker import PlayerMaker, PlayerTypes
 
+os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
+
 
 class Game:
-    def __init__(self, game_name: str = None, num_turns: int = None, max_players: int = 1) -> None:
+    def __init__(self, game_name: str = None, num_turns: int = None, max_players: int = 1,
+                 width: int = 800, height: int = 600) -> None:
         super().__init__()
+
+        pygame.init()  # init all imported pygame modules
+        pygame.display.set_caption("Tanks")
+
+        self.__screen: Surface = pygame.display.set_mode((width, height))
+        self.__clock = pygame.time.Clock()
+
         self.__map = None
         self.__game_name: str = game_name
 
@@ -90,7 +105,12 @@ class Game:
         self.__init_game_state()
 
         while self.__active:
-            self.__map.draw()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.__active = False
+
+            self.__screen.fill((255, 255, 255))
+            self.__map.draw(self.__screen)
 
             # release all players using their private semaphores
             for player in self.__active_players.values():
@@ -99,6 +119,10 @@ class Game:
             # wait for everyone to finish their turns
             for _ in range(self.__num_players):
                 self.__turn_played_sem.acquire()
+
+            pygame.display.flip()
+
+            self.__clock.tick(FPS_MAX)
 
             self.__start_next_turn()
 
@@ -112,6 +136,7 @@ class Game:
 
         player.add_to_game(user_info, self.__game_clients[player])
         player.start()
+
 
         self.__active_players[player.idx] = player
 

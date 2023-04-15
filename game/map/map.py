@@ -1,6 +1,8 @@
 import heapq
 
+import pygame
 from matplotlib import pyplot as plt
+from pygame import Surface
 
 from entity.map_features.base import Base
 from entity.map_features.empty import Empty
@@ -196,7 +198,7 @@ class Map:
             else:
                 return next_best
 
-    def draw(self):
+    def draw(self, screen: Surface):
         feature_hexes: [] = []
 
         plt.clf()
@@ -207,17 +209,26 @@ class Map:
                 color = tank.get_color()
                 marker = tank.get_symbol()
                 x, y = feature.get_center()
+
+                # draw tank
                 plt.plot(x, y, marker=marker, markersize='6', markerfacecolor=color, markeredgewidth=0.0)
                 plt.text(x, y, str(tank.get_hp()), color='magenta', fontsize=10)
 
-            if isinstance(feature, Base) or isinstance(feature, Spawn) or isinstance(feature, Obstacle):
-                feature_hexes.append(feature)
-                continue
-            # Draw feature
+            feature.render(screen)
+            feature_hexes.append(feature)
+            # if isinstance(feature, Base) or isinstance(feature, Spawn) or isinstance(feature, Obstacle):
+            #     feature_hexes.append(feature)
+            #     continue
+            # Draw the base hexes underneath
+            # feature.render(screen)
+            # feature.render_highlight(screen)
             xs, ys = zip(*feature.get_corners())
             plt.plot(xs, ys, feature.get_color())
 
         for feature in feature_hexes:
+            # Draw the rest on top
+            # feature.render(screen)
+            feature.render_highlight(screen)
             xs, ys = zip(*feature.get_corners())
             plt.plot(xs, ys, feature.get_color())
 
