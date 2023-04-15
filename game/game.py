@@ -152,7 +152,7 @@ class Game:
         print(f"Current turn: {self.__current_turn}, "
               f"current player: {self.__current_player.name}")
 
-        self.__map.update_game_state(game_state)
+        self.__map.sync_local_with_server(game_state)
 
         if game_state["winner"] or self.__current_turn == self.__num_turns:
             self.__winner = game_state["winner"]

@@ -35,7 +35,7 @@ class Map:
             self.__tanks[int(vehicle_id)] = tank
             player.add_tank(tank)
 
-        # Put bases in map
+        # Put entities in map
         for entity, info in client_map["content"].items():
             if entity == "base":
                 self.__set_base(info)
@@ -54,7 +54,7 @@ class Map:
             coord = (d['x'], d['y'], d['z'])
             self.__map[coord]['feature'] = Obstacle(coord)
 
-    def update_game_state(self, game_state: dict) -> None:
+    def sync_local_with_server(self, game_state: dict) -> None:
         # Updates the map information based on passed dictionary from server map
 
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
@@ -69,13 +69,10 @@ class Map:
             local_cp = tank.get_cp()
 
             if server_coord != local_coord:
-                print('move update id', vehicle_id, 'local', local_coord, 'server', server_coord)
                 self.move(tank, server_coord)
             if server_hp != local_hp:
-                print('hp update')
                 tank.update_hp(server_hp)
             if server_cp != local_cp:
-                print('cp update')
                 tank.update_cp(server_cp)
 
     def move(self, tank: Tank, new_coord: tuple) -> None:
@@ -88,7 +85,7 @@ class Map:
         destroyed = target.register_hit_return_destroyed()
         if destroyed:
             self.move(target, target.get_spawn_coord())
-        self.__players[tank.get_player_index()].has_shot(target.get_player_index())
+        self.__players[tank.get_player_index()].register_shot(target.get_player_index())
 
     def can_shoot(self, player_index: int, enemy_index: int) -> bool:
         other_index = next(iter({0, 1, 2} - {player_index, enemy_index}))
@@ -97,8 +94,11 @@ class Map:
 
         enemy_shot_player = enemy.has_shot(player_index)
         other_shot_enemy = other.has_shot(enemy_index)
+        can_shoot = enemy_shot_player or not other_shot_enemy
 
-        return enemy_shot_player or not other_shot_enemy
+        print(f'(E:{enemy_index}->P:{player_index}) = {enemy_shot_player} or not (O:{other_index}->E:{enemy_index}) = {other_shot_enemy} can_shoot = {can_shoot}')
+
+        return can_shoot
 
     def _is_others_spawn(self, spawn_coord: tuple, tank_id: int) -> bool:
         # If the feature at spawn_coord is a spawn object and it does not belong to the tank with tank_id return True

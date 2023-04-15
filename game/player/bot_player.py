@@ -44,8 +44,8 @@ class BotPlayer(Player, ABC):
     def __move_to_shoot_closest_enemy(self, tank: Tank):
         # Find the closest enemy tank
         enemy: Tank = self._map.closest_enemy(tank)
-        if enemy is not None and self._map.can_shoot(self._player_index, enemy.get_player_index()):
-            if tank.in_range(enemy.get_coord()):
+        if enemy is not None:
+            if tank.in_range(enemy.get_coord()) and self._map.can_shoot(self._player_index, enemy.get_player_index()):
                 self.__update_shot(tank, enemy)
             else:
                 self.__move_to(tank, enemy.get_coord())
@@ -56,14 +56,13 @@ class BotPlayer(Player, ABC):
             self.__update_move(tank, next_best)
 
     def __update_move(self, tank: Tank, action_coord: tuple) -> None:
-        print('has moved', 'id:', tank.get_id(), 'from:', tank.get_coord(), 'to:', action_coord)
+        #print('has moved', 'id:', tank.get_id(), 'from:', tank.get_coord(), 'to:', action_coord)
         x, y, z = action_coord
         self._game_client.move({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
         self._map.move(tank, action_coord)
 
     def __update_shot(self, tank: Tank, target: Tank):
-        print('player', tank.get_player_index(), 'tank', tank.get_id(), tank.get_coord(), 'target',
-              target.get_player_index(), 'tank', target.get_coord())
+        print(tank.get_player_index(), '->', target.get_player_index())
         x, y, z = target.get_coord()
 
         self._game_client.shoot({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
