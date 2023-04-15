@@ -20,7 +20,7 @@ class Game:
         super().__init__()
 
         pygame.init()  # init all imported pygame modules
-        pygame.display.set_caption("Tanks")
+        pygame.display.set_caption("Tank game")
 
         self.__screen: Surface = pygame.display.set_mode((width, height))
         self.__clock = pygame.time.Clock()
@@ -136,7 +136,6 @@ class Game:
 
         player.add_to_game(user_info, self.__game_clients[player])
         player.start()
-
 
         self.__active_players[player.idx] = player
 
