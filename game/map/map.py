@@ -30,7 +30,8 @@ class Map:
         # put tanks in tanks & map & put spawns in map
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             player = active_players[vehicle_info["player_id"]]
-            tank, spawn = TankMaker.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.get_color(), player.get_index())
+            tank, spawn = TankMaker.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.get_color(),
+                                                          player.get_index())
             tank_coord = tank.get_coord()
             self.__map[tank_coord]['tank'] = tank
             self.__map[tank_coord]['feature'] = spawn
@@ -98,7 +99,8 @@ class Map:
         other_shot_enemy = other.has_shot(enemy_index)
         can_shoot = enemy_shot_player or not other_shot_enemy
 
-        print(f'(E:{enemy_index}->P:{player_index}) = {enemy_shot_player} or not (O:{other_index}->E:{enemy_index}) = {other_shot_enemy} can_shoot = {can_shoot}')
+        print(
+            f'(E:{enemy_index}->P:{player_index}) = {enemy_shot_player} or not (O:{other_index}->E:{enemy_index}) = {other_shot_enemy} can_shoot = {can_shoot}')
 
         return can_shoot
 
@@ -210,7 +212,12 @@ class Map:
                 return next_best
 
     def draw(self, screen: Surface):
+        # Pass the surface and use it for rendering
+
         feature_hexes: [] = []
+
+        # fill with white color
+        screen.fill((255, 255, 255))
 
         plt.clf()
         for coord, entities in self.__map.items():
@@ -221,31 +228,32 @@ class Map:
                 marker = tank.get_symbol()
                 x, y = feature.get_center()
 
-                # draw tank
+                # TODO draw tank - using sprites potentially (implementing a texture manager?)
+                tank.draw(screen)
+
                 plt.plot(x, y, marker=marker, markersize='6', markerfacecolor=color, markeredgewidth=0.0)
                 plt.text(x, y, str(tank.get_hp()), color='magenta', fontsize=10)
 
-            feature.render(screen)
-            feature_hexes.append(feature)
-            # if isinstance(feature, Base) or isinstance(feature, Spawn) or isinstance(feature, Obstacle):
-            #     feature_hexes.append(feature)
-            #     continue
-            # Draw the base hexes underneath
-            # feature.render(screen)
-            # feature.render_highlight(screen)
+            # TODO this is the pygame part
+            feature.draw(screen)
+
+            if isinstance(feature, Base) or isinstance(feature, Spawn) or isinstance(feature, Obstacle):
+                feature_hexes.append(feature)
+                continue
             xs, ys = zip(*feature.get_corners())
             plt.plot(xs, ys, feature.get_color())
 
         for feature in feature_hexes:
             # Draw the rest on top
-            # feature.render(screen)
-            feature.render_highlight(screen)
             xs, ys = zip(*feature.get_corners())
             plt.plot(xs, ys, feature.get_color())
 
+        pygame.display.flip()
+
         plt.axis('off')
-        # comment this if using SciView
         plt.pause(0.5)
+        # generally don't have to pause because of pygame framerate busy wait
+        # to decrease the framerate adjust consts -> FPS_MAX
         plt.draw()
 
     @staticmethod
@@ -255,4 +263,3 @@ class Map:
             if not player.is_observer:
                 players[player.get_index()] = player
         return tuple(players)
-

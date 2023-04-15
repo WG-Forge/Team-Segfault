@@ -20,7 +20,7 @@ class Game:
         super().__init__()
 
         pygame.init()  # init all imported pygame modules
-        pygame.display.set_caption("Tanks")
+        pygame.display.set_caption("Tank game")
 
         self.__screen: Surface = pygame.display.set_mode((width, height))
         self.__clock = pygame.time.Clock()
@@ -109,7 +109,6 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.__active = False
 
-            self.__screen.fill((255, 255, 255))
             self.__map.draw(self.__screen)
 
             # release all players using their private semaphores
@@ -120,8 +119,7 @@ class Game:
             for _ in range(self.__num_players):
                 self.__turn_played_sem.acquire()
 
-            pygame.display.flip()
-
+            # delay for a constant framerate
             self.__clock.tick(FPS_MAX)
 
             self.__start_next_turn()
@@ -136,7 +134,6 @@ class Game:
 
         player.add_to_game(user_info, self.__game_clients[player])
         player.start()
-
 
         self.__active_players[player.idx] = player
 
