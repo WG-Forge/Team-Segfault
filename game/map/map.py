@@ -1,6 +1,5 @@
 import heapq
 
-import pygame
 from matplotlib import pyplot as plt
 from pygame import Surface
 
