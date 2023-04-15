@@ -29,7 +29,7 @@ class Player(Thread):
         self.__current_player = current_player
         self.__player_colour = Player.__possible_colours[player_index]
         self._player_index = player_index
-        self.__attackers = [[], []]  # Holds two lists of attacker indexes -> [[prev turns'], [this turns']]
+        self.__has_shot = []  # Holds a list of enemies this player has shot last turn
 
     def __hash__(self):
         return hash(self.name)
@@ -92,15 +92,11 @@ class Player(Thread):
     def get_tanks(self):
         return self._tanks
 
-    def was_attacked_by(self, attacker_index: int) -> bool:
-        # True if this player was attacked by 'attacker_index' in the previous turn
-        return attacker_index in self.__attackers[0]
+    def has_shot(self, player_index: int) -> bool:
+        return player_index in self.__has_shot
 
-    def register_attacker(self, attacker_index: int) -> None:
-        # Appends attacker to this turns' attackers which will become last turns' attackers next turn
-        if attacker_index not in self.__attackers[1]:
-            self.__attackers[1].append(attacker_index)
+    def register_shot(self, enemy_index: int) -> None:
+        self.__has_shot.append(enemy_index)
 
-    def register_new_turn(self) -> None:  # Call this for every player at the beginning of every turn
-        self.__attackers.pop(0)  # Delete list of attackers of two turns ago
-        self.__attackers.append([])  # Append a new empty list to register this turns' attackers
+    def register_turn(self) -> None:  # Call this for every player at the beginning of every turn
+        self.__has_shot = []

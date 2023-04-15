@@ -171,13 +171,13 @@ class Game:
         self.__current_player = self.__active_players[self.__current_player_idx[0]]
         self.__current_client = self.__game_clients[self.__current_player]
 
-        # Update current player attackers (delete attacks from 2 turns ago make empty list for this turns' attacks)
-        self.__current_player.register_new_turn()
-
+        # Reset current player attacks
+        self.__current_player.register_turn()
+        print()
         print(f"Current turn: {self.__current_turn}, "
               f"current player: {self.__current_player.name}")
 
-        self.__map.update_game_state(game_state)
+        self.__map.sync_local_with_server(game_state)
 
         if game_state["winner"] or self.__current_turn == self.__num_turns:
             self.__winner = game_state["winner"]
