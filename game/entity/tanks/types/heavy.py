@@ -23,3 +23,8 @@ class HeavyTank(Tank, ABC):
 
     def get_symbol(self) -> str:
         return HeavyTank.__symbol
+
+    def get_tank_type_shape(self, x: int, y: int, radius_x: int, radius_y: int) -> ([], bool):
+        y_offset = [-0.3, 0.0, 0.3]
+        length = 0.5
+        return [(x + i * length, y + j) for j in y_offset for i in [-1, 1]], False

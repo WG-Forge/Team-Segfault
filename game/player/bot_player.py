@@ -56,13 +56,13 @@ class BotPlayer(Player, ABC):
             self.__update_move(tank, next_best)
 
     def __update_move(self, tank: Tank, action_coord: tuple) -> None:
-        #print('has moved', 'id:', tank.get_id(), 'from:', tank.get_coord(), 'to:', action_coord)
+        # print('has moved', 'id:', tank.get_id(), 'from:', tank.get_coord(), 'to:', action_coord)
         x, y, z = action_coord
         self._game_client.move({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
         self._map.move(tank, action_coord)
 
     def __update_shot(self, tank: Tank, target: Tank):
-        print(tank.get_player_index(), '->', target.get_player_index())
+        # print(tank.get_player_index(), '->', target.get_player_index())
         x, y, z = target.get_coord()
 
         self._game_client.shoot({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
@@ -70,4 +70,3 @@ class BotPlayer(Player, ABC):
         if was_killed:
             x, y, z = tank.get_coord()
             self._game_client.move({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
-

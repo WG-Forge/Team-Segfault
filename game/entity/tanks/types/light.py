@@ -16,7 +16,7 @@ class LightTank(Tank, ABC):
 
     def get_possible_shots(self) -> tuple:
         x, y, z = self._coord
-        return tuple([(dx+x, dy+y, dz+z) for (dx, dy, dz) in LightTank.__fire_deltas])
+        return tuple([(dx + x, dy + y, dz + z) for (dx, dy, dz) in LightTank.__fire_deltas])
 
     def get_speed(self) -> int:
         return self.__sp
@@ -24,4 +24,6 @@ class LightTank(Tank, ABC):
     def get_symbol(self) -> str:
         return LightTank.__symbol
 
-
+    def get_tank_type_shape(self, x: int, y: int, radius_x: int, radius_y: int) -> ([], bool):
+        edge_len = 0.4
+        return [(x + i, y + j) for i, j in [(edge_len, 0), (0, edge_len), (-edge_len, 0), (0, -edge_len)]], True

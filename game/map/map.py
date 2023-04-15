@@ -1,7 +1,6 @@
 import heapq
 
 import pygame
-from matplotlib import pyplot as plt
 from pygame import Surface
 
 from entity.map_features.base import Base
@@ -20,9 +19,9 @@ class Map:
         self.__map: dict = {}
         self.__base_coords: tuple = ()
         self.__make_map(client_map, game_state, active_players)
-        _ = plt.figure()
+        self.__num_of_radii: int = (client_map["size"] - 1) * 2 * 2
 
-    def __make_map(self, client_map: dict, game_state: dict, active_players: dict) -> dict:
+    def __make_map(self, client_map: dict, game_state: dict, active_players: dict):
         # Make empty map
         rings = [Hex.make_ring(ring_num) for ring_num in range(client_map["size"])]
         self.__map = {coord: {'feature': Empty(coord), 'tank': None} for ring in rings for coord in ring}
@@ -213,48 +212,23 @@ class Map:
 
     def draw(self, screen: Surface):
         # Pass the surface and use it for rendering
-
-        feature_hexes: [] = []
+        Hex.radius_x = screen.get_width() // self.__num_of_radii  # number of half radii on x axis
+        Hex.radius_y = screen.get_height() // self.__num_of_radii
 
         # fill with white color
         screen.fill((255, 255, 255))
 
-        plt.clf()
         for coord, entities in self.__map.items():
             feature, tank = entities['feature'], entities['tank']
+
+            feature.draw(screen)
+
             # Draw tank if any
             if tank is not None:
-                color = tank.get_color()
-                marker = tank.get_symbol()
-                x, y = feature.get_center()
-
                 # TODO draw tank - using sprites potentially (implementing a texture manager?)
                 tank.draw(screen)
 
-                plt.plot(x, y, marker=marker, markersize='6', markerfacecolor=color, markeredgewidth=0.0)
-                plt.text(x, y, str(tank.get_hp()), color='magenta', fontsize=10)
-
-            # TODO this is the pygame part
-            feature.draw(screen)
-
-            if isinstance(feature, Base) or isinstance(feature, Spawn) or isinstance(feature, Obstacle):
-                feature_hexes.append(feature)
-                continue
-            xs, ys = zip(*feature.get_corners())
-            plt.plot(xs, ys, feature.get_color())
-
-        for feature in feature_hexes:
-            # Draw the rest on top
-            xs, ys = zip(*feature.get_corners())
-            plt.plot(xs, ys, feature.get_color())
-
         pygame.display.flip()
-
-        plt.axis('off')
-        plt.pause(0.5)
-        # generally don't have to pause because of pygame framerate busy wait
-        # to decrease the framerate adjust consts -> FPS_MAX
-        plt.draw()
 
     @staticmethod
     def __add_players(active_players: dict) -> tuple:
@@ -263,3 +237,4 @@ class Map:
             if not player.is_observer:
                 players[player.get_index()] = player
         return tuple(players)
+

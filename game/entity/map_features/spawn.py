@@ -4,7 +4,7 @@ from entity.map_features.feature import Feature
 
 
 class Spawn(Feature, ABC):
-    color = 'magenta'
+    color = (165, 63, 176)  # dimmed magenta
 
     def __init__(self, coord: tuple, tank_id: int):
         self.__belongs_to = tank_id

@@ -22,3 +22,6 @@ class TankDestroyer(Tank, ABC):
 
     def get_symbol(self) -> str:
         return TankDestroyer.__symbol
+
+    def get_tank_type_shape(self, x: int, y: int, radius_x: int, radius_y: int) -> ([], bool):
+        return [(x, y - 0.4325), (x - 0.5, y + 0.4325), (x + 0.5, y + 0.4325)], True

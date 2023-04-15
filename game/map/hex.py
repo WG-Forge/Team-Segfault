@@ -5,6 +5,8 @@ class Hex:
     __sqrt3 = sqrt(3)
     rings = []
     movements = ((1, 0, -1), (0, 1, -1), (1, -1, 0), (-1, 0, 1), (0, -1, 1), (-1, 1, 0))
+    radius_x = -1
+    radius_y = -1
 
     @staticmethod
     def make_rings():
