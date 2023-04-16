@@ -2,6 +2,7 @@ from abc import ABC
 from threading import Semaphore
 
 from entity.tanks.tank import Tank
+from map.hex import Hex
 from player.player import Player
 
 
@@ -15,59 +16,51 @@ class BotPlayer(Player, ABC):
 
         # multiplayer game:
         for tank in self._tanks:
-            if tank.get_type() != 'at_spg':
+            if tank.get_type() == 'light_tank':
+                self.__move_to_base(tank)
+            else:
                 self.__move_to_shoot_closest_enemy(tank)
-            # if tank.get_type() == 'light_tank':
-            #     self.__move_to_shoot_closest_enemy(tank)
-            # elif tank.get_type() == 'at_spg':
-            #     # todo: handle it, below is only some kind of an example
-            #     directions = [0, 2]
-            #     potential_shooting_options = tank.get_possible_shots()
-            #     true_shooting_options: tuple = ()
-            #     for direction in directions:
-            #         for i in range(3):
-            #             if self._map.is_obstacle(potential_shooting_options[i * 6 + direction]):
-            #                 break
-            #             true_shooting_options += potential_shooting_options[i * 6 + direction]
-            # else:
-            #     self.__move_to_shoot_closest_enemy(tank)
-
-        # single player:
-        # for tank in self._tanks:
-        #     self.__move_to_base(tank)
 
     def __move_to_base(self, tank: Tank):
         closest_base_coord = self._map.closest_base(tank.get_coord())
         if closest_base_coord is not None:
-            self.__move_to(tank, closest_base_coord)
+            self.__move_to_if_possible(tank, closest_base_coord)
 
     def __move_to_shoot_closest_enemy(self, tank: Tank):
         # Find the closest enemy tank
         enemy: Tank = self._map.closest_enemy(tank)
         if enemy is not None:
-            if tank.in_range(enemy.get_coord()) and self._map.can_shoot(self._player_index, enemy.get_player_index()):
-                self.__update_shot(tank, enemy)
+            shot_moves = tank.shot_moves(enemy.get_coord())
+            if tank.get_coord() in shot_moves and self._map.is_belligerent(self._player_index, enemy.get_player_index()):
+                if tank.get_type() != 'at_spg':
+                    self.__update_maps_with_shot(tank, enemy)
+                else:
+                    td_shooting_coord = Hex.td_shooting_coord(tank.get_coord(), enemy.get_coord())
+                    self.__update_maps_with_shot(tank, enemy, td_shooting_coord=td_shooting_coord)
             else:
-                self.__move_to(tank, enemy.get_coord())
+                for coord in shot_moves:
+                    if self.__move_to_if_possible(tank, coord):
+                        break
 
-    def __move_to(self, tank: Tank, where: tuple):
-        next_best = self._map.next_best(tank, where)
+    def __move_to_if_possible(self, tank: Tank, where: tuple) -> bool:
+        next_best = self._map.next_best_available_hex_in_path_to(tank, where)
         if next_best is not None:
-            self.__update_move(tank, next_best)
+            self.__update_maps_with_move(tank, next_best)
+            return True
+        return False
 
-    def __update_move(self, tank: Tank, action_coord: tuple) -> None:
-        #print('has moved', 'id:', tank.get_id(), 'from:', tank.get_coord(), 'to:', action_coord)
+    def __update_maps_with_move(self, tank: Tank, action_coord: tuple) -> None:
         x, y, z = action_coord
-        self._game_client.move({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
-        self._map.move(tank, action_coord)
+        self._game_client.server_move({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
+        self._map.local_move(tank, action_coord)
 
-    def __update_shot(self, tank: Tank, target: Tank):
-        print(tank.get_player_index(), '->', target.get_player_index())
-        x, y, z = target.get_coord()
+    def __update_maps_with_shot(self, tank: Tank, target: Tank, td_shooting_coord=None):
+        if td_shooting_coord is None:
+            x, y, z = target.get_coord()
+            self._map.local_shoot(tank, target)
+        else:
+            x, y, z = td_shooting_coord
+            self._map.td_shoot(tank, td_shooting_coord)
 
-        self._game_client.shoot({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
-        was_killed = self._map.shoot(tank, target)
-        if was_killed:
-            x, y, z = tank.get_coord()
-            self._game_client.move({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
+        self._game_client.server_shoot({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
 

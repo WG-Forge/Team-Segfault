@@ -148,6 +148,7 @@ class Game:
 
         # Reset current player attacks
         self.__current_player.register_turn()
+
         print()
         print(f"Current turn: {self.__current_turn}, "
               f"current player: {self.__current_player.name}")

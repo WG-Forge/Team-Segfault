@@ -26,7 +26,7 @@ class Tank(Entity, ABC):
         self.__cp = capture_pts
 
     def register_hit_return_destroyed(self) -> bool:
-        self.__hp -= 1  # All tanks do 1 damage
+        self.__hp -= Tank.__damage  # All tanks do 1 damage
         if self.__hp < 1:
             self.__hp = self.__og_hp
             return True
@@ -50,14 +50,19 @@ class Tank(Entity, ABC):
     def set_coord(self, new_coord: tuple) -> None:
         self._coord = new_coord
 
-    def in_range(self, target: tuple) -> bool:
-        return target in self.get_possible_shots()
-
     def get_hp(self) -> int:
         return self.__hp
 
     def get_cp(self) -> int:
         return self.__cp
+
+    @abstractmethod
+    def shot_moves(self, target: tuple) -> tuple:
+        pass # returns coords to where "self" can move shoot "target", ordered from closest to furthest away from "self"
+
+    @abstractmethod
+    def is_too_far(self, target: tuple) -> bool:
+        pass  # True if too far to shoot, Null if just right, False if too close
 
     @abstractmethod
     def get_symbol(self) -> str:
@@ -68,5 +73,5 @@ class Tank(Entity, ABC):
         pass
 
     @abstractmethod
-    def get_possible_shots(self):
+    def get_fire_deltas(self) -> tuple:
         pass

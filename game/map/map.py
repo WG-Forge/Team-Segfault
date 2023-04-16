@@ -17,6 +17,7 @@ class Map:
         self.__tanks: dict[int, Tank] = {}
         self.__map: dict = {}
         self.__base_coords: tuple = ()
+        self.__spawn_coords: tuple = ()
         self.__make_map(client_map, game_state, active_players)
         _ = plt.figure()
 
@@ -28,7 +29,8 @@ class Map:
         # put tanks in tanks & map & put spawns in map
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             player = active_players[vehicle_info["player_id"]]
-            tank, spawn = TankMaker.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.get_color(), player.get_index())
+            tank, spawn = TankMaker.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.get_color(),
+                                                          player.get_index())
             tank_coord = tank.get_coord()
             self.__map[tank_coord]['tank'] = tank
             self.__map[tank_coord]['feature'] = spawn
@@ -69,25 +71,36 @@ class Map:
             local_cp = tank.get_cp()
 
             if server_coord != local_coord:
-                self.move(tank, server_coord)
+                print(f'movement un sync: {server_coord}, {local_coord}')
+                self.local_move(tank, server_coord)
             if server_hp != local_hp:
                 tank.update_hp(server_hp)
             if server_cp != local_cp:
                 tank.update_cp(server_cp)
 
-    def move(self, tank: Tank, new_coord: tuple) -> None:
+    def local_move(self, tank: Tank, new_coord: tuple) -> None:
         old_coord = tank.get_coord()
         self.__map[new_coord]['tank'] = tank  # New pos has now tank
         self.__map[old_coord]['tank'] = None  # Old pos is now empty
         tank.set_coord(new_coord)  # tank has new position
 
-    def shoot(self, tank: Tank, target: Tank):
+    def local_shoot(self, tank: Tank, target: Tank) -> None:
         destroyed = target.register_hit_return_destroyed()
         if destroyed:
-            self.move(target, target.get_spawn_coord())
+            self.local_move(target, target.get_spawn_coord())
         self.__players[tank.get_player_index()].register_shot(target.get_player_index())
 
-    def can_shoot(self, player_index: int, enemy_index: int) -> bool:
+    def td_shoot(self, td: Tank, target: tuple) -> None:
+        danger_zone = Hex.danger_zone(td.get_coord(), target)
+        for coord in danger_zone:
+            if coord in self.__map:
+                if self.is_obstacle(coord):
+                    break
+                enemy = self.__map[coord]['tank']
+                if enemy is not None and self.is_belligerent(td.get_player_index(), enemy.get_player_index()):
+                    self.local_shoot(td, enemy)
+
+    def is_belligerent(self, player_index: int, enemy_index: int) -> bool:
         other_index = next(iter({0, 1, 2} - {player_index, enemy_index}))
         enemy = self.__players[enemy_index]
         other = self.__players[other_index]
@@ -95,8 +108,6 @@ class Map:
         enemy_shot_player = enemy.has_shot(player_index)
         other_shot_enemy = other.has_shot(enemy_index)
         can_shoot = enemy_shot_player or not other_shot_enemy
-
-        print(f'(E:{enemy_index}->P:{player_index}) = {enemy_shot_player} or not (O:{other_index}->E:{enemy_index}) = {other_shot_enemy} can_shoot = {can_shoot}')
 
         return can_shoot
 
@@ -117,8 +128,11 @@ class Map:
     def is_obstacle(self, coord: tuple) -> bool:
         return True if coord in self.__map and isinstance(self.__map[coord]['feature'], Obstacle) else False
 
-    def __has_tank(self, coord: tuple) -> bool:
+    def has_tank(self, coord: tuple) -> bool:
         return False if self.__map[coord]['tank'] is None else True
+
+    def coord_exists(self, coord):
+        return True if coord in self.__map else False
 
     def closest_base(self, to_where_coord: tuple) -> tuple:
         free_base_coords = tuple(coord for coord in self.__base_coords
@@ -152,7 +166,7 @@ class Map:
             print("no enemies, this is a single-player game")
             # raise KeyError("No enemy found, impossible, must be 10 enemies at all times")
 
-    def next_best(self, tank: Tank, finish: tuple):
+    def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple):
         start = tank.get_coord()
         tank_id = tank.get_id()
         speed = tank.get_speed()
@@ -173,19 +187,19 @@ class Map:
                     break
 
                 for movement in Hex.movements:
-                    next = Hex.coord_sum(current, movement)
+                    coord = Hex.coord_sum(current, movement)
 
-                    if next not in self.__map:  # If next does not exist in map, continue
+                    if coord not in self.__map:  # If coord does not exist in map, continue
                         continue
-                    elif self.is_obstacle(next) or next in passable_obstacles:  # Then, check if it is an obstacle
+                    elif self.is_obstacle(coord) or coord in passable_obstacles:  # Then, check if it is an obstacle
                         continue
 
                     new_cost = cost_so_far[current] + 1
-                    if next not in cost_so_far or new_cost < cost_so_far[next]:
-                        cost_so_far[next] = new_cost
-                        priority = new_cost + Hex.manhattan_dist(finish, next)
-                        heapq.heappush(frontier, (priority, next))
-                        came_from[next] = current
+                    if coord not in cost_so_far or new_cost < cost_so_far[coord]:
+                        cost_so_far[coord] = new_cost
+                        priority = new_cost + Hex.manhattan_dist(finish, coord)
+                        heapq.heappush(frontier, (priority, coord))
+                        came_from[coord] = current
 
             path = []
             current = finish
@@ -200,7 +214,7 @@ class Map:
             next_best = path[min(speed, len(path) - 1)]
 
             # If next_best is a tank or base, append to passable_obstacles and try again
-            if self._is_others_spawn(next_best, tank_id) or self.__has_tank(next_best):
+            if self._is_others_spawn(next_best, tank_id) or self.has_tank(next_best):
                 passable_obstacles.append(next_best)
                 cnt += 1
                 continue
@@ -244,4 +258,3 @@ class Map:
             if not player.is_observer:
                 players[player.get_index()] = player
         return tuple(players)
-

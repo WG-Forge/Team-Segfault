@@ -98,13 +98,13 @@ class GameClient:
         """
         self.__send_and_receive_data({"message": msg}, Action.CHAT)
 
-    def move(self, move_dict: dict) -> None:
+    def server_move(self, move_dict: dict) -> None:
         """
         Changes vehicle position
         """
         self.__send_and_receive_data(move_dict, Action.MOVE)
 
-    def shoot(self, shoot_dict: dict) -> None:
+    def server_shoot(self, shoot_dict: dict) -> None:
         """
         Shoot at a hex position
         """
