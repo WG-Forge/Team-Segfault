@@ -31,6 +31,8 @@ class Tank(Entity, ABC):
 
         shape_corners = [(screen.get_width() // 2 + round(x * Hex.radius_x),
                           screen.get_height() // 2 - round(y * Hex.radius_y)) for x, y in shape_corners]
+
+        # draw tank shape
         if is_closed:
             pygame.draw.polygon(screen, self.__tank_colour, shape_corners)
         else:
@@ -38,6 +40,7 @@ class Tank(Entity, ABC):
                 pygame.draw.line(screen, self.__tank_colour, start_pos=shape_corners[2 * i],
                                  end_pos=shape_corners[2 * i + 1], width=3)
 
+        # show tank HP
         font_size = round(1.2 * min(Hex.radius_y, Hex.radius_x))
         font = pygame.font.SysFont('arial', font_size, bold=True)
         text = font.render(str(self.__hp), True, (0, 0, 0))

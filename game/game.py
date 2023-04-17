@@ -24,7 +24,7 @@ class Game(Thread):
         self.__winner = None
 
         self.__players_queue: [Player] = []
-        self.__current_turn = None
+        self.__current_turn: [] = [-1]
         self.__current_player = None
         self.__current_client = None
 
@@ -141,6 +141,7 @@ class Game(Thread):
 
         # initialize the game map (now adds tanks to players & game_map too)
         self.__game_map = Map(client_map, game_state, self.__active_players)
+        self.__game_map.set_turn_reference(self.__current_turn)
 
         self.__num_turns = game_state["num_turns"]
         self.__max_players = game_state["num_players"]
@@ -157,7 +158,7 @@ class Game(Thread):
         if not game_state:
             game_state = self.__current_client.get_game_state()
 
-        self.__current_turn = game_state["current_turn"]
+        self.__current_turn[0] = game_state["current_turn"]
         self.__current_player_idx[0] = game_state["current_player_idx"]
         self.__current_player = self.__active_players[self.__current_player_idx[0]]
         self.__current_client = self.__game_clients[self.__current_player]
@@ -165,12 +166,12 @@ class Game(Thread):
         # Reset current player attacks
         self.__current_player.register_turn()
         print()
-        print(f"Current turn: {self.__current_turn}, "
+        print(f"Current turn: {self.__current_turn[0]}, "
               f"current player: {self.__current_player.name}")
 
         self.__game_map.sync_local_with_server(game_state)
 
-        if game_state["winner"] or self.__current_turn == self.__num_turns:
+        if game_state["winner"] or self.__current_turn[0] == self.__num_turns:
             self.__winner = game_state["winner"]
             self.__active.clear()
 

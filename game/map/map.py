@@ -20,24 +20,46 @@ class Map:
         self.__base_coords: tuple = ()
         self.__make_map(client_map, game_state, active_players)
         self.__num_of_radii: int = (client_map["size"] - 1) * 2 * 2
+        self.__turn: list[1] = [-1]
 
     def draw(self, screen: Surface):
         # Pass the surface and use it for rendering
         Hex.radius_x = screen.get_width() // self.__num_of_radii  # number of half radii on x axis
         Hex.radius_y = screen.get_height() // self.__num_of_radii
 
-        # fill with white color
-        screen.fill((255, 255, 255))
+        # fill with background color
+        screen.fill((59, 56, 47))
 
         for coord, entities in self.__map.items():
             feature, tank = entities['feature'], entities['tank']
-
             feature.draw(screen)
-
             # Draw tank if any
             if tank is not None:
                 # TODO draw tank - using sprites potentially (implementing a texture manager?)
                 tank.draw(screen)
+
+        # capture and damage points 'scoreboard'
+        font_size = round(1.2 * min(Hex.radius_y, Hex.radius_x))
+        font = pygame.font.SysFont('georgia', font_size, bold=True)
+        screen.blit(font.render(' Capture points: ', True, 'white'), dest=(0, 0))
+        screen.blit(font.render(' Damage points: ', True, 'white'),
+                    dest=(0, screen.get_height() - 4 * (font_size + Hex.radius_y / 3)))
+        i = 0
+        for player in self.__players:
+            if player is not None and not player.is_observer:
+                i += 1
+                text = font.render('    player id ' + str(player.get_index()) + ': '
+                                   + str(player.get_capture_points()), True, player.get_color())
+                screen.blit(text, dest=(0, i * (font_size + Hex.radius_y / 3)))
+
+                text = font.render('    player id ' + str(player.get_index()) + ': '
+                                   + str(player.get_damage_points()), True, player.get_color())
+                screen.blit(text, dest=(0, screen.get_height() - (4 - i) * (font_size + Hex.radius_y / 3)))
+
+        # display turn
+        if self.__turn is not None:
+            text = font.render('Turn: ' + str(self.__turn[0]), True, 'white')
+            screen.blit(text, dest=(screen.get_width() - Hex.radius_x * font_size / 3, 0))
 
         pygame.display.flip()
 
@@ -127,6 +149,7 @@ class Map:
         destroyed = target.register_hit_return_destroyed()
         if destroyed:
             self.move(target, target.get_spawn_coord())
+            self.__players[tank.get_player_index()].register_destroyed_vehicle(target)
         self.__players[tank.get_player_index()].register_shot(target.get_player_index())
 
     def can_shoot(self, player_index: int, enemy_index: int) -> bool:
@@ -152,7 +175,7 @@ class Map:
     def is_obstacle(self, coord: tuple) -> bool:
         return True if coord in self.__map and isinstance(self.__map[coord]['feature'], Obstacle) else False
 
-    def closest_base(self, to_where_coord: tuple) -> tuple | None:
+    def closest_base(self, to_where_coord: tuple) -> tuple or None:
         free_base_coords = tuple(coord for coord in self.__base_coords
                                  if self.__map[coord]['tank'] is None or coord == to_where_coord)
         if not free_base_coords:
@@ -237,3 +260,6 @@ class Map:
             if not player.is_observer:
                 players[player.get_index()] = player
         return tuple(players)
+
+    def set_turn_reference(self, turn: list[1]) -> None:
+        self.__turn = turn
