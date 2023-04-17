@@ -1,1 +1,1 @@
-FPS_MAX = 1  # one frame per second
+FPS_MAX = 60  # max frames per second
