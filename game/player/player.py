@@ -72,11 +72,11 @@ class Player(Thread):
             # wait for condition
             self.next_turn_sem.acquire()
 
-            # check if the game ended
-            if not self.__active.is_set():
-                break
-
             try:
+                # check if the game ended
+                if not self.__active.is_set():
+                    break
+
                 # play your move if you are the current player
                 if self.__current_player[0] == self.idx:
                     time.sleep(1)  # comment/uncomment this for a turn delay effect
