@@ -12,7 +12,8 @@ class Artillery(Tank, ABC):
     __symbol: str = 's'
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
-        super().__init__(tank_id, tank_info, colour, player_index)
+        image_path = 'game/assets/tank_classes/spg.png'
+        super().__init__(tank_id, tank_info, colour, player_index, image_path)
 
     def get_possible_shots(self) -> tuple:
         x, y, z = self._coord
@@ -23,8 +24,3 @@ class Artillery(Tank, ABC):
 
     def get_symbol(self) -> str:
         return Artillery.__symbol
-
-    def get_tank_type_shape(self, x: int, y: int, radius_x: int, radius_y: int) -> ([], bool):
-        edge_len = 0.4
-        return [(x + i, y + j) for i, j in
-                [(edge_len, edge_len), (-edge_len, edge_len), (-edge_len, -edge_len), (edge_len, -edge_len)]], True

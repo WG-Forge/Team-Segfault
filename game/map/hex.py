@@ -1,12 +1,16 @@
 from math import sqrt
 
+from consts import SCREEN_HEIGHT, SCREEN_WIDTH
+
 
 class Hex:
     __sqrt3 = sqrt(3)
     rings = []
     movements = ((1, 0, -1), (0, 1, -1), (1, -1, 0), (-1, 0, 1), (0, -1, 1), (-1, 1, 0))
-    radius_x = -1
-    radius_y = -1
+
+    # default for map size 11
+    radius_x = SCREEN_WIDTH // 40
+    radius_y = SCREEN_HEIGHT // 40
 
     @staticmethod
     def make_rings():

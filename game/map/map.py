@@ -3,6 +3,7 @@ import heapq
 import pygame
 from pygame import Surface
 
+from consts import SCREEN_HEIGHT, SCREEN_WIDTH
 from entity.map_features.base import Base
 from entity.map_features.empty import Empty
 from entity.map_features.obstacle import Obstacle
@@ -10,6 +11,7 @@ from entity.map_features.spawn import Spawn
 from entity.tanks.tank import Tank
 from entity.tanks.tank_maker import TankMaker
 from map.hex import Hex
+from pygame_utils.scoreboard import Scoreboard
 
 
 class Map:
@@ -21,45 +23,38 @@ class Map:
         self.__make_map(client_map, game_state, active_players)
         self.__num_of_radii: int = (client_map["size"] - 1) * 2 * 2
         self.__turn: list[1] = [-1]
+        self.__max_damage_points: int = 0
+
+        self.__scoreboard = Scoreboard(self.__players)
+        Hex.radius_x = SCREEN_WIDTH // self.__num_of_radii  # number of half radii on x axis
+        Hex.radius_y = SCREEN_HEIGHT // self.__num_of_radii
+        self.__scoreboard.update_image_size(Hex.radius_x * 2, Hex.radius_y * 2)
+
+        self.__font_size = round(1.2 * min(Hex.radius_y, Hex.radius_x))
 
     def draw(self, screen: Surface):
         # Pass the surface and use it for rendering
-        Hex.radius_x = screen.get_width() // self.__num_of_radii  # number of half radii on x axis
-        Hex.radius_y = screen.get_height() // self.__num_of_radii
+        font = pygame.font.SysFont('georgia', self.__font_size, bold=True)
 
         # fill with background color
         screen.fill((59, 56, 47))
 
+        # display tanks and features
         for coord, entities in self.__map.items():
             feature, tank = entities['feature'], entities['tank']
             feature.draw(screen)
             # Draw tank if any
             if tank is not None:
-                # TODO draw tank - using sprites potentially (implementing a texture manager?)
-                tank.draw(screen)
+                tank.draw(screen, self.__font_size)
 
-        # capture and damage points 'scoreboard'
-        font_size = round(1.2 * min(Hex.radius_y, Hex.radius_x))
-        font = pygame.font.SysFont('georgia', font_size, bold=True)
-        screen.blit(font.render(' Capture points: ', True, 'white'), dest=(0, 0))
-        screen.blit(font.render(' Damage points: ', True, 'white'),
-                    dest=(0, screen.get_height() - 4 * (font_size + Hex.radius_y / 3)))
-        i = 0
-        for player in self.__players:
-            if player is not None and not player.is_observer:
-                i += 1
-                text = font.render('    player id ' + str(player.get_index()) + ': '
-                                   + str(player.get_capture_points()), True, player.get_color())
-                screen.blit(text, dest=(0, i * (font_size + Hex.radius_y / 3)))
-
-                text = font.render('    player id ' + str(player.get_index()) + ': '
-                                   + str(player.get_damage_points()), True, player.get_color())
-                screen.blit(text, dest=(0, screen.get_height() - (4 - i) * (font_size + Hex.radius_y / 3)))
+        # display scoreboards
+        self.__scoreboard.draw_damage_scoreboard(screen, font, self.__font_size, self.__max_damage_points)
+        self.__scoreboard.draw_capture_scoreboard(screen, font, self.__font_size)
 
         # display turn
         if self.__turn is not None:
-            text = font.render('Turn: ' + str(self.__turn[0]), True, 'white')
-            screen.blit(text, dest=(screen.get_width() - Hex.radius_x * font_size / 3, 0))
+            text = font.render('Turn: ' + str(self.__turn[0]), True, 'grey')
+            screen.blit(text, dest=(screen.get_width() - Hex.radius_x * self.__font_size / 3, 0))
 
         pygame.display.flip()
 
@@ -150,6 +145,8 @@ class Map:
         if destroyed:
             self.move(target, target.get_spawn_coord())
             self.__players[tank.get_player_index()].register_destroyed_vehicle(target)
+            self.__max_damage_points = \
+                max(self.__max_damage_points, self.__players[tank.get_player_index()].get_damage_points())
         self.__players[tank.get_player_index()].register_shot(target.get_player_index())
 
     def can_shoot(self, player_index: int, enemy_index: int) -> bool:

@@ -11,7 +11,7 @@ from map.map import Map
 @dataclass
 class Player(Thread):
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
-    __possible_colours = ((224, 206, 70), (70, 191, 224), (224, 137, 70))  # yellow, blue, orange
+    __possible_colours = ((224, 206, 70), (70, 191, 224), (201, 26, 40))  # yellow, blue, red
 
     def __init__(self, name: str, password: str, is_observer: bool,
                  turn_played_sem: Semaphore, current_player: list[1], player_index: int, active: Event):

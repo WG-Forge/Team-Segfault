@@ -14,7 +14,7 @@ class Feature(Entity, ABC):
         self.__color = color
         super().__init__(name)
 
-    def draw(self, screen: Surface) -> None:
+    def draw(self, screen: Surface, font_size=None) -> None:
         """Renders the hexagon on the screen and draw a border around the hexagon with the colour white"""
         corners = [(screen.get_width() // 2 + round(x * Hex.radius_x),
                     screen.get_height() // 2 - round(y * Hex.radius_y)) for x, y in self.__corners]

@@ -4,14 +4,14 @@ from threading import Event
 import pygame
 from pygame import Surface
 
-from consts import FPS_MAX
+from consts import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT
 from map.map import Map
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
 
 class DisplayManager:
-    def __init__(self, active: Event, game_map: Map, width: int = 800, height: int = 600):
+    def __init__(self, active: Event, game_map: Map, width: int = SCREEN_WIDTH, height: int = SCREEN_HEIGHT):
         super().__init__()
 
         pygame.init()

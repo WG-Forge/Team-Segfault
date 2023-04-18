@@ -10,7 +10,7 @@ from map.hex import Hex
 class Tank(Entity, ABC):
     __damage = 1
 
-    def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
+    def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int, image_path: str):
         self.__coord = None
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
@@ -20,32 +20,28 @@ class Tank(Entity, ABC):
         self._coord: tuple = self.__spawn_coord
         self.__tank_colour: str = colour
         self.__player_index: int = player_index
+        self.__image: Surface = pygame.image.load(image_path)
 
         super().__init__(tank_info["vehicle_type"])
 
-    def draw(self, screen: Surface) -> None:
+    def draw(self, screen: Surface, font_size) -> None:
         x, y = Hex.make_center(self._coord)
-        shape_corners, is_closed = self.get_tank_type_shape(x, y, Hex.radius_x, Hex.radius_y)
-        if shape_corners is None:
-            return
 
-        shape_corners = [(screen.get_width() // 2 + round(x * Hex.radius_x),
-                          screen.get_height() // 2 - round(y * Hex.radius_y)) for x, y in shape_corners]
-
-        # draw tank shape
-        if is_closed:
-            pygame.draw.polygon(screen, self.__tank_colour, shape_corners)
-        else:
-            for i in range(len(shape_corners) // 2):
-                pygame.draw.line(screen, self.__tank_colour, start_pos=shape_corners[2 * i],
-                                 end_pos=shape_corners[2 * i + 1], width=3)
+        # show tank sprite
+        self.__image = pygame.transform.scale(self.__image, (Hex.radius_x * 1.5, Hex.radius_y * 1.5))
+        color_image = pygame.Surface(self.__image.get_size())
+        color_image.fill(self.__tank_colour)
+        ti = self.__image.copy()
+        ti.blit(color_image, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        screen.blit(ti, (screen.get_width() // 2 + round(x * Hex.radius_x) - 2 * Hex.radius_x // 3,
+                         screen.get_height() // 2 - round(y * Hex.radius_y) - 2 * Hex.radius_y // 3))
 
         # show tank HP
-        font_size = round(1.2 * min(Hex.radius_y, Hex.radius_x))
+        font_size = round(1 * min(Hex.radius_y, Hex.radius_x))
         font = pygame.font.SysFont('arial', font_size, bold=True)
-        text = font.render(str(self.__hp), True, (0, 0, 0))
-        screen.blit(text, dest=(screen.get_width() // 2 + round(x * Hex.radius_x),
-                                screen.get_height() // 2 - round(y * Hex.radius_y) - font_size / 2))
+        text = font.render(str(self.__hp), True, 'white')
+        screen.blit(text, dest=(screen.get_width() // 2 + round(x * Hex.radius_x) - 2 * Hex.radius_x // 3,
+                                screen.get_height() // 2 - round(y * Hex.radius_y) - 2 * Hex.radius_y // 3))
 
     def update_hp(self, hp: int):
         self.__hp = hp
@@ -97,16 +93,4 @@ class Tank(Entity, ABC):
 
     @abstractmethod
     def get_possible_shots(self):
-        pass
-
-    @abstractmethod
-    def get_tank_type_shape(self, x: int, y: int, radius_x: int, radius_y: int) -> ([], bool):
-        """
-        Returns the shape tank needs to be drawn like
-        :param radius_y: y-radius of one hex
-        :param radius_x: x-radius of one hex
-        :param x: x coordinate in cartesian coordinate system
-        :param y: y coordinate in cartesian coordinate system
-        :return: (vertex coordinates of tank shape, if tank shape is closed polygon)
-        """
         pass
