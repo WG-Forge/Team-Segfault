@@ -5,7 +5,7 @@ from map.hex import Hex
 
 
 class Scoreboard:
-    # todo: bottom right - add catapult / bonuses; top right - add legend below turn count
+    # todo: bottom right - add catapult / bonuses; top right - add legend
     def __init__(self, players: tuple):
 
         # images
@@ -14,14 +14,15 @@ class Scoreboard:
 
         # used for coloring tank icons
         self.__color_image = pygame.Surface(self.__tank_image.get_size())
-        self.__rad_y_third = Hex.radius_y / 3
-        self.__rad_x_third = Hex.radius_x / 3
+        self.__rad_x_third = 0
+        self.__rad_y_third = 0
         # length of 4 whole hexes
         self.__max_rect_length = 4 * (2 * Hex.radius_x)
 
         self.__players: () = players
         self.__n_players = len(self.__players) + 1
 
+    """Capture scoreboards"""
     def draw_capture_scoreboard(self, screen, font, font_size):
         screen.blit(font.render(' Capture points: ', True, 'grey'), dest=(0, 0))
         self.draw_capture_scoreboard_flags(screen, font_size)
@@ -74,6 +75,7 @@ class Scoreboard:
                                    + str(player.get_damage_points()), True, player.get_color())
                 screen.blit(text, dest=(0, screen.get_height() - (4 - i) * (font_size + Hex.radius_y / 3)))
 
+    """Damage scoreboards"""
     def draw_damage_scoreboard(self, screen, font, font_size, max_damage):
         screen.blit(font.render(' Damage points: ', True, 'grey'),
                     dest=(0, screen.get_height() - (self.__n_players + 1) * (font_size + self.__rad_y_third)))
@@ -116,6 +118,12 @@ class Scoreboard:
                                    + str(player.get_capture_points()), True, player.get_color())
                 screen.blit(text, dest=(0, i * (font_size + Hex.radius_y / 3)))
 
+    """Update functions"""
+
     def update_image_size(self, scale_x, scale_y):
         self.__tank_image = pygame.transform.scale(self.__tank_image, (scale_x, scale_y))
         self.__flag = pygame.transform.scale(self.__flag, (scale_x, scale_y))
+
+    def set_radii(self, rad_x, rad_y):
+        self.__rad_x_third = rad_x
+        self.__rad_y_third = rad_y

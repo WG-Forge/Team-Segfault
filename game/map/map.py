@@ -11,6 +11,7 @@ from entity.map_features.spawn import Spawn
 from entity.tanks.tank import Tank
 from entity.tanks.tank_maker import TankMaker
 from map.hex import Hex
+from pygame_utils.explosion import Explosion
 from pygame_utils.scoreboard import Scoreboard
 
 
@@ -29,13 +30,15 @@ class Map:
         Hex.radius_x = SCREEN_WIDTH // self.__num_of_radii  # number of half radii on x axis
         Hex.radius_y = SCREEN_HEIGHT // self.__num_of_radii
         self.__scoreboard.update_image_size(Hex.radius_x * 2, Hex.radius_y * 2)
+        self.__scoreboard.set_radii(Hex.radius_x / 3, Hex.radius_y / 3)
 
         self.__font_size = round(1.2 * min(Hex.radius_y, Hex.radius_x))
+
+        self.__explosion_group = pygame.sprite.Group()
 
     def draw(self, screen: Surface):
         # Pass the surface and use it for rendering
         font = pygame.font.SysFont('georgia', self.__font_size, bold=True)
-
         # fill with background color
         screen.fill((59, 56, 47))
 
@@ -51,10 +54,14 @@ class Map:
         self.__scoreboard.draw_damage_scoreboard(screen, font, self.__font_size, self.__max_damage_points)
         self.__scoreboard.draw_capture_scoreboard(screen, font, self.__font_size)
 
+        self.__explosion_group.draw(screen)
+        self.__explosion_group.update()
+
         # display turn
         if self.__turn is not None:
             text = font.render('Turn: ' + str(self.__turn[0]), True, 'grey')
-            screen.blit(text, dest=(screen.get_width() - Hex.radius_x * self.__font_size / 3, 0))
+            text_rect = text.get_rect(midtop=(screen.get_width() // 2, 0))
+            screen.blit(text, text_rect)
 
         pygame.display.flip()
 
@@ -143,10 +150,15 @@ class Map:
     def shoot(self, tank: Tank, target: Tank):
         destroyed = target.register_hit_return_destroyed()
         if destroyed:
+            # add explosion
+            explosion = Explosion(target.get_screen_position(), Hex.radius_x * 2, Hex.radius_y * 2)
+            self.__explosion_group.add(explosion)
+
             self.move(target, target.get_spawn_coord())
             self.__players[tank.get_player_index()].register_destroyed_vehicle(target)
             self.__max_damage_points = \
                 max(self.__max_damage_points, self.__players[tank.get_player_index()].get_damage_points())
+
         self.__players[tank.get_player_index()].register_shot(target.get_player_index())
 
     def can_shoot(self, player_index: int, enemy_index: int) -> bool:
@@ -158,8 +170,8 @@ class Map:
         other_shot_enemy = other.has_shot(enemy_index)
         can_shoot = enemy_shot_player or not other_shot_enemy
 
-        print(
-            f'(E:{enemy_index}->P:{player_index}) = {enemy_shot_player} or not (O:{other_index}->E:{enemy_index}) = {other_shot_enemy} can_shoot = {can_shoot}')
+        # print(
+        #     f'(E:{enemy_index}->P:{player_index}) = {enemy_shot_player} or not (O:{other_index}->E:{enemy_index}) = {other_shot_enemy} can_shoot = {can_shoot}')
 
         return can_shoot
 

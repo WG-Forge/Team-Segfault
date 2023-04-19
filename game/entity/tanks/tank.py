@@ -21,27 +21,27 @@ class Tank(Entity, ABC):
         self.__tank_colour: str = colour
         self.__player_index: int = player_index
         self.__image: Surface = pygame.image.load(image_path)
+        self.__screen_position = (-1, -1)
 
         super().__init__(tank_info["vehicle_type"])
 
     def draw(self, screen: Surface, font_size) -> None:
         x, y = Hex.make_center(self._coord)
-
+        self.__screen_position = (screen.get_width() // 2 + round(x * Hex.radius_x) - 2 * Hex.radius_x // 3,
+                                  screen.get_height() // 2 - round(y * Hex.radius_y) - 2 * Hex.radius_y // 3)
         # show tank sprite
         self.__image = pygame.transform.scale(self.__image, (Hex.radius_x * 1.5, Hex.radius_y * 1.5))
         color_image = pygame.Surface(self.__image.get_size())
         color_image.fill(self.__tank_colour)
         ti = self.__image.copy()
         ti.blit(color_image, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
-        screen.blit(ti, (screen.get_width() // 2 + round(x * Hex.radius_x) - 2 * Hex.radius_x // 3,
-                         screen.get_height() // 2 - round(y * Hex.radius_y) - 2 * Hex.radius_y // 3))
+        screen.blit(ti, self.__screen_position)
 
         # show tank HP
         font_size = round(1 * min(Hex.radius_y, Hex.radius_x))
         font = pygame.font.SysFont('arial', font_size, bold=True)
         text = font.render(str(self.__hp), True, 'white')
-        screen.blit(text, dest=(screen.get_width() // 2 + round(x * Hex.radius_x) - 2 * Hex.radius_x // 3,
-                                screen.get_height() // 2 - round(y * Hex.radius_y) - 2 * Hex.radius_y // 3))
+        screen.blit(text, dest=self.__screen_position)
 
     def update_hp(self, hp: int):
         self.__hp = hp
@@ -82,6 +82,9 @@ class Tank(Entity, ABC):
 
     def get_cp(self) -> int:
         return self.__cp
+
+    def get_screen_position(self) -> (int, int):
+        return self.__screen_position
 
     @abstractmethod
     def get_symbol(self) -> str:

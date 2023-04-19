@@ -29,3 +29,11 @@ error ```UserWarning: Matplotlib is currently using agg, which is a non-GUI back
 occurs on Debian based systems,
 you need to install tkinter with ```sudo apt-get install python3-tk``` or install any of the matplotlib supported GUI
 backends.
+
+### Assets
+
+[Tank classes icons](https://icon-library.com/icon/world-of-tanks-icon-12.html)
+
+[Tank icon]()
+
+[Explosion]()
