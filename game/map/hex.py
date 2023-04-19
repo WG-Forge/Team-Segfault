@@ -10,7 +10,10 @@ class Hex:
     def danger_zone(td: tuple, target: tuple) -> tuple:
         # returns the coords of all the hexes that could be affected by a TD shooting from 'td' to 'target'
         target_dir = Hex.dir_vec(td, target)
-        return tuple([target] + [Hex.coord_sum(target_dir, target) for _ in range(2)])
+        danger_zone = [Hex.coord_sum(td, target_dir)]
+        for _ in range(2):
+            danger_zone.append(Hex.coord_sum(danger_zone[-1], target_dir))
+        return tuple(danger_zone)
 
     @staticmethod
     def td_shooting_coord(td_coord: tuple, target: tuple) -> tuple:

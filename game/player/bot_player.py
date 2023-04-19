@@ -27,11 +27,9 @@ class BotPlayer(Player, ABC):
             self.__move_to_if_possible(tank, closest_base_coord)
 
     def __move_to_shoot_closest_enemy(self, tank: Tank):
-        # Find the closest enemy tank
-        enemy: Tank = self._map.closest_enemy(tank)
-        if enemy is not None:
+        for enemy in self._map.closest_enemies(tank):
             shot_moves = tank.shot_moves(enemy.get_coord())
-            if tank.get_coord() in shot_moves and self._map.is_belligerent(self._player_index, enemy.get_player_index()):
+            if tank.get_coord() in shot_moves and not (self._map.is_neutral(tank, enemy) or enemy.is_destroyed()):
                 if tank.get_type() != 'at_spg':
                     self.__update_maps_with_shot(tank, enemy)
                 else:
@@ -41,6 +39,7 @@ class BotPlayer(Player, ABC):
                 for coord in shot_moves:
                     if self.__move_to_if_possible(tank, coord):
                         break
+            break
 
     def __move_to_if_possible(self, tank: Tank, where: tuple) -> bool:
         next_best = self._map.next_best_available_hex_in_path_to(tank, where)
@@ -51,8 +50,8 @@ class BotPlayer(Player, ABC):
 
     def __update_maps_with_move(self, tank: Tank, action_coord: tuple) -> None:
         x, y, z = action_coord
-        self._game_client.server_move({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
         self._map.local_move(tank, action_coord)
+        self._game_client.server_move({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
 
     def __update_maps_with_shot(self, tank: Tank, target: Tank, td_shooting_coord=None):
         if td_shooting_coord is None:
@@ -63,4 +62,3 @@ class BotPlayer(Player, ABC):
             self._map.td_shoot(tank, td_shooting_coord)
 
         self._game_client.server_shoot({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
-

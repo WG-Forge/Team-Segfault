@@ -1,4 +1,5 @@
 import heapq
+from typing import List, Union
 
 from matplotlib import pyplot as plt
 
@@ -14,14 +15,17 @@ from map.hex import Hex
 class Map:
     def __init__(self, client_map: dict, game_state: dict, active_players: dict):
         self.__players = Map.__add_players(active_players)
-        self.__tanks: dict[int, Tank] = {}
+        self.__tanks: dict[str, Tank] = {}
         self.__map: dict = {}
         self.__base_coords: tuple = ()
         self.__spawn_coords: tuple = ()
         self.__make_map(client_map, game_state, active_players)
+        self.__destroyed: List[Tank] = []
         _ = plt.figure()
 
-    def __make_map(self, client_map: dict, game_state: dict, active_players: dict) -> dict:
+    """     MAP MAKING      """
+
+    def __make_map(self, client_map: dict, game_state: dict, active_players: dict) -> None:
         # Make empty map
         rings = [Hex.make_ring(ring_num) for ring_num in range(client_map["size"])]
         self.__map = {coord: {'feature': Empty(coord), 'tank': None} for ring in rings for coord in ring}
@@ -34,49 +38,49 @@ class Map:
             tank_coord = tank.get_coord()
             self.__map[tank_coord]['tank'] = tank
             self.__map[tank_coord]['feature'] = spawn
-            self.__tanks[int(vehicle_id)] = tank
+            self.__tanks[vehicle_id] = tank
             player.add_tank(tank)
 
         # Put entities in map
         for entity, info in client_map["content"].items():
             if entity == "base":
-                self.__set_base(info)
+                self.__make_bases(info)
             elif entity == 'obstacle':
-                self.__set_obstacles(info)
+                self.__make_obstacles(info)
             else:
                 print(f"Support for {entity} needed")
 
-    def __set_base(self, coords: dict) -> None:
+    @staticmethod
+    def __add_players(active_players: dict) -> tuple:
+        players = [None, None, None]
+        for player_id, player in active_players.items():
+            if not player.is_observer:
+                players[player.get_index()] = player
+        return tuple(players)
+
+    def __make_bases(self, coords: dict) -> None:
         self.__base_coords = tuple([tuple(coord.values()) for coord in coords])
         for coord in self.__base_coords:
             self.__map[coord]['feature'] = Base(coord)
 
-    def __set_obstacles(self, obstacles: []) -> None:
+    def __make_obstacles(self, obstacles: []) -> None:
         for d in obstacles:
             coord = (d['x'], d['y'], d['z'])
             self.__map[coord]['feature'] = Obstacle(coord)
 
-    def sync_local_with_server(self, game_state: dict) -> None:
-        # Updates the map information based on passed dictionary from server map
+    """     SYNCHRONISE SERVER AND LOCAL MAPS        """
 
+    def sync_local_with_server(self, game_state: dict) -> None:
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
-            vehicle_id = int(vehicle_id)
             server_coord = (vehicle_info["position"]["x"], vehicle_info["position"]["y"], vehicle_info["position"]["z"])
-            server_hp = vehicle_info['health']
-            server_cp = vehicle_info["capture_points"]
+            server_hp, server_cp = vehicle_info['health'], vehicle_info["capture_points"]
 
             tank = self.__tanks[vehicle_id]
-            local_coord = tank.get_coord()
-            local_hp = tank.get_hp()
-            local_cp = tank.get_cp()
+            self.local_move(tank, server_coord) if server_coord != tank.get_coord() else None
+            tank.set_hp(server_hp) if server_hp != tank.get_hp() else None
+            tank.set_cp(server_cp) if server_cp != tank.get_cp() else None
 
-            if server_coord != local_coord:
-                print(f'movement un sync: {server_coord}, {local_coord}')
-                self.local_move(tank, server_coord)
-            if server_hp != local_hp:
-                tank.update_hp(server_hp)
-            if server_cp != local_cp:
-                tank.update_cp(server_cp)
+    """     MOVE & FIRE CONTROL        """
 
     def local_move(self, tank: Tank, new_coord: tuple) -> None:
         old_coord = tank.get_coord()
@@ -87,90 +91,50 @@ class Map:
     def local_shoot(self, tank: Tank, target: Tank) -> None:
         destroyed = target.register_hit_return_destroyed()
         if destroyed:
-            self.local_move(target, target.get_spawn_coord())
+            self.__destroyed.append(target)
         self.__players[tank.get_player_index()].register_shot(target.get_player_index())
 
     def td_shoot(self, td: Tank, target: tuple) -> None:
         danger_zone = Hex.danger_zone(td.get_coord(), target)
         for coord in danger_zone:
-            if coord in self.__map:
-                if self.is_obstacle(coord):
-                    break
+            entities = self.__map.get(coord)
+            if entities and not isinstance(entities['feature'], Obstacle):
                 enemy = self.__map[coord]['tank']
-                if enemy is not None and self.is_belligerent(td.get_player_index(), enemy.get_player_index()):
+                if enemy and not (td.get_player_index() == enemy.get_player_index() or
+                                  self.is_neutral(td, enemy) or enemy.is_destroyed()):
                     self.local_shoot(td, enemy)
+            else:
+                break
 
-    def is_belligerent(self, player_index: int, enemy_index: int) -> bool:
+    def respawn_destroyed_tanks(self) -> None:
+        while self.__destroyed:
+            tank = self.__destroyed.pop()
+            self.local_move(tank, tank.get_spawn_coord())
+            tank.respawn()
+
+    def is_neutral(self, player_tank: Tank, enemy_tank: Tank) -> bool:
+        # Neutrality rule logic implemented here, return True if not neutral, False if neutral
+        player_index, enemy_index = player_tank.get_player_index(), enemy_tank.get_player_index()
         other_index = next(iter({0, 1, 2} - {player_index, enemy_index}))
-        enemy = self.__players[enemy_index]
-        other = self.__players[other_index]
+        other_player, enemy_player = self.__players[other_index], self.__players[enemy_index]
+        return not enemy_player.has_shot(player_index) and other_player.has_shot(enemy_index)
 
-        enemy_shot_player = enemy.has_shot(player_index)
-        other_shot_enemy = other.has_shot(enemy_index)
-        can_shoot = enemy_shot_player or not other_shot_enemy
+    """     NAVIGATION    """
 
-        return can_shoot
+    def closest_base(self, to: tuple) -> Union[tuple, None]:
+        free_base_coords = tuple(c for c in self.__base_coords if self.__map[c]['tank'] is None or c == to)
+        if free_base_coords:
+            return min(free_base_coords, key=lambda coord: Hex.manhattan_dist(to, coord))
 
-    def _is_others_spawn(self, spawn_coord: tuple, tank_id: int) -> bool:
-        # If the feature at spawn_coord is a spawn object and it does not belong to the tank with tank_id return True
-        feature = self.__map[spawn_coord]['feature']
-        if isinstance(feature, Spawn):
-            if feature.get_belongs_id() != tank_id:
-                return True
-        return False
+    def closest_enemies(self, tank: Tank) -> List[Tank]:
+        # Returns a sorted list by distance of enemy tanks
+        tank_idx, tank_coord = tank.get_player_index(), tank.get_coord()
+        enemies = [player for player in self.__players if player.get_index() != tank_idx]
+        return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.get_tanks()),
+                      key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.get_coord(), tank_coord))
 
-    def get_players(self):
-        return self.__players
-
-    def get_player(self, index: int):
-        return self.__players[index]
-
-    def is_obstacle(self, coord: tuple) -> bool:
-        return True if coord in self.__map and isinstance(self.__map[coord]['feature'], Obstacle) else False
-
-    def has_tank(self, coord: tuple) -> bool:
-        return False if self.__map[coord]['tank'] is None else True
-
-    def coord_exists(self, coord):
-        return True if coord in self.__map else False
-
-    def closest_base(self, to_where_coord: tuple) -> tuple:
-        free_base_coords = tuple(coord for coord in self.__base_coords
-                                 if self.__map[coord]['tank'] is None or coord == to_where_coord)
-        if not free_base_coords:
-            return None
-        return min(free_base_coords, key=lambda coord: Hex.manhattan_dist(to_where_coord, coord))
-
-    def closest_enemy(self, tank: Tank) -> Tank:
-        friendly_index = tank.get_player_index()
-        enemies = []
-        for player in self.__players:
-            if player is not None and player.get_index() != friendly_index:
-                enemies.append(player)
-
-        friend_coord = tank.get_coord()
-        close_enemy_coord = (1000, 1000, 1000)
-        close_enemy_dist = 1000
-        for enemy in enemies:
-            enemy_tanks = enemy.get_tanks()
-            for enemy_tank in enemy_tanks:
-                enemy_coord = enemy_tank.get_coord()
-                distance = Hex.manhattan_dist(enemy_coord, friend_coord)
-                if distance < close_enemy_dist:
-                    close_enemy_coord = enemy_coord
-                    close_enemy_dist = distance
-
-        if close_enemy_dist != 1000:
-            return self.__map[close_enemy_coord]['tank']
-        else:
-            print("no enemies, this is a single-player game")
-            # raise KeyError("No enemy found, impossible, must be 10 enemies at all times")
-
-    def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple):
-        start = tank.get_coord()
-        tank_id = tank.get_id()
-        speed = tank.get_speed()
-
+    def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> Union[tuple, None]:
+        start, tank_id, speed = tank.get_coord(), tank.get_id(), tank.get_speed()
         passable_obstacles = []
         cnt = 0
 
@@ -185,22 +149,16 @@ class Map:
                 current = heapq.heappop(frontier)[1]
                 if current == finish:
                     break
-
                 for movement in Hex.movements:
                     coord = Hex.coord_sum(current, movement)
-
-                    if coord not in self.__map:  # If coord does not exist in map, continue
-                        continue
-                    elif self.is_obstacle(coord) or coord in passable_obstacles:  # Then, check if it is an obstacle
-                        continue
-
-                    new_cost = cost_so_far[current] + 1
-                    if coord not in cost_so_far or new_cost < cost_so_far[coord]:
-                        cost_so_far[coord] = new_cost
-                        priority = new_cost + Hex.manhattan_dist(finish, coord)
-                        heapq.heappush(frontier, (priority, coord))
-                        came_from[coord] = current
-
+                    entities = self.__map.get(coord)
+                    if entities and not (isinstance(entities['feature'], Obstacle) or coord in passable_obstacles):
+                        new_cost = cost_so_far[current] + 1
+                        if coord not in cost_so_far or new_cost < cost_so_far[coord]:
+                            cost_so_far[coord] = new_cost
+                            priority = new_cost + Hex.manhattan_dist(finish, coord)
+                            heapq.heappush(frontier, (priority, coord))
+                            came_from[coord] = current
             path = []
             current = finish
             while current != start:
@@ -210,16 +168,23 @@ class Map:
                 current = came_from[current]
             path.append(start)
             path.reverse()
-
             next_best = path[min(speed, len(path) - 1)]
 
             # If next_best is a tank or base, append to passable_obstacles and try again
-            if self._is_others_spawn(next_best, tank_id) or self.has_tank(next_best):
+            if self._is_others_spawn(next_best, tank_id) or self.__map[next_best]['tank']:
                 passable_obstacles.append(next_best)
                 cnt += 1
                 continue
             else:
                 return next_best
+
+    def _is_others_spawn(self, spawn_coord: tuple, tank_id: int) -> bool:
+        # If the feature at spawn_coord is a spawn object and it does not belong to the tank with tank_id return True
+        feature = self.__map[spawn_coord]['feature']
+        if isinstance(feature, Spawn):
+            if feature.get_belongs_id() != tank_id:
+                return True
+        return False
 
     def draw(self):
         feature_hexes: [] = []
@@ -248,13 +213,5 @@ class Map:
 
         plt.axis('off')
         # comment this if using SciView
-        plt.pause(0.5)
+        plt.pause(0.25)
         plt.draw()
-
-    @staticmethod
-    def __add_players(active_players: dict) -> tuple:
-        players = [None, None, None]
-        for player_id, player in active_players.items():
-            if not player.is_observer:
-                players[player.get_index()] = player
-        return tuple(players)

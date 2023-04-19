@@ -137,6 +137,10 @@ class Game:
         self.__start_next_turn(game_state)
 
     def __start_next_turn(self, game_state: dict = None) -> None:
+
+        # At the beginning of each turn move the tanks that have been destroyed in the previous turn to their spawn
+        self.__map.respawn_destroyed_tanks()
+
         # start the next turn
         if not game_state:
             game_state = self.__current_client.get_game_state()
