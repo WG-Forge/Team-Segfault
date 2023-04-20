@@ -1,10 +1,8 @@
-from abc import ABC
-
 from entity.tanks.tank import Tank
 from map.hex import Hex
 
 
-class LightTank(Tank, ABC):
+class LightTank(Tank):
     __sp: int = 3  # Speed Points
     __dp: int = 1  # Destruction Points
     __max_range = 2  # Manhattan max range
@@ -40,4 +38,5 @@ class LightTank(Tank, ABC):
     def get_symbol(self) -> str:
         return LightTank.__symbol
 
-
+    def get_fire_deltas(self) -> tuple:
+        return LightTank.__fire_deltas

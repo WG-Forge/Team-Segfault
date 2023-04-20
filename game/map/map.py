@@ -1,43 +1,30 @@
-import heapq
-from typing import List, Union
+from typing import List, Union, Callable
 
-import pygame
 from pygame import Surface
 
-from consts import SCREEN_HEIGHT, SCREEN_WIDTH
 from entity.map_features.base import Base
 from entity.map_features.empty import Empty
 from entity.map_features.obstacle import Obstacle
-from entity.map_features.spawn import Spawn
 from entity.tanks.tank import Tank
 from entity.tanks.tank_maker import TankMaker
+from map import _a_star
+from map._map_drawer import MapDrawer
 from map.hex import Hex
-from pygame_utils.explosion import Explosion
-from pygame_utils.scoreboard import Scoreboard
 
 
 class Map:
-    def __init__(self, client_map: dict, game_state: dict, active_players: dict):
-        self.__players = Map.__add_players(active_players)
+    def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[1]):
+        self.__players: tuple = Map.__add_players(active_players)
         self.__tanks: dict[str, Tank] = {}
         self.__map: dict = {}
         self.__base_coords: tuple = ()
         self.__spawn_coords: tuple = ()
         self.__make_map(client_map, game_state, active_players)
         self.__destroyed: List[Tank] = []
-        self.__num_of_radii: int = (client_map["size"] - 1) * 2 * 2
-        self.__turn: list[1] = [-1]
-        self.__max_damage_points: int = 0
 
-        self.__scoreboard = Scoreboard(self.__players)
-        Hex.radius_x = SCREEN_WIDTH // self.__num_of_radii  # number of half radii on x axis
-        Hex.radius_y = SCREEN_HEIGHT // self.__num_of_radii
-        self.__scoreboard.update_image_size(Hex.radius_x * 2, Hex.radius_y * 2)
-        self.__scoreboard.set_radii(Hex.radius_x / 3, Hex.radius_y / 3)
+        self.__path_finding_algorithm: Callable = _a_star.a_star
 
-        self.__font_size = round(1.2 * min(Hex.radius_y, Hex.radius_x))
-
-        self.__explosion_group = pygame.sprite.Group()
+        self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn)
 
     """     MAP MAKING      """
 
@@ -84,9 +71,17 @@ class Map:
             coord = (d['x'], d['y'], d['z'])
             self.__map[coord]['feature'] = Obstacle(coord)
 
+    """     DRAWING     """
+
+    def draw(self, screen: Surface):
+        self.__map_drawer.draw(screen)
+
     """     SYNCHRONISE SERVER AND LOCAL MAPS        """
 
-    def sync_local_with_server(self, game_state: dict) -> None:
+    def update_turn(self, game_state: dict) -> None:
+        # At the beginning of each turn move the tanks that have been destroyed in the previous turn to their spawn
+        self.__respawn_destroyed_tanks()
+
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             server_coord = (vehicle_info["position"]["x"], vehicle_info["position"]["y"], vehicle_info["position"]["z"])
             server_hp, server_cp = vehicle_info['health'], vehicle_info["capture_points"]
@@ -96,11 +91,17 @@ class Map:
             tank.set_hp(server_hp) if server_hp != tank.get_hp() else None
             tank.set_cp(server_cp) if server_cp != tank.get_cp() else None
 
+    def __respawn_destroyed_tanks(self) -> None:
+        while self.__destroyed:
+            tank = self.__destroyed.pop()
+            self.local_move(tank, tank.get_spawn_coord())
+            tank.respawn()
+
     """     MOVE & FIRE CONTROL        """
 
     def local_move(self, tank: Tank, new_coord: tuple) -> None:
         old_coord = tank.get_coord()
-        self.__map[new_coord]['tank'] = tank  # New pos has now tank
+        self.__map[new_coord]['tank'] = tank  # New pos now has tank
         self.__map[old_coord]['tank'] = None  # Old pos is now empty
         tank.set_coord(new_coord)  # tank has new position
 
@@ -108,13 +109,7 @@ class Map:
         destroyed = target.register_hit_return_destroyed()
         if destroyed:
             # add explosion
-            explosion = Explosion(target.get_screen_position(), Hex.radius_x * 2, Hex.radius_y * 2)
-            self.__explosion_group.add(explosion)
-
-            self.move(target, target.get_spawn_coord())
-            self.__players[tank.get_player_index()].register_destroyed_vehicle(target)
-            self.__max_damage_points = \
-                max(self.__max_damage_points, self.__players[tank.get_player_index()].get_damage_points())
+            self.__map_drawer.add_explosion(tank, target)
 
             # add to destroyed tanks
             self.__destroyed.append(target)
@@ -132,12 +127,6 @@ class Map:
                     self.local_shoot(td, enemy)
             else:
                 break
-
-    def respawn_destroyed_tanks(self) -> None:
-        while self.__destroyed:
-            tank = self.__destroyed.pop()
-            self.local_move(tank, tank.get_spawn_coord())
-            tank.respawn()
 
     def is_neutral(self, player_tank: Tank, enemy_tank: Tank) -> bool:
         # Neutrality rule logic implemented here, return True if not neutral, False if neutral
@@ -161,85 +150,4 @@ class Map:
                       key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.get_coord(), tank_coord))
 
     def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> Union[tuple, None]:
-        start, tank_id, speed = tank.get_coord(), tank.get_id(), tank.get_speed()
-        passable_obstacles = []
-        cnt = 0
-
-        while cnt < 25:
-            frontier = []
-            heapq.heappush(frontier, (0, start))
-            came_from = {}
-            cost_so_far = {}
-            came_from[start] = None
-            cost_so_far[start] = 0
-            while frontier:
-                current = heapq.heappop(frontier)[1]
-                if current == finish:
-                    break
-                for movement in Hex.movements:
-                    coord = Hex.coord_sum(current, movement)
-                    entities = self.__map.get(coord)
-                    if entities and not (isinstance(entities['feature'], Obstacle) or coord in passable_obstacles):
-                        new_cost = cost_so_far[current] + 1
-                        if coord not in cost_so_far or new_cost < cost_so_far[coord]:
-                            cost_so_far[coord] = new_cost
-                            priority = new_cost + Hex.manhattan_dist(finish, coord)
-                            heapq.heappush(frontier, (priority, coord))
-                            came_from[coord] = current
-            path = []
-            current = finish
-            while current != start:
-                path.append(current)
-                if current not in came_from:
-                    return None
-                current = came_from[current]
-            path.append(start)
-            path.reverse()
-            next_best = path[min(speed, len(path) - 1)]
-
-            # If next_best is a tank or base, append to passable_obstacles and try again
-            if self._is_others_spawn(next_best, tank_id) or self.__map[next_best]['tank']:
-                passable_obstacles.append(next_best)
-                cnt += 1
-                continue
-            else:
-                print(f"Support for {entity} needed")
-
-    def _is_others_spawn(self, spawn_coord: tuple, tank_id: int) -> bool:
-        # If the feature at spawn_coord is a spawn object and it does not belong to the tank with tank_id return True
-        feature = self.__map[spawn_coord]['feature']
-        if isinstance(feature, Spawn):
-            if feature.get_belongs_id() != tank_id:
-                return True
-        return False
-
-    """ DRAWING """
-
-    def draw(self, screen: Surface):
-        # Pass the surface and use it for rendering
-        font = pygame.font.SysFont('georgia', self.__font_size, bold=True)
-        # fill with background color
-        screen.fill((59, 56, 47))
-
-        # display tanks and features
-        for coord, entities in self.__map.items():
-            feature, tank = entities['feature'], entities['tank']
-            feature.draw(screen)
-            # Draw tank if any
-            if tank is not None:
-                tank.draw(screen, self.__font_size)
-
-        # display scoreboards
-        self.__scoreboard.draw_damage_scoreboard(screen, font, self.__font_size, self.__max_damage_points)
-        self.__scoreboard.draw_capture_scoreboard(screen, font, self.__font_size)
-
-        self.__explosion_group.draw(screen)
-        self.__explosion_group.update()
-
-        # display turn
-        if self.__turn is not None:
-            text = font.render('Turn: ' + str(self.__turn[0]), True, 'grey')
-            text_rect = text.get_rect(midtop=(screen.get_width() // 2, 0))
-            screen.blit(text, text_rect)
-
-        pygame.display.flip()
+        return self.__path_finding_algorithm(self.__map, tank, finish)

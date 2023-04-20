@@ -1,15 +1,14 @@
-from abc import ABC
-from threading import Semaphore
+from threading import Semaphore, Event
 
 from entity.tanks.tank import Tank
 from map.hex import Hex
 from player.player import Player
 
 
-class BotPlayer(Player, ABC):
+class BotPlayer(Player):
     def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
-                 current_player: list[1], player_index: int):
-        super().__init__(name, password, is_observer, turn_played_sem, current_player, player_index)
+                 current_player: list[1], player_index: int, active: Event):
+        super().__init__(name, password, is_observer, turn_played_sem, current_player, player_index, active)
 
     def _make_turn_plays(self) -> None:
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg

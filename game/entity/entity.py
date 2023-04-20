@@ -9,11 +9,6 @@ class Entity:
     def draw(self, screen, font_size) -> None:
         pass
 
-    @abstractmethod
-    def update(self, hp: str, capture_pts: str):
-        pass
-
-    @abstractmethod
     def get_type(self) -> str:
         return self._type
 

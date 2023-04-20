@@ -122,7 +122,9 @@ class GameClient:
             msg = bytes(json.dumps(dct), 'utf-8')
         out: bytes = struct.pack('ii', act, len(msg)) + msg
 
-        self.__service.send_data(out)
+        if not self.__service.send_data(out):
+            raise ConnectionError(f"Error: Data was not sent correctly.")
+
         if Action != Action.TURN:
             ret = self.__service.receive_data()
         else:

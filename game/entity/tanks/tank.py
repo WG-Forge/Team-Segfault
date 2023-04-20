@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 import pygame
 from pygame import Surface
@@ -7,22 +7,22 @@ from entity.entity import Entity
 from map.hex import Hex
 
 
-class Tank(Entity, ABC):
+class Tank(Entity):
     __damage = 1
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int, image_path: str):
-        self.__coord = None
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
         self.__cp = tank_info["capture_points"]
         self.__spawn_coord: tuple = (tank_info["position"]["x"], tank_info["position"]["y"], tank_info["position"]["z"])
-        self._coord: tuple = self.__spawn_coord
         self.__tank_colour: str = colour
         self.__player_index: int = player_index
         self.__destroyed: bool = False
         self.__image: Surface = pygame.image.load(image_path)
         self.__screen_position = (-1, -1)
+
+        self._coord: tuple = self.__spawn_coord
 
         super().__init__(tank_info["vehicle_type"])
 
@@ -61,6 +61,7 @@ class Tank(Entity, ABC):
         self.__hp = self.__og_hp
 
     """     GETTERS     """
+
     def get_coord(self) -> tuple: return self._coord
 
     def get_player_index(self) -> int: return self.__player_index
@@ -78,6 +79,7 @@ class Tank(Entity, ABC):
     def get_spawn_coord(self) -> tuple: return self.__spawn_coord
 
     """     SETTERS     """
+
     def set_coord(self, new_coord: tuple) -> None: self._coord = new_coord
 
     def set_hp(self, hp: int): self.__hp = hp
@@ -85,6 +87,7 @@ class Tank(Entity, ABC):
     def set_cp(self, capture_pts: int): self.__cp = capture_pts
 
     """     ABSTRACTS       """
+
     @abstractmethod
     def shot_moves(self, target: tuple) -> tuple: pass  # sorted coords to where "self" can move to shoot "target"
 

@@ -63,7 +63,7 @@ class Game(Thread):
         if is_bot:
             player_type = PlayerTypes.Bot
         else:
-            player_type = PlayerTypes.Human
+            player_type = PlayerTypes.Remote
 
         player = PlayerMaker.create_player(player_type=player_type,
                                            name=name,
@@ -140,8 +140,7 @@ class Game(Thread):
         game_state: dict = self.__current_client.get_game_state()
 
         # initialize the game map (now adds tanks to players & game_map too)
-        self.__game_map = Map(client_map, game_state, self.__active_players)
-        self.__game_map.set_turn_reference(self.__current_turn)
+        self.__game_map = Map(client_map, game_state, self.__active_players, self.__current_turn)
 
         self.__num_turns = game_state["num_turns"]
         self.__max_players = game_state["num_players"]
@@ -154,9 +153,6 @@ class Game(Thread):
         print(self)
 
     def __start_next_turn(self, game_state: dict = None) -> None:
-
-        # At the beginning of each turn move the tanks that have been destroyed in the previous turn to their spawn
-        self.__map.respawn_destroyed_tanks()
 
         # start the next turn
         if not game_state:
@@ -174,7 +170,7 @@ class Game(Thread):
         print(f"Current turn: {self.__current_turn[0]}, "
               f"current player: {self.__current_player.name}")
 
-        self.__game_map.sync_local_with_server(game_state)
+        self.__game_map.update_turn(game_state)
 
         if game_state["winner"] or self.__current_turn[0] == self.__num_turns:
             self.__winner = game_state["winner"]

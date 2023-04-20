@@ -2,18 +2,18 @@ from enum import Enum
 from threading import Semaphore, Event
 
 from player.bot_player import BotPlayer
-from player.human_player import HumanPlayer
 from player.player import Player
+from player.remote_player import RemotePlayer
 
 
 class PlayerTypes(Enum):
-    Human = 1
+    Remote = 1
     Bot = 2
 
 
 class PlayerMaker:
     __CLASS_MAPPING = {
-        PlayerTypes.Human: HumanPlayer,
+        PlayerTypes.Remote: RemotePlayer,
         PlayerTypes.Bot: BotPlayer
     }
 

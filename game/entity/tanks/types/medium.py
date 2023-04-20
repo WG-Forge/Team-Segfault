@@ -1,10 +1,8 @@
-from abc import ABC
-
 from entity.tanks.tank import Tank
 from map.hex import Hex
 
 
-class MediumTank(Tank, ABC):
+class MediumTank(Tank):
     __sp: int = 2  # Speed Points
     __dp: int = 2  # Destruction Points
     __max_range = 2  # Manhattan max range
