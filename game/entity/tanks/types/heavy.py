@@ -13,7 +13,8 @@ class HeavyTank(Tank, ABC):
     __symbol: str = 'H'
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
-        super().__init__(tank_id, tank_info, colour, player_index)
+        image_path = 'game/assets/tank_classes/ht.png'
+        super().__init__(tank_id, tank_info, colour, player_index, image_path)
 
     def shot_moves(self, target: tuple) -> tuple:
         # returns coords to where "self" can move shoot "target", ordered from closest to furthest away from "self"

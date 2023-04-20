@@ -1,6 +1,7 @@
+import time
 from abc import abstractmethod
 from dataclasses import dataclass
-from threading import Thread, Semaphore
+from threading import Thread, Semaphore, Event
 
 from client.game_client import GameClient
 from entity.tanks.tank import Tank
@@ -10,25 +11,30 @@ from map.map import Map
 @dataclass
 class Player(Thread):
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
-    __possible_colours = ('blue', 'black', 'green')
+    __possible_colours = ((224, 206, 70), (70, 191, 224), (201, 26, 40))  # yellow, blue, red
 
     def __init__(self, name: str, password: str, is_observer: bool,
-                 turn_played_sem: Semaphore, current_player: list[1], player_index: int):
-        super().__init__(daemon=True)
+                 turn_played_sem: Semaphore, current_player: list[1], player_index: int, active: Event):
+        super().__init__()
+
         self.idx: int = -1
         self.name = name
         self.password = password
         self.is_observer: bool = is_observer
+
         self.next_turn_sem = Semaphore(0)
+        self.__turn_played_sem = turn_played_sem
+        self.__active = active
+        self.__current_player = current_player
+
+        self._game_client = None
+        self._map = None
+
         self._damage_points = 0
         self._capture_points = 0
         self._tanks: list[Tank] = []
-        self._map = None
-        self._game_client = None
-        self.__turn_played_sem = turn_played_sem
-        self.__current_player = current_player
-        self.__player_colour = Player.__possible_colours[player_index]
         self._player_index = player_index
+        self.__player_colour = Player.__possible_colours[player_index]
         self.__has_shot = []  # Holds a list of enemies this player has shot last turn
 
     def __hash__(self):
@@ -62,13 +68,18 @@ class Player(Thread):
         self._map = game_map
 
     def run(self) -> None:
-        while True:
+        while self.__active.is_set():
             # wait for condition
             self.next_turn_sem.acquire()
 
             try:
+                # check if the game ended
+                if not self.__active.is_set():
+                    break
+
                 # play your move if you are the current player
                 if self.__current_player[0] == self.idx:
+                    time.sleep(1)  # comment/uncomment this for a turn delay effect
                     self._make_turn_plays()
 
                 # force next turn
@@ -79,9 +90,8 @@ class Player(Thread):
                 # notify condition
                 self.__turn_played_sem.release()
 
-    @abstractmethod
-    def _make_turn_plays(self) -> None:
-        pass
+        # finalization
+        self.__logout()
 
     def get_color(self) -> str:
         return self.__player_colour
@@ -100,3 +110,20 @@ class Player(Thread):
 
     def register_turn(self) -> None:  # Call this for every player at the beginning of every turn
         self.__has_shot = []
+
+    @abstractmethod
+    def _make_turn_plays(self) -> None:
+        pass
+
+    def __logout(self):
+        self._game_client.logout()
+        self._game_client.disconnect()
+
+    def register_destroyed_vehicle(self, tank: Tank) -> None:
+        self._damage_points += tank.get_hp()
+
+    def get_capture_points(self) -> int:
+        return sum(tank.get_cp() for tank in self._tanks)
+
+    def get_damage_points(self) -> int:
+        return self._damage_points

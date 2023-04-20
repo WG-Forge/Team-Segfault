@@ -13,7 +13,8 @@ class LightTank(Tank, ABC):
     __symbol: str = 'D'
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
-        super().__init__(tank_id, tank_info, colour, player_index)
+        image_path = 'game/assets/tank_classes/lt.png'
+        super().__init__(tank_id, tank_info, colour, player_index, image_path)
 
     def shot_moves(self, target: tuple) -> tuple:
         # returns coords to where "self" can move shoot "target", ordered from closest to furthest away from "self"
@@ -31,7 +32,7 @@ class LightTank(Tank, ABC):
 
     def possible_shots(self) -> tuple:
         x, y, z = self._coord
-        return tuple([(dx+x, dy+y, dz+z) for (dx, dy, dz) in LightTank.__fire_deltas])
+        return tuple([(dx + x, dy + y, dz + z) for (dx, dy, dz) in LightTank.__fire_deltas])
 
     def get_speed(self) -> int:
         return self.__sp
@@ -39,5 +40,4 @@ class LightTank(Tank, ABC):
     def get_symbol(self) -> str:
         return LightTank.__symbol
 
-    def get_fire_deltas(self) -> tuple:
-        return LightTank.__fire_deltas
+

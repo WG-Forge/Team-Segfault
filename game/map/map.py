@@ -1,8 +1,10 @@
 import heapq
 from typing import List, Union
 
-from matplotlib import pyplot as plt
+import pygame
+from pygame import Surface
 
+from consts import SCREEN_HEIGHT, SCREEN_WIDTH
 from entity.map_features.base import Base
 from entity.map_features.empty import Empty
 from entity.map_features.obstacle import Obstacle
@@ -10,6 +12,8 @@ from entity.map_features.spawn import Spawn
 from entity.tanks.tank import Tank
 from entity.tanks.tank_maker import TankMaker
 from map.hex import Hex
+from pygame_utils.explosion import Explosion
+from pygame_utils.scoreboard import Scoreboard
 
 
 class Map:
@@ -21,7 +25,19 @@ class Map:
         self.__spawn_coords: tuple = ()
         self.__make_map(client_map, game_state, active_players)
         self.__destroyed: List[Tank] = []
-        _ = plt.figure()
+        self.__num_of_radii: int = (client_map["size"] - 1) * 2 * 2
+        self.__turn: list[1] = [-1]
+        self.__max_damage_points: int = 0
+
+        self.__scoreboard = Scoreboard(self.__players)
+        Hex.radius_x = SCREEN_WIDTH // self.__num_of_radii  # number of half radii on x axis
+        Hex.radius_y = SCREEN_HEIGHT // self.__num_of_radii
+        self.__scoreboard.update_image_size(Hex.radius_x * 2, Hex.radius_y * 2)
+        self.__scoreboard.set_radii(Hex.radius_x / 3, Hex.radius_y / 3)
+
+        self.__font_size = round(1.2 * min(Hex.radius_y, Hex.radius_x))
+
+        self.__explosion_group = pygame.sprite.Group()
 
     """     MAP MAKING      """
 
@@ -91,7 +107,18 @@ class Map:
     def local_shoot(self, tank: Tank, target: Tank) -> None:
         destroyed = target.register_hit_return_destroyed()
         if destroyed:
+            # add explosion
+            explosion = Explosion(target.get_screen_position(), Hex.radius_x * 2, Hex.radius_y * 2)
+            self.__explosion_group.add(explosion)
+
+            self.move(target, target.get_spawn_coord())
+            self.__players[tank.get_player_index()].register_destroyed_vehicle(target)
+            self.__max_damage_points = \
+                max(self.__max_damage_points, self.__players[tank.get_player_index()].get_damage_points())
+
+            # add to destroyed tanks
             self.__destroyed.append(target)
+
         self.__players[tank.get_player_index()].register_shot(target.get_player_index())
 
     def td_shoot(self, td: Tank, target: tuple) -> None:
@@ -176,7 +203,7 @@ class Map:
                 cnt += 1
                 continue
             else:
-                return next_best
+                print(f"Support for {entity} needed")
 
     def _is_others_spawn(self, spawn_coord: tuple, tank_id: int) -> bool:
         # If the feature at spawn_coord is a spawn object and it does not belong to the tank with tank_id return True
@@ -186,32 +213,33 @@ class Map:
                 return True
         return False
 
-    def draw(self):
-        feature_hexes: [] = []
+    """ DRAWING """
 
-        plt.clf()
+    def draw(self, screen: Surface):
+        # Pass the surface and use it for rendering
+        font = pygame.font.SysFont('georgia', self.__font_size, bold=True)
+        # fill with background color
+        screen.fill((59, 56, 47))
+
+        # display tanks and features
         for coord, entities in self.__map.items():
             feature, tank = entities['feature'], entities['tank']
+            feature.draw(screen)
             # Draw tank if any
             if tank is not None:
-                color = tank.get_color()
-                marker = tank.get_symbol()
-                x, y = feature.get_center()
-                plt.plot(x, y, marker=marker, markersize='6', markerfacecolor=color, markeredgewidth=0.0)
-                plt.text(x, y, str(tank.get_hp()), color='magenta', fontsize=10)
+                tank.draw(screen, self.__font_size)
 
-            if isinstance(feature, Base) or isinstance(feature, Spawn) or isinstance(feature, Obstacle):
-                feature_hexes.append(feature)
-                continue
-            # Draw feature
-            xs, ys = zip(*feature.get_corners())
-            plt.plot(xs, ys, feature.get_color())
+        # display scoreboards
+        self.__scoreboard.draw_damage_scoreboard(screen, font, self.__font_size, self.__max_damage_points)
+        self.__scoreboard.draw_capture_scoreboard(screen, font, self.__font_size)
 
-        for feature in feature_hexes:
-            xs, ys = zip(*feature.get_corners())
-            plt.plot(xs, ys, feature.get_color())
+        self.__explosion_group.draw(screen)
+        self.__explosion_group.update()
 
-        plt.axis('off')
-        # comment this if using SciView
-        plt.pause(0.25)
-        plt.draw()
+        # display turn
+        if self.__turn is not None:
+            text = font.render('Turn: ' + str(self.__turn[0]), True, 'grey')
+            text_rect = text.get_rect(midtop=(screen.get_width() // 2, 0))
+            screen.blit(text, text_rect)
+
+        pygame.display.flip()
