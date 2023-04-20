@@ -54,6 +54,10 @@ class Tank(Entity):
         self.__hp -= Tank.__damage  # All tanks do 1 damage
         if self.__hp < 1:
             self.__destroyed = True
+
+            # reset hp because of updating damage points
+            self.__hp = self.__og_hp
+
         return self.__destroyed
 
     def respawn(self) -> None:
@@ -78,6 +82,8 @@ class Tank(Entity):
 
     def get_spawn_coord(self) -> tuple: return self.__spawn_coord
 
+    def get_screen_position(self) -> (int, int): return self.__screen_position
+
     """     SETTERS     """
 
     def set_coord(self, new_coord: tuple) -> None: self._coord = new_coord
@@ -90,9 +96,6 @@ class Tank(Entity):
 
     @abstractmethod
     def shot_moves(self, target: tuple) -> tuple: pass  # sorted coords to where "self" can move to shoot "target"
-
-    def get_screen_position(self) -> (int, int):
-        return self.__screen_position
 
     @abstractmethod
     def get_symbol(self) -> str: pass

@@ -108,6 +108,9 @@ class Map:
     def local_shoot(self, tank: Tank, target: Tank) -> None:
         destroyed = target.register_hit_return_destroyed()
         if destroyed:
+            # update player damage points
+            self.__players[tank.get_player_index()].register_destroyed_vehicle(target)
+
             # add explosion
             self.__map_drawer.add_explosion(tank, target)
 

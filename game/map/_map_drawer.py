@@ -60,6 +60,5 @@ class MapDrawer:
         explosion: Sprite = Explosion(target.get_screen_position(), Hex.radius_x * 2, Hex.radius_y * 2)
         self.__explosion_group.add(explosion)
 
-        self.__players[tank.get_player_index()].register_destroyed_vehicle(target)
         self.__max_damage_points = \
             max(self.__max_damage_points, self.__players[tank.get_player_index()].get_damage_points())
