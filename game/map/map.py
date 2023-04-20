@@ -76,7 +76,7 @@ class Map:
     def draw(self, screen: Surface):
         self.__map_drawer.draw(screen)
 
-    """     SYNCHRONISE SERVER AND LOCAL MAPS        """
+    """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
 
     def update_turn(self, game_state: dict) -> None:
         # At the beginning of each turn move the tanks that have been destroyed in the previous turn to their spawn

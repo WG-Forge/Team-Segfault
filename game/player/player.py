@@ -120,7 +120,7 @@ class Player(Thread):
         self._game_client.disconnect()
 
     def register_destroyed_vehicle(self, tank: Tank) -> None:
-        self._damage_points += tank.get_hp()
+        self._damage_points += tank.get_max_hp()
 
     def get_capture_points(self) -> int:
         return sum(tank.get_cp() for tank in self._tanks)

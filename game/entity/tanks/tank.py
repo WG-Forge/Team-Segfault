@@ -55,9 +55,6 @@ class Tank(Entity):
         if self.__hp < 1:
             self.__destroyed = True
 
-            # reset hp because of updating damage points
-            self.__hp = self.__og_hp
-
         return self.__destroyed
 
     def respawn(self) -> None:
@@ -75,6 +72,8 @@ class Tank(Entity):
     def get_color(self) -> str: return self.__tank_colour
 
     def get_hp(self) -> int: return self.__hp
+
+    def get_max_hp(self) -> int: return self.__og_hp
 
     def is_destroyed(self) -> bool: return self.__destroyed
 
