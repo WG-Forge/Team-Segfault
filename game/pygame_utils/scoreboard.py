@@ -23,6 +23,7 @@ class Scoreboard:
         self.__n_players = len(self.__players) + 1
 
     """Capture scoreboards"""
+
     def draw_capture_scoreboard(self, screen, font, font_size):
         screen.blit(font.render(' Capture points: ', True, 'grey'), dest=(0, 0))
         self.draw_capture_scoreboard_flags(screen, font_size)
@@ -76,6 +77,7 @@ class Scoreboard:
                 screen.blit(text, dest=(0, screen.get_height() - (4 - i) * (font_size + Hex.radius_y / 3)))
 
     """Damage scoreboards"""
+
     def draw_damage_scoreboard(self, screen, font, font_size, max_damage):
         screen.blit(font.render(' Damage points: ', True, 'grey'),
                     dest=(0, screen.get_height() - (self.__n_players + 1) * (font_size + self.__rad_y_third)))
@@ -98,7 +100,8 @@ class Scoreboard:
                             (0, screen.get_height() - (self.__n_players + 1 - i) * (font_size + self.__rad_y_third)))
 
                 # scalable bar plot for damage
-                if player.get_damage_points() != 0:
+                if player.get_damage_points() != 0 and max_damage != 0:
+                    # need to check max_damage as well - because of race conditions!
                     y_pos = screen.get_height() \
                             - (self.__n_players + 1 - i) * (font_size + self.__rad_y_third)  # + Hex.radius_y / 4
                     width = self.__max_rect_length * player.get_damage_points() / max_damage
