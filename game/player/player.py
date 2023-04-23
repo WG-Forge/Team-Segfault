@@ -1,4 +1,3 @@
-import time
 from abc import abstractmethod
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
@@ -13,8 +12,9 @@ class Player(Thread):
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
     __possible_colours = ((224, 206, 70), (70, 191, 224), (201, 26, 40))  # yellow, blue, red
 
-    def __init__(self, name: str, password: str, is_observer: bool,
-                 turn_played_sem: Semaphore, current_player: list[1], player_index: int, active: Event):
+    def __init__(self,
+                 turn_played_sem: Semaphore, current_player: list[1], player_index: int, active: Event,
+                 name: str = None, password: str = None, is_observer: bool = None):
         super().__init__()
 
         self.idx: int = -1
@@ -23,19 +23,22 @@ class Player(Thread):
         self.is_observer: bool = is_observer
 
         self.next_turn_sem = Semaphore(0)
+        self._current_player = current_player
         self.__turn_played_sem = turn_played_sem
         self.__active = active
-        self.__current_player = current_player
 
-        self._game_client = None
-        self._map = None
+        self._game_client: GameClient | None = None
+        self._map: Map | None = None
 
         self._damage_points = 0
         self._capture_points = 0
         self._tanks: list[Tank] = []
+        self._tank_map: dict[int, Tank] = {}
         self._player_index = player_index
         self.__player_colour = Player.__possible_colours[player_index]
         self.__has_shot = []  # Holds a list of enemies this player has shot last turn
+
+        self._turn_actions: dict | None = None
 
     def __hash__(self):
         return hash(self.name)
@@ -48,6 +51,7 @@ class Player(Thread):
         return out
 
     def add_to_game(self, player_info: dict, game_client: GameClient):
+        self.name: str = player_info["name"]
         self.idx: int = player_info["idx"]
         self.is_observer: bool = player_info["is_observer"]
         self._damage_points: int = 0
@@ -64,6 +68,9 @@ class Player(Thread):
                 return
         self._tanks.append(new_tank)
 
+        # Adds the tank for lookup based on vehicle id
+        self._tank_map[new_tank.get_id()] = new_tank
+
     def add_map(self, game_map: Map):
         self._map = game_map
 
@@ -77,13 +84,8 @@ class Player(Thread):
                 if not self.__active.is_set():
                     break
 
-                # play your move if you are the current player
-                if self.__current_player[0] == self.idx:
-                    time.sleep(1)  # comment/uncomment this for a turn delay effect
-                    self._make_turn_plays()
+                self._make_turn_plays()
 
-                # force next turn
-                self._game_client.force_turn()
             except ConnectionError or TimeoutError as err:
                 print(err)
             finally:
@@ -105,11 +107,23 @@ class Player(Thread):
     def has_shot(self, player_index: int) -> bool:
         return player_index in self.__has_shot
 
+    def get_capture_points(self) -> int:
+        return sum(tank.get_cp() for tank in self._tanks)
+
+    def get_damage_points(self) -> int:
+        return self._damage_points
+
+    def set_turn_actions(self, actions: dict) -> None:
+        self._turn_actions = actions
+
     def register_shot(self, enemy_index: int) -> None:
         self.__has_shot.append(enemy_index)
 
     def register_turn(self) -> None:  # Call this for every player at the beginning of every turn
         self.__has_shot = []
+
+    def register_destroyed_vehicle(self, tank: Tank) -> None:
+        self._damage_points += tank.get_max_hp()
 
     @abstractmethod
     def _make_turn_plays(self) -> None:
@@ -118,12 +132,3 @@ class Player(Thread):
     def __logout(self):
         self._game_client.logout()
         self._game_client.disconnect()
-
-    def register_destroyed_vehicle(self, tank: Tank) -> None:
-        self._damage_points += tank.get_max_hp()
-
-    def get_capture_points(self) -> int:
-        return sum(tank.get_cp() for tank in self._tanks)
-
-    def get_damage_points(self) -> int:
-        return self._damage_points

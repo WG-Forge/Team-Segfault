@@ -26,7 +26,7 @@ class Hex:
         # Returns the coord where the TD needs to fire to, to hit the tank in 'target' ('target' is in TD fire pattern)
         distance = Hex.manhattan_dist(td_coord, target)
         if distance == 1: return target
-        return Hex.coord_sum(target, Hex.coord_mult(Hex.dir_vec(target, td_coord), distance-1))
+        return Hex.coord_sum(target, Hex.coord_mult(Hex.dir_vec(target, td_coord), distance - 1))
 
     @staticmethod
     def possible_shots(tank_coord: tuple, fire_deltas: tuple) -> tuple:
@@ -44,9 +44,9 @@ class Hex:
         dist = Hex.manhattan_dist(origin, target)
         x1, y1, z1 = origin
         x2, y2, z2 = target
-        dx = ((x2-x1)//dist)
-        dy = ((y2-y1)//dist)
-        dz = ((z2-z1)//dist)
+        dx = ((x2 - x1) // dist)
+        dy = ((y2 - y1) // dist)
+        dz = ((z2 - z1) // dist)
         return dx, dy, dz
 
     @staticmethod
@@ -56,7 +56,7 @@ class Hex:
     @staticmethod
     def fire_deltas(min_range: int, max_range: int):
         fire_deltas = []
-        for i in range(min_range, max_range+1):
+        for i in range(min_range, max_range + 1):
             for coord in Hex.__rings[i]:
                 fire_deltas.append(coord)
         return tuple(fire_deltas)
@@ -114,6 +114,13 @@ class Hex:
             Hex.make_center((x + 1, y, z)),
             first
         )
+
+    @staticmethod
+    def unpack_coords(coord: dict) -> tuple:
+        x = coord["x"]
+        y = coord["y"]
+        z = coord["z"]
+        return x, y, z
 
 
 Hex.make_rings()

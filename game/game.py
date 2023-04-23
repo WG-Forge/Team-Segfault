@@ -45,7 +45,7 @@ class Game(Thread):
 
         return out
 
-    def add_player(self, name: str, password: str = None, is_bot: bool = False, is_observer: bool = None) -> None:
+    def add_local_player(self, name: str, password: str = None, is_observer: bool = None) -> None:
         """
         Will connect the player if game has started.
         If the game is full, player will be connected as an observer.
@@ -60,10 +60,10 @@ class Game(Thread):
 
         player: Player
         player_type: PlayerTypes
-        if is_bot:
-            player_type = PlayerTypes.Bot
+        if is_observer:
+            player_type = PlayerTypes.Observer
         else:
-            player_type = PlayerTypes.Remote
+            player_type = PlayerTypes.Bot
 
         player = PlayerMaker.create_player(player_type=player_type,
                                            name=name,
@@ -75,9 +75,26 @@ class Game(Thread):
                                            active=self.__active)
 
         if self.__active.is_set():
-            self.__connect_player(player)
+            self.__connect_local_player(player)
         else:
             self.__players_queue.append(player)
+
+    def add_remote_player(self, user_info: dict) -> None:
+        if not user_info["is_observer"]:
+            self.__lobby_players += 1
+
+        self.__num_players += 1
+
+        player: Player = PlayerMaker.create_player(player_type=PlayerTypes.Remote,
+                                                   turn_played_sem=self.__turn_played_sem,
+                                                   current_player_idx=self.__current_player_idx,
+                                                   player_index=self.__lobby_players - 1,
+                                                   active=self.__active)
+
+        if self.__active.is_set():
+            # TODO do something in the else branch
+            self.__connect_remote_player(player, user_info)
+            player.start()
 
     def start_game(self) -> None:
         if not self.__players_queue:
@@ -86,9 +103,9 @@ class Game(Thread):
         # Set the state to active
         self.__active.set()
 
-        # Add the queued players to the game or as an observer
+        # Add the queued local players to the game
         for player in self.__players_queue:
-            self.__connect_player(player)
+            self.__connect_local_player(player)
 
         self.__init_game_state()
 
@@ -121,7 +138,7 @@ class Game(Thread):
         for _ in range(self.__num_players):
             self.__turn_played_sem.acquire()
 
-    def __connect_player(self, player: Player) -> None:
+    def __connect_local_player(self, player: Player) -> None:
         self.__game_clients[player] = GameClient()
         user_info: dict = self.__game_clients[player].login(player.name, player.password,
                                                             self.__game_name, self.__num_turns,
@@ -135,9 +152,22 @@ class Game(Thread):
         # current client is last one added
         self.__current_client = self.__game_clients[player]
 
+    def __connect_remote_player(self, player: Player, user_info: dict) -> None:
+        player.add_to_game(user_info, self.__current_client)
+        player.start()
+        # TODO use a local client for now -> in the future make a singleton object for getting a new connection (in a
+        #  round-robin way)
+
+        self.__active_players[player.idx] = player
+
     def __init_game_state(self) -> None:
         client_map: dict = self.__current_client.get_map()
         game_state: dict = self.__current_client.get_game_state()
+
+        # add all remote players
+        for player in game_state["players"]:
+            if not self.__active_players[player["idx"]]:
+                self.add_remote_player(player)
 
         # initialize the game map (now adds tanks to players & game_map too)
         self.__game_map = Map(client_map, game_state, self.__active_players, self.__current_turn)
