@@ -6,7 +6,6 @@ from consts import SCREEN_WIDTH, SCREEN_HEIGHT
 from entity.map_features.base import Base
 from entity.map_features.empty import Empty
 from entity.map_features.obstacle import Obstacle
-from entity.map_features.spawn import Spawn
 from entity.tanks.tank import Tank
 from gui.map_utils.explosion import Explosion
 from gui.map_utils.projectile import Projectile
@@ -39,7 +38,7 @@ class MapDrawer:
 
         # map legend
         self.__map_legend_items = []
-        features = [Empty, Spawn, Base, Obstacle]
+        features = [Empty, Base, Obstacle]
         # this will always be on the screen and on top right
         x, y, z = self.__map_size + 1, self.__map_size - 2, -self.__map_size - 1
         for i, feature in enumerate(features):

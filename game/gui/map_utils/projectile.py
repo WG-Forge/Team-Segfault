@@ -20,13 +20,13 @@ class Projectile(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.image, angle)
         self.image = pygame.transform.scale(self.image, (Hex.radius_x / 2, Hex.radius_x / 2))
         # color the bullet
-        # color sprite image
         color_image = pygame.Surface(self.image.get_size())
         color_image.fill(color)
         self.image.blit(color_image, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         self.rect = self.image.get_rect()
         self.rect.center = start_pos
 
+        # animation variables
         self.counter = 0
         self.step = 1 / Projectile.__bullet_travel_time
 
