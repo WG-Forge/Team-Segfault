@@ -107,3 +107,12 @@ class Tank(Entity):
 
     @abstractmethod
     def get_fire_deltas(self) -> tuple: pass
+
+    @abstractmethod
+    def coords_in_range(self) -> tuple: pass
+
+    @abstractmethod
+    def td_shooting_coord(self, target: tuple) -> tuple: pass
+
+    @abstractmethod
+    def fire_corridors(self) -> tuple: pass

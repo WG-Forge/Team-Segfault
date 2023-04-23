@@ -6,11 +6,16 @@ from consts import SCREEN_HEIGHT, SCREEN_WIDTH
 class Hex:
     __sqrt3 = sqrt(3)
     __rings = []
-    movements = ((1, 0, -1), (0, 1, -1), (1, -1, 0), (-1, 0, 1), (0, -1, 1), (-1, 1, 0))
+    moves = ((1, 0, -1), (0, 1, -1), (1, -1, 0), (-1, 0, 1), (0, -1, 1), (-1, 1, 0))
 
     # default for map size 11
     radius_x = SCREEN_WIDTH // 40
     radius_y = SCREEN_HEIGHT // 40
+
+    @staticmethod
+    def td_fire_corridor_deltas(max_range: int) -> tuple:
+        # returns a 2d tuple where each sub-tuple are the coords in a straight line corridor of td shooting deltas
+        return tuple([tuple([Hex.coord_mult(move, m) for m in range(1, max_range + 1)]) for move in Hex.moves])
 
     @staticmethod
     def danger_zone(td: tuple, target: tuple) -> tuple:
@@ -20,13 +25,6 @@ class Hex:
         for _ in range(2):
             danger_zone.append(Hex.coord_sum(danger_zone[-1], target_dir))
         return tuple(danger_zone)
-
-    @staticmethod
-    def td_shooting_coord(td_coord: tuple, target: tuple) -> tuple:
-        # Returns the coord where the TD needs to fire to, to hit the tank in 'target' ('target' is in TD fire pattern)
-        distance = Hex.manhattan_dist(td_coord, target)
-        if distance == 1: return target
-        return Hex.coord_sum(target, Hex.coord_mult(Hex.dir_vec(target, td_coord), distance-1))
 
     @staticmethod
     def possible_shots(tank_coord: tuple, fire_deltas: tuple) -> tuple:

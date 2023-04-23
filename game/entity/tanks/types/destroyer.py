@@ -9,11 +9,18 @@ class TankDestroyer(Tank):
     __min_range = 1  # Manhattan min range
     # Creates fire deltas normally but avoids adding coords which don't contain 0s creating the TDs fire pattern
     __fire_deltas = tuple(coord for coord in Hex.fire_deltas(__min_range, __max_range) if 0 in coord)
-    __symbol: str = 'v'
+    __fire_corridor_deltas: tuple = Hex.td_fire_corridor_deltas(__max_range)
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
         image_path = 'game/assets/tank_classes/td.png'
         super().__init__(tank_id, tank_info, colour, player_index, image_path)
+
+    def coords_in_range(self) -> tuple:
+        return tuple(Hex.coord_sum(delta, self._coord) for delta in TankDestroyer.__fire_deltas)
+
+    def fire_corridors(self) -> tuple:
+        return tuple([tuple([Hex.coord_sum(self._coord, delta) for delta in corridor_deltas]) for corridor_deltas in
+                      TankDestroyer.__fire_corridor_deltas])
 
     def shot_moves(self, target: tuple) -> tuple:
         # returns coords to where "self" can move shoot "target", ordered from closest to furthest away from "self"
@@ -41,3 +48,9 @@ class TankDestroyer(Tank):
 
     def get_fire_deltas(self) -> tuple:
         return TankDestroyer.__fire_deltas
+
+    def td_shooting_coord(self, target: tuple) -> tuple:
+        # Returns the coord where the TD needs to fire to, to hit the tank in 'target' ('target' is in TD fire pattern)
+        distance = Hex.manhattan_dist(self._coord, target)
+        if distance == 1: return target
+        return Hex.coord_sum(target, Hex.coord_mult(Hex.dir_vec(target, self._coord), distance-1))

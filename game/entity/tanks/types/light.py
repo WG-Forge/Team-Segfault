@@ -8,11 +8,13 @@ class LightTank(Tank):
     __max_range = 2  # Manhattan max range
     __min_range = 2  # Manhattan min range
     __fire_deltas: tuple = Hex.fire_deltas(__min_range, __max_range)
-    __symbol: str = 'D'
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
         image_path = 'game/assets/tank_classes/lt.png'
         super().__init__(tank_id, tank_info, colour, player_index, image_path)
+
+    def coords_in_range(self) -> tuple:
+        return tuple(Hex.coord_sum(delta, self._coord) for delta in LightTank.__fire_deltas)
 
     def shot_moves(self, target: tuple) -> tuple:
         # returns coords to where "self" can move shoot "target", ordered from closest to furthest away from "self"
