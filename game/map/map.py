@@ -13,9 +13,8 @@ from map.hex import Hex
 
 
 class Map:
-    def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[1],
-                 graphics: bool = True):
-        self.__players: tuple = Map.__add_players(active_players)
+    def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[1]):
+        self.__players: dict = Map.__add_players(active_players)
         self.__tanks: dict[str, Tank] = {}
         self.__map: dict = {}
         self.__base_coords: tuple = ()
@@ -23,7 +22,6 @@ class Map:
         self.__spawn_coords: tuple = ()
         self.__make_map(client_map, game_state, active_players)
         self.__destroyed: List[Tank] = []
-        self.__graphics = graphics
 
         self.__path_finding_algorithm: Callable = _a_star.a_star
 
@@ -57,12 +55,12 @@ class Map:
                 print(f"Support for {entity} needed")
 
     @staticmethod
-    def __add_players(active_players: dict) -> tuple:
-        players = [None, None, None]
+    def __add_players(active_players: dict) -> dict:
+        players = {}
         for player_id, player in active_players.items():
             if not player.is_observer:
                 players[player.get_index()] = player
-        return tuple(players)
+        return players
 
     def __make_bases(self, coords: dict) -> None:
         self.__base_coords = tuple([tuple(coord.values()) for coord in coords])
@@ -83,8 +81,12 @@ class Map:
     """     DRAWING     """
 
     def draw(self, screen: Surface):
-        if self.__graphics:
-            self.__map_drawer.draw(screen)
+        self.__map_drawer.draw(screen)
+
+    """     GETTERS     """
+
+    def get_tank(self, vehicle_id: str) -> Tank:
+        return self.__tanks[str(vehicle_id)]
 
     """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
 
@@ -171,7 +173,7 @@ class Map:
     def closest_enemies(self, tank: Tank) -> List[Tank]:
         # Returns a sorted list by distance of enemy tanks
         tank_idx, tank_coord = tank.get_player_index(), tank.get_coord()
-        enemies = [player for player in self.__players if player.get_index() != tank_idx]
+        enemies = [player for player in self.__players.values() if player.get_index() != tank_idx]
         return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.get_tanks()),
                       key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.get_coord(), tank_coord))
 

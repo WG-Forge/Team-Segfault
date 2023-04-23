@@ -1,7 +1,7 @@
 import random
 
-from game.game import Game
 from cmab.driver import Driver
+from game.game import Game
 
 
 def training_games(num_trainings: int, restart: bool = False):
@@ -15,9 +15,9 @@ def training_games(num_trainings: int, restart: bool = False):
     for _ in range(num_trainings):
         name: str = "Training game: " + str(random.randint(0, 10000))
         game = Game(game_name=name, max_players=3, num_turns=15, graphics=True)
-        game.add_player(name=player_names[0], is_bot=True, is_observer=False)
-        game.add_player(name=player_names[1], is_bot=True, is_observer=False)
-        game.add_player(name=player_names[2], is_bot=True, is_observer=False)
+        game.add_local_player(name=player_names[0], is_observer=False)
+        game.add_local_player(name=player_names[1], is_observer=False)
+        game.add_local_player(name=player_names[2], is_observer=False)
 
         game_actions = cmab_driver.get_game_actions()
         game.start_game(game_actions)

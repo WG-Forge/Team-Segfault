@@ -10,7 +10,7 @@ from pygame_utils.scoreboard import Scoreboard
 
 
 class MapDrawer:
-    def __init__(self, map_size: int, players: tuple, game_map: dict, current_turn: list[1]):
+    def __init__(self, map_size: int, players: dict, game_map: dict, current_turn: list[1]):
         self.__scoreboard = Scoreboard(players)
         self.__num_of_radii = (map_size - 1) * 2 * 2
 
@@ -53,8 +53,6 @@ class MapDrawer:
             text = font.render('Turn: ' + str(self.__turn[0]), True, 'grey')
             text_rect = text.get_rect(midtop=(screen.get_width() // 2, 0))
             screen.blit(text, text_rect)
-
-        pygame.display.flip()
 
     def add_explosion(self, tank: Tank, target: Tank):
         explosion: Sprite = Explosion(target.get_screen_position(), Hex.radius_x * 2, Hex.radius_y * 2)

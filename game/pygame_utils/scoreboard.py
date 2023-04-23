@@ -6,7 +6,7 @@ from map.hex import Hex
 
 class Scoreboard:
     # todo: bottom right - add catapult / bonuses; top right - add legend
-    def __init__(self, players: tuple):
+    def __init__(self, players: dict):
 
         # images
         self.__tank_image = pygame.image.load('game/assets/tank_icon.png')
@@ -32,7 +32,7 @@ class Scoreboard:
 
     def draw_capture_scoreboard_flags(self, screen, font_size):
         i = 0
-        for player in self.__players:
+        for player in self.__players.values():
             if player is not None:
                 i += 1
 
@@ -90,7 +90,7 @@ class Scoreboard:
         # image width + 0.5 of x_radius for offset
         x_pos = Hex.radius_x * 2.5
 
-        for player in self.__players:
+        for player in self.__players.values():
             if player is not None:
                 i += 1
                 self.__color_image.fill(player.get_color())

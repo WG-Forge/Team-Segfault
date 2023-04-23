@@ -1,6 +1,5 @@
 from threading import Semaphore, Event
 from typing import List
-import time
 
 from entity.tanks.tank import Tank
 from player.player import Player
@@ -8,15 +7,22 @@ from player.player import Player
 
 class BotPlayer(Player):
     def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
-                 current_player: list[1], player_index: int, active: Event):
+                 current_player: list[1], player_index: int, over: Event):
+        super().__init__(name=name,
+                         password=password,
+                         is_observer=is_observer,
+                         turn_played_sem=turn_played_sem,
+                         current_player=current_player,
+                         player_index=player_index,
+                         over=over)
+
         self.__turn: int = 0
-        super().__init__(name, password, is_observer, turn_played_sem, current_player, player_index, active)
 
     def _make_turn_plays(self) -> None:
         try:
             # play your move if you are the current player
             if self._current_player[0] == self.idx:
-                # time.sleep(1)  # comment/uncomment this for a turn delay effect
+                # time.sleep(2)  # comment/uncomment this for a turn delay effect
                 self.__place_actions()
         finally:
             # end your turn

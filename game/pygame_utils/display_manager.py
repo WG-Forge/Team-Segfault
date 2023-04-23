@@ -1,41 +1,90 @@
 import os
-from threading import Event
 
-import pygame
-from pygame import Surface
-
-from consts import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT
-from map.map import Map
+from consts import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE
+from pygame_utils.menu import *
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
 
 class DisplayManager:
-    def __init__(self, active: Event, game_map: Map, width: int = SCREEN_WIDTH, height: int = SCREEN_HEIGHT):
+    def __init__(self, game):
         super().__init__()
-
         pygame.init()
 
-        self.__active = active
-        self.__game_map = game_map
+        self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
 
-        pygame.display.set_caption("Tank game")
+        self.DISPLAY_W = SCREEN_WIDTH
+        self.DISPLAY_H = SCREEN_HEIGHT
 
-        self.__screen: Surface = pygame.display.set_mode((width, height))
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.menu_assets_path = 'game/assets/menu/'
+        self.font_name = self.menu_assets_path + '8-BIT WONDER.TTF'
+
+        pygame.display.set_caption("Tank Game")
+
+        self.running = True
+        self.playing = False
+
+        # Referencing the main menu object - which won't change
+        self.main_menu = MainMenu(self)
+        self.options = OptionsMenu(self)
+        self.credits = CreditsMenu(self)
+
+        # This variable will change based on the menu
+        self.curr_menu = self.main_menu
+
+        self.game = game
+
         self.__clock = pygame.time.Clock()
 
+    def check_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                # set the game end
+                self.game.over.set()
+                self.playing = False
+                self.running = False
+                self.curr_menu.run_display = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.START_KEY = True
+                if event.key == pygame.K_BACKSPACE:
+                    self.BACK_KEY = True
+                if event.key == pygame.K_DOWN:
+                    self.DOWN_KEY = True
+                if event.key == pygame.K_UP:
+                    self.UP_KEY = True
+
+    def reset_keys(self):
+        self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
+
+    def draw_text(self, text, size, x, y):
+        font = pygame.font.Font(self.font_name, size)
+        text_surface = font.render(text, True, WHITE)
+        text_rect = text_surface.get_rect()
+        text_rect.center = (x, y)
+        self.screen.blit(text_surface, text_rect)
+
     def run(self) -> None:
-        while self.__active.is_set():
-            # handle events
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.__active.clear()
 
-            # draw the map
-            self.__game_map.draw(self.__screen)
+        while self.running:
+            self.curr_menu.display_menu()
 
-            # delay for a constant framerate
-            self.__clock.tick(FPS_MAX)
+            while self.playing and not self.game.over.is_set():
+                self.check_events()
+
+                # draw the map
+                self.game.game_map.draw(self.screen)
+
+                # delay for a constant framerate
+                self.__clock.tick(FPS_MAX)
+
+                # update display
+                pygame.display.flip()
+
+            if self.playing and self.game.over.is_set():
+                # quit from the game if it has ended - potentially draw a victory screen here
+                break
 
         # cleanup
         pygame.quit()

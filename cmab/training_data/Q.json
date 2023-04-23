@@ -1,1 +1,488 @@
-{"Player1": {"spg": {"CSISCCISSISCCSS": ["Player2"], "CCISCCIICSCSICS": ["Player2"], "CSSIICSSISCIICS": ["Player1"], "SSSSSCICCIIISCS": ["Player2"], "SCIIISSSSSICCSI": ["Player2"], "SCISCCICCICCISC": ["Player2"], "SIIISICISSSSCSC": ["Player2"], "CICIICCISCCICSS": ["Player2"], "CIICCCSCISIICII": [null], "ISSSCCICSICISCS": ["Player2"]}, "light_tank": {"SIISIIIICSCIICS": ["Player2"], "ICISCSCSSCSCICS": ["Player2"], "CSCIISSICICICII": ["Player1"], "SISSIICICSSSICI": ["Player2"], "IISISISCCSSIIIS": ["Player2"], "CCCSIICSICCICCI": ["Player2"], "IISIISICCSSCCCC": ["Player2"], "SCSSICICCSSCCSI": ["Player2"], "SSSSISIICCIISSI": [null], "CCSICSSIISCSISC": ["Player2"]}, "heavy_tank": {"CCCICSSISSICCSI": ["Player2"], "ICISCSCSSCIICCS": ["Player2"], "CISIISCCIIICCIC": ["Player1"], "SICCSCCSSICCISC": ["Player2"], "ISIICCIIISISSIC": ["Player2"], "SCCISISCIICSSCS": ["Player2"], "CISCICSSISICSIC": ["Player2"], "CCSSIISIISCISCC": ["Player2"], "ISCCSSCICSCIIIS": [null], "ICISISCCISICICS": ["Player2"]}, "medium_tank": {"CISISCCCSIICSCI": ["Player2"], "ISCCISICSISSISC": ["Player2"], "CCSCSCSSCSSSIIC": ["Player1"], "SIICIIICCCIISII": ["Player2"], "ICICICCSCCIICII": ["Player2"], "ISSSCIICISCISCC": ["Player2"], "SISISCSSIISSCII": ["Player2"], "ISSCCICCSIICICC": ["Player2"], "SCSISCISISISISC": [null], "ISISISSCCIISSCC": ["Player2"]}, "at_spg": {"CSIIIICSCCSISIS": ["Player2"], "SCIIIIICSSSSCSI": ["Player2"], "IISSICICCISICIC": ["Player1"], "ISSCCSSCSSCCCII": ["Player2"], "ICCCSISICSICCSI": ["Player2"], "CIIICSSCIISSSIC": ["Player2"], "CISISIICSCCSCSS": ["Player2"], "CICSSSCICCSCICC": ["Player2"], "CSSSISISCSCIISC": [null], "SIIISSCSIICIISC": ["Player2"]}}, "Player2": {"spg": {"CICSCISSCSIICCI": ["Player2"], "CIISSCSSSICSSCS": ["Player2"], "ICCCICSCCCSISCI": ["Player1"], "ISSCISCCCSICIIS": ["Player2"], "CCISICCIISICCIS": ["Player2"], "SSSCSICSSISSCII": ["Player2"], "IISSSCICCICCCSS": ["Player2"], "CSSISICCSSICSSI": ["Player2"], "ISIICIISIICCSSS": [null], "CIIISICICICCSII": ["Player2"]}, "light_tank": {"SCIIISCSICCCSCI": ["Player2"], "CSCIIICCISICCCS": ["Player2"], "CCISSSIICSISISS": ["Player1"], "CSCCISCISSICCSS": ["Player2"], "SCCCIISICCCCSSS": ["Player2"], "ICCCSICSCSSISIS": ["Player2"], "CCICCSCCCSCCSCI": ["Player2"], "CCCICIISCCCIIIC": ["Player2"], "SSISCSSCSSICCSS": [null], "IIIIICISSISSISS": ["Player2"]}, "heavy_tank": {"SCCICSSCCIICCIS": ["Player2"], "SCIIIISISSCSSSC": ["Player2"], "CISIIISCCSIISCI": ["Player1"], "ICCIIICIISSICII": ["Player2"], "CCCSICICCCICSII": ["Player2"], "SSCCISSSSSISSSS": ["Player2"], "CIISCIISCISCCII": ["Player2"], "SCISSCICSCIISIC": ["Player2"], "CSCSICCCSSISSCC": [null], "CCCCSICIISCCCSI": ["Player2"]}, "medium_tank": {"ISCSCISICSSISSC": ["Player2"], "ISSCSSCCSICCSIC": ["Player2"], "SSISSICSCISSICC": ["Player1"], "ISSCISICSCSSIIC": ["Player2"], "SSISCSIICCSCICS": ["Player2"], "IISCCSCIISIISII": ["Player2"], "CISCCCCSICICCSC": ["Player2"], "ICCSSSSISSCSIIS": ["Player2"], "CISCISIIIISSIIC": [null], "ICCSCCSSISSCCIC": ["Player2"]}, "at_spg": {"SCIISSCCSISSIIS": ["Player2"], "ISIICISCSSICISC": ["Player2"], "CICSCCCSICSSIIC": ["Player1"], "SICCISSSSSCSICS": ["Player2"], "IICIICIIICISICC": ["Player2"], "CSSCSIICCSSSSIC": ["Player2"], "SSCSCSSSCIICICI": ["Player2"], "SSSICCCSCICSSSS": ["Player2"], "ISSCSCCIIIICCSS": [null], "SISISCCIIIICSCC": ["Player2"]}}, "Player3": {"spg": {"IISSSCICCCIISCS": ["Player2"], "ICICISSSISIICSC": ["Player2"], "SICCCCIISSISISI": ["Player1"], "CCICISIICSCSSSI": ["Player2"], "ISIIISICICCCCCI": ["Player2"], "CCISCCCICCIIISI": ["Player2"], "SICSSSSCISCCSSI": ["Player2"], "SSCCIICCSSCCCIS": ["Player2"], "CSCSISCCSIIICCC": [null], "ISIICSSSSSCISSC": ["Player2"]}, "light_tank": {"CSCICCCISCSSSCS": ["Player2"], "CISSSCIISICISCC": ["Player2"], "IICCSICISSCCCCC": ["Player1"], "ISCIISSICSCCSCI": ["Player2"], "CICISSIICCSSSSC": ["Player2"], "ISICSCCIISISCCI": ["Player2"], "IISCISCCSICISII": ["Player2"], "ICCSICICSICICCS": ["Player2"], "IICSICSCIICISCC": [null], "SCCSICISSSCCCCC": ["Player2"]}, "heavy_tank": {"CSCCSCCSCCIICSS": ["Player2"], "SCSCCCSSCISIISC": ["Player2"], "CSISIIISSICICSS": ["Player1"], "SIIIISISIICCIIS": ["Player2"], "IISSCIICSSSSSSS": ["Player2"], "CIISSSCIISSISSC": ["Player2"], "SIICSSSCIIIICCS": ["Player2"], "CSCIICICCCSSCCI": ["Player2"], "ICSISIICICCISII": [null], "SCISSCCISSISSSI": ["Player2"]}, "medium_tank": {"ISCCSSICSSCIISC": ["Player2"], "ICSSCISSSISSIIS": ["Player2"], "ISSCISCIISSISIC": ["Player1"], "SSICSSISSSCICII": ["Player2"], "CSISSISCCCCICSS": ["Player2"], "SIICSISISISIISC": ["Player2"], "ICISIISISCCICIS": ["Player2"], "CISCSIISSICCICC": ["Player2"], "ICCCCISICCICCIC": [null], "SSSICCSCCCICICC": ["Player2"]}, "at_spg": {"ISSICCCICIISICI": ["Player2"], "SIISISCCCCSCISC": ["Player2"], "ICISCICCSSCCCII": ["Player1"], "ICSCCCICSIISISC": ["Player2"], "ICCSSSIIIISICII": ["Player2"], "ICCIICISSSCSSSI": ["Player2"], "CCICSISCISSISCI": ["Player2"], "CCCSSISICISISII": ["Player2"], "SCICCICCICCICIS": [null], "CCCIISICSCICSCS": ["Player2"]}}}
+{
+  "Player1": {
+    "spg": {
+      "CICIICICCCICIIS": [
+        null
+      ],
+      "ISCSCSSSSSISSIS": [
+        null
+      ],
+      "CCCICISSIIICCSI": [
+        null
+      ],
+      "CCSIISSISCSSICS": [
+        null
+      ],
+      "SSSIIIISSISISCI": [
+        null
+      ],
+      "IICCSSCICCSSSII": [
+        null
+      ],
+      "SISSCICICICICCS": [
+        null
+      ],
+      "ICIIICISISISCII": [
+        null
+      ],
+      "CSCSCCICISICIIS": [
+        null
+      ],
+      "ICIISISISSCICSS": [
+        null
+      ]
+    },
+    "light_tank": {
+      "CIIICCISIICSIIS": [
+        null
+      ],
+      "ICCSISCSICCCIIS": [
+        null
+      ],
+      "SICSIISSCCSIICS": [
+        null
+      ],
+      "SCICSSIISCSCCSI": [
+        null
+      ],
+      "SIIIISSISSSCISS": [
+        null
+      ],
+      "CSIIISICIICISCS": [
+        null
+      ],
+      "IICSCICSIISCSSC": [
+        null
+      ],
+      "SISCSIICSSCCICI": [
+        null
+      ],
+      "IIICSISIIICSCIS": [
+        null
+      ],
+      "CSSICISCCIISCII": [
+        null
+      ]
+    },
+    "heavy_tank": {
+      "ICCCIIIICCSCCCI": [
+        null
+      ],
+      "SIISIICISICCSSI": [
+        null
+      ],
+      "SSIISCICSCCSCCI": [
+        null
+      ],
+      "CCSSCCCSCISCCIC": [
+        null
+      ],
+      "SSICSCCSIIIIICI": [
+        null
+      ],
+      "CIISICISSSCCISI": [
+        null
+      ],
+      "SSCCSCSCSSCCIIC": [
+        null
+      ],
+      "CCCCISIISCIICII": [
+        null
+      ],
+      "CIICCISSIIICIII": [
+        null
+      ],
+      "ICCSSSSSCSCCICC": [
+        null
+      ]
+    },
+    "medium_tank": {
+      "SCCSICIICCICCCI": [
+        null
+      ],
+      "IISSCSSISISCISI": [
+        null
+      ],
+      "IICSCISIISSSISS": [
+        null
+      ],
+      "CSIISCSCSCIISCC": [
+        null
+      ],
+      "SSIIICCCIISSSCI": [
+        null
+      ],
+      "SCCSSIICIISCSIS": [
+        null
+      ],
+      "ICCCSCSIIISICCC": [
+        null
+      ],
+      "IIISCCSSCCCICII": [
+        null
+      ],
+      "SCCISCSCCSCCSCC": [
+        null
+      ],
+      "SSCICSCCIICCIIS": [
+        null
+      ]
+    },
+    "at_spg": {
+      "SCICIISCCCSSCSI": [
+        null
+      ],
+      "SCCISSSISCISCIC": [
+        null
+      ],
+      "IICCICSSSIIIISS": [
+        null
+      ],
+      "SICCCCCISIIIIIC": [
+        null
+      ],
+      "IIICSSCCSIISCII": [
+        null
+      ],
+      "IICCSSCSICSSCSS": [
+        null
+      ],
+      "SISIICICCSICISC": [
+        null
+      ],
+      "CSIIICSISIIICIS": [
+        null
+      ],
+      "ICICSSIICISSCCS": [
+        null
+      ],
+      "SSSSCCCIIIIIICI": [
+        null
+      ]
+    }
+  },
+  "Player2": {
+    "spg": {
+      "IICSCSSCSSSSISC": [
+        null
+      ],
+      "SICICSCSISICCSI": [
+        null
+      ],
+      "CICCSIIIICICSCI": [
+        null
+      ],
+      "CSCICIIICSIIISS": [
+        null
+      ],
+      "CSSIISCSCIISSIS": [
+        null
+      ],
+      "SISICSCCSIICCSS": [
+        null
+      ],
+      "SCICSCSCIISCCCC": [
+        null
+      ],
+      "ICICCISSISCCSCI": [
+        null
+      ],
+      "SSISCSISISCCCSI": [
+        null
+      ],
+      "SCCISCISISSCCCI": [
+        null
+      ]
+    },
+    "light_tank": {
+      "ISCCICCSSCCSSIC": [
+        null
+      ],
+      "IICSCSICISSSSII": [
+        null
+      ],
+      "CCISCIICSSIIIIS": [
+        null
+      ],
+      "IISSSSIISICSICC": [
+        null
+      ],
+      "CIIICCISICSCCCC": [
+        null
+      ],
+      "SSCICISIISCCCSC": [
+        null
+      ],
+      "ICSCISSSCSCSSSS": [
+        null
+      ],
+      "IISSISCCCCISCCI": [
+        null
+      ],
+      "CIISIISCSIIICSC": [
+        null
+      ],
+      "SCCSCISSCISISCC": [
+        null
+      ]
+    },
+    "heavy_tank": {
+      "ICICISCCSICSIIC": [
+        null
+      ],
+      "SISIISSCSCSICII": [
+        null
+      ],
+      "SSSSCCSIISCCSCI": [
+        null
+      ],
+      "SCICIIISSICISII": [
+        null
+      ],
+      "CSSSISISICCCCCC": [
+        null
+      ],
+      "SSCSIISCSCSSICI": [
+        null
+      ],
+      "SISCCSISSIISISS": [
+        null
+      ],
+      "CCIIICICCICSICI": [
+        null
+      ],
+      "ISCSCCCSSSSCIII": [
+        null
+      ],
+      "ISICSCCCCCIISIS": [
+        null
+      ]
+    },
+    "medium_tank": {
+      "SIICICISSCSCSCI": [
+        null
+      ],
+      "CSCSSIISCCCSISC": [
+        null
+      ],
+      "SCCCICCIICISCCS": [
+        null
+      ],
+      "SSIISSCICSCCCSI": [
+        null
+      ],
+      "SSISSCSICCCCISS": [
+        null
+      ],
+      "SSIIISSICCSSCII": [
+        null
+      ],
+      "SISSCSCSCSCIICS": [
+        null
+      ],
+      "SICCSICSSSISICS": [
+        null
+      ],
+      "IICSCSISCISSICS": [
+        null
+      ],
+      "SSIISCSISCIIICI": [
+        null
+      ]
+    },
+    "at_spg": {
+      "ISIIICISICSSCCS": [
+        null
+      ],
+      "SSIISSSIIICSISS": [
+        null
+      ],
+      "CICIISSICCCSCCS": [
+        null
+      ],
+      "CCICSSSCCSISCCI": [
+        null
+      ],
+      "ICSCCSCCCSIIIIS": [
+        null
+      ],
+      "CSISSSICISCCIIC": [
+        null
+      ],
+      "SIISCICISCSISCC": [
+        null
+      ],
+      "CIICICIISCIIICI": [
+        null
+      ],
+      "SCSISCSISSIISIS": [
+        null
+      ],
+      "ISCCCSCSCSSISII": [
+        null
+      ]
+    }
+  },
+  "Player3": {
+    "spg": {
+      "ICIISSSISIISICC": [
+        null
+      ],
+      "SIICICCCSCCCSSI": [
+        null
+      ],
+      "CSCSISCCCSCCSCC": [
+        null
+      ],
+      "SSSCSSCSIICCIII": [
+        null
+      ],
+      "SCSSSCSCICCSCCI": [
+        null
+      ],
+      "ICISSIICCICCSCC": [
+        null
+      ],
+      "ICICICIICCSCCCI": [
+        null
+      ],
+      "CSSISSICSSICSCI": [
+        null
+      ],
+      "SISIICCCISSSCCI": [
+        null
+      ],
+      "ICISISSSSCISSSC": [
+        null
+      ]
+    },
+    "light_tank": {
+      "ISCCSCSCCCIIIII": [
+        null
+      ],
+      "CSCSCISICCIICSC": [
+        null
+      ],
+      "ICSCSSICSCICSIC": [
+        null
+      ],
+      "ISICSCCSISCCIII": [
+        null
+      ],
+      "ISCSSSCSICICCIC": [
+        null
+      ],
+      "ICSCSCCIIICCSCS": [
+        null
+      ],
+      "SCCISISCCCSCICC": [
+        null
+      ],
+      "ISSCCSIIICISICC": [
+        null
+      ],
+      "CSSCSSIIIICICCC": [
+        null
+      ],
+      "CSCICCIIISICSCS": [
+        null
+      ]
+    },
+    "heavy_tank": {
+      "SISCCCCSCSSSCIS": [
+        null
+      ],
+      "SICSIISSISISIIS": [
+        null
+      ],
+      "ICCCCCCCIISCCSI": [
+        null
+      ],
+      "CSCIICSSICIISCC": [
+        null
+      ],
+      "SISCISCCIIISCIC": [
+        null
+      ],
+      "ICCISSSISICISII": [
+        null
+      ],
+      "SISCSSSICCICSIS": [
+        null
+      ],
+      "ISCICCISCCSCSCC": [
+        null
+      ],
+      "CCCICSIIIIICIII": [
+        null
+      ],
+      "SSCSISCCCCICIIC": [
+        null
+      ]
+    },
+    "medium_tank": {
+      "ISIICSSISISSSCS": [
+        null
+      ],
+      "ICSCISIISCIIICI": [
+        null
+      ],
+      "ICCSISSSSCSSCSS": [
+        null
+      ],
+      "CSSSSSISCCCCCCS": [
+        null
+      ],
+      "SSICCSIIISSCSIS": [
+        null
+      ],
+      "ISSCISCSSSICSCC": [
+        null
+      ],
+      "CCCCCSISSCCSSIC": [
+        null
+      ],
+      "ICSCCSCCCCSICCC": [
+        null
+      ],
+      "SISICSCSICIISSC": [
+        null
+      ],
+      "ISSISICCIIIISCS": [
+        null
+      ]
+    },
+    "at_spg": {
+      "CSIICISICCSCCSI": [
+        null
+      ],
+      "CSCCSCCICISCCSI": [
+        null
+      ],
+      "IISCICSICIIISIS": [
+        null
+      ],
+      "ICICCSIIIIICSIC": [
+        null
+      ],
+      "CCICICCIIISCSCI": [
+        null
+      ],
+      "SIISSCICSICSIIS": [
+        null
+      ],
+      "CCIISCCCISISIII": [
+        null
+      ],
+      "CSCCCISISSCCCCC": [
+        null
+      ],
+      "CCCCSISCICSCICC": [
+        null
+      ],
+      "IICIICSISCIISIC": [
+        null
+      ]
+    }
+  }
+}

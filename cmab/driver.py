@@ -1,6 +1,6 @@
 import json
 import random as rnd
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from agent import Agent
 

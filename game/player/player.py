@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
-from types import Union
 from typing import Union
 
 from client.game_client import GameClient
@@ -15,7 +14,7 @@ class Player(Thread):
     __possible_colours = ((224, 206, 70), (70, 191, 224), (201, 26, 40))  # yellow, blue, red
 
     def __init__(self,
-                 turn_played_sem: Semaphore, current_player: list[1], player_index: int, active: Event,
+                 turn_played_sem: Semaphore, current_player: list[1], player_index: int, over: Event,
                  name: str = None, password: str = None, is_observer: bool = None):
         super().__init__()
 
@@ -27,7 +26,7 @@ class Player(Thread):
         self.next_turn_sem = Semaphore(0)
         self._current_player = current_player
         self.__turn_played_sem = turn_played_sem
-        self.__active = active
+        self.__over = over
 
         self._game_client: GameClient | None = None
         self._map: Map | None = None
@@ -42,8 +41,10 @@ class Player(Thread):
 
         self._game_actions: Union[dict, None] = None
 
+        self._turn_actions: Union[dict, None] = None
+
     def __hash__(self):
-        return hash(self.name)
+        return super.__hash__(self)
 
     def __str__(self):
         out = str.format(f'Player {self.idx}: {self.name}')
@@ -70,20 +71,17 @@ class Player(Thread):
                 return
         self._tanks.append(new_tank)
 
-        # Adds the tank for lookup based on vehicle id
-        self._tank_map[new_tank.get_id()] = new_tank
-
     def add_map(self, game_map: Map):
         self._map = game_map
 
     def run(self) -> None:
-        while self.__active.is_set():
+        while not self.__over.is_set():
             # wait for condition
             self.next_turn_sem.acquire()
 
             try:
                 # check if the game ended
-                if not self.__active.is_set():
+                if self.__over.is_set():
                     break
 
                 self._make_turn_plays()
@@ -115,8 +113,8 @@ class Player(Thread):
     def get_damage_points(self) -> int:
         return self._damage_points
 
-    def set_game_actions(self, actions: dict) -> None:
-        self._game_actions = actions
+    def set_turn_actions(self, actions: dict) -> None:
+        self._turn_actions = actions
 
     def register_shot(self, enemy_index: int) -> None:
         self.__has_shot.append(enemy_index)

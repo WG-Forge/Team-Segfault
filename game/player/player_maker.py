@@ -24,7 +24,7 @@ class PlayerMaker:
     def create_player(player_type: PlayerTypes,
                       turn_played_sem: Semaphore,
                       current_player_idx: list[1],
-                      active: Event,
+                      over: Event,
                       player_index: int,
                       name: str = None,
                       password: str = None,
@@ -36,4 +36,4 @@ class PlayerMaker:
                             turn_played_sem=turn_played_sem,
                             current_player=current_player_idx,
                             player_index=player_index,
-                            active=active)
+                            over=over)

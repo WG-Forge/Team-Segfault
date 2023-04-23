@@ -1,3 +1,4 @@
+import random
 from threading import Semaphore, Thread, Event
 
 from client.game_client import GameClient
@@ -12,18 +13,19 @@ class Game(Thread):
                  max_players: int = 1, graphics: bool = True) -> None:
         super().__init__()
 
-        self.__game_map = None
+        self.game_map = None
         self.__game_name: str = game_name
 
         # create an active event
-        self.__active: Event = Event()
+        self.over: Event = Event()
 
+        self.lobby_players: int = 0
         self.__num_turns: int = num_turns
         self.__max_players: int = max_players
         self.__num_players: int = 0
-        self.__lobby_players: int = 0
         self.__winner = None
         self.__winner_name = None
+        self.__started: bool = False
 
         self.__players_queue: [Player] = []
         self.__current_turn: [] = [-1]
@@ -54,11 +56,11 @@ class Game(Thread):
         Will connect the player if game has started.
         If the game is full, player will be connected as an observer.
         """
-        if self.__lobby_players >= self.__max_players:
+        if self.lobby_players >= self.__max_players:
             is_observer = True
 
         if not is_observer:
-            self.__lobby_players += 1
+            self.lobby_players += 1
 
         self.__num_players += 1
 
@@ -75,41 +77,41 @@ class Game(Thread):
                                            is_observer=is_observer,
                                            turn_played_sem=self.__turn_played_sem,
                                            current_player_idx=self.__current_player_idx,
-                                           player_index=self.__lobby_players - 1,
-                                           active=self.__active)
+                                           player_index=self.lobby_players - 1,
+                                           over=self.over)
 
-        if self.__active.is_set():
+        if self.__started:
             self.__connect_local_player(player)
         else:
             self.__players_queue.append(player)
 
     def add_remote_player(self, user_info: dict) -> None:
         if not user_info["is_observer"]:
-            self.__lobby_players += 1
+            self.lobby_players += 1
 
         self.__num_players += 1
 
         player: Player = PlayerMaker.create_player(player_type=PlayerTypes.Remote,
                                                    turn_played_sem=self.__turn_played_sem,
                                                    current_player_idx=self.__current_player_idx,
-                                                   player_index=self.__lobby_players - 1,
-                                                   active=self.__active)
+                                                   player_index=self.lobby_players - 1,
+                                                   over=self.over)
 
-        if self.__active.is_set():
+        if self.__started:
             # TODO do something in the else branch
             self.__connect_remote_player(player, user_info)
-            player.start()
 
     def start_game(self, game_actions=None) -> None:
         if not self.__players_queue:
             raise RuntimeError("Can't start game with no players!")
 
-        # Set the state to active
-        self.__active.set()
+        # Set the state to started
+        self.__started = True
 
         # Add the queued local players to the game
         for player in self.__players_queue:
-            player.set_game_actions(game_actions[player.name])
+            if game_actions:
+                player.set_turn_actions(game_actions[player.name])
             self.__connect_local_player(player)
 
         self.__init_game_state()
@@ -117,15 +119,22 @@ class Game(Thread):
         # start the game loop
         self.start()
 
+    def start_menu(self) -> None:
         try:
             # initialize and start the pygame display manager from the main thread
-            DisplayManager(self.__active, self.__game_map).run()
+            DisplayManager(self).run()
         finally:
             # in case the main thread is interrupted
-            self.__active.clear()
+            self.over.set()
+
+    def get_winner_name(self):
+        # wait for game end event
+        self.over.wait()
+
+        return self.__winner_name
 
     def run(self) -> None:
-        while self.__active.is_set():
+        while not self.over.is_set():
             # start the next turn
             self.__start_next_turn()
 
@@ -158,7 +167,13 @@ class Game(Thread):
         self.__current_client = self.__game_clients[player]
 
     def __connect_remote_player(self, player: Player, user_info: dict) -> None:
-        player.add_to_game(user_info, self.__current_client)
+        # current client must exist
+        self.__game_clients[player] = GameClient()
+        self.__game_clients[player].login(player.name + str(random.randint(0, 100000)), player.password,
+                                          self.__game_name, self.__num_turns,
+                                          self.__max_players, is_observer=True)
+
+        player.add_to_game(user_info, self.__game_clients[player])
         player.start()
         # TODO use a local client for now -> in the future make a singleton object for getting a new connection (in a
         #  round-robin way)
@@ -171,18 +186,18 @@ class Game(Thread):
 
         # add all remote players
         for player in game_state["players"]:
-            if not self.__active_players[player["idx"]]:
+            if player["idx"] not in self.__active_players:
                 self.add_remote_player(player)
 
         # initialize the game map (now adds tanks to players & game_map too)
-        self.__game_map = Map(client_map, game_state, self.__active_players, self.__current_turn, self.__graphics)
+        self.game_map = Map(client_map, game_state, self.__active_players, self.__current_turn)
 
         self.__num_turns = game_state["num_turns"]
         self.__max_players = game_state["num_players"]
 
         # pass Map reference to players
         for player in self.__active_players.values():
-            player.add_map(self.__game_map)
+            player.add_map(self.game_map)
 
         # output the game info to console
         print(self)
@@ -205,11 +220,11 @@ class Game(Thread):
         print(f"Current turn: {self.__current_turn[0]}, "
               f"current player: {self.__current_player.name}")
 
-        self.__game_map.update_turn(game_state)
+        self.game_map.update_turn(game_state)
 
         if game_state["winner"] or self.__current_turn[0] == self.__num_turns:
             self.__winner = game_state["winner"]
-            self.__active.clear()
+            self.over.set()
 
     def __end_game(self):
         if self.__winner:
@@ -217,6 +232,3 @@ class Game(Thread):
             print(f'The winner is: {self.__winner_name}.')
         else:
             print('The game is a draw.')
-
-    def get_winner_name(self):
-        return self.__winner_name
