@@ -5,7 +5,6 @@ from map.hex import Hex
 
 
 class Scoreboard:
-    # todo: bottom right - add catapult / bonuses; top right - add legend
     def __init__(self, players: tuple):
 
         # images

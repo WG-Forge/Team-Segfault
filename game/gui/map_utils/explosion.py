@@ -10,14 +10,22 @@ class Explosion(pygame.sprite.Sprite):
             img = pygame.transform.scale(img, (scale_x, scale_y))
             self.images.append(img)
 
+        # image index
         self.index = 0
+        # animation counter
         self.counter = 0
         self.image = self.images[self.index]
         self.rect = self.image.get_rect()
-        self.rect.topleft = [coord[0], coord[1]]
+        self.rect.center = [coord[0], coord[1]]
+        # used for delaying explosion if the bullet is too slow; should not be delayed when turns are fast
+        # self.delay = explosion_delay
 
     def update(self):
-        explosion_speed = 10
+        # if self.delay >= 0:
+        #     self.delay -= 1
+        #     return
+
+        explosion_speed = 3
         self.counter += 1
 
         if self.counter >= explosion_speed and self.index < len(self.images) - 1:

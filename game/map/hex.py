@@ -96,9 +96,10 @@ class Hex:
 
     @staticmethod
     def make_center(coord: tuple):
-        """Returns the center of a given hex in cartesian co-ordinates"""
+        """Returns the center of a given hex in cartesian co-ordinates for current screen"""
         x, y, z = coord
-        return (1 * x - 0.5 * y - 0.5 * z), (Hex.__sqrt3 / 2 * y - Hex.__sqrt3 / 2 * z)
+        x, y = (1 * x - 0.5 * y - 0.5 * z), (Hex.__sqrt3 / 2 * y - Hex.__sqrt3 / 2 * z)
+        return SCREEN_WIDTH // 2 + round(x * Hex.radius_x), SCREEN_HEIGHT // 2 - round(y * Hex.radius_y)
 
     @staticmethod
     def make_corners(coord: tuple) -> tuple:

@@ -22,18 +22,16 @@ the module.
 
 TODO
 
-### Troubleshooting
-
-If map drawing is not working and
-error ```UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.```
-occurs on Debian based systems,
-you need to install tkinter with ```sudo apt-get install python3-tk``` or install any of the matplotlib supported GUI
-backends.
-
 ### Assets
 
 [Tank classes icons](https://icon-library.com/icon/world-of-tanks-icon-12.html)
 
-[Tank icon]()
+[Tank icon](https://www.freeiconspng.com/img/19109)
 
-[Explosion]()
+[Explosion](https://www.pngwing.com/en/free-png-xiyem)
+
+[Explosion sound](https://pixabay.com/sound-effects/explosion-6055/)
+
+[Gunshot sound](https://pixabay.com/sound-effects/shotgun-firing-3-14483/)
+
+[Projectile](https://www.freepnglogos.com/images/bullet-8545.html)

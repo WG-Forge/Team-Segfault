@@ -1,10 +1,10 @@
 from threading import Semaphore, Thread, Event
 
 from client.game_client import GameClient
+from gui.display_manager import DisplayManager
 from map.map import Map
 from player.player import Player
 from player.player_maker import PlayerMaker, PlayerTypes
-from pygame_utils.display_manager import DisplayManager
 
 
 class Game(Thread):

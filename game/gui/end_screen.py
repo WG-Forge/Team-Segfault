@@ -5,23 +5,21 @@ import pygame
 from pygame import Surface
 
 from consts import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT
-from map.map import Map
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
 
-class DisplayManager:
-    def __init__(self, active: Event, game_map: Map, width: int = SCREEN_WIDTH, height: int = SCREEN_HEIGHT):
+class EndScreen:
+    def __init__(self, active: Event):
         super().__init__()
 
         pygame.init()
 
         self.__active = active
-        self.__game_map = game_map
 
-        pygame.display.set_caption("Tank game")
+        pygame.display.set_caption("Game has just finished!")
 
-        self.__screen: Surface = pygame.display.set_mode((width, height))
+        self.__screen: Surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.__clock = pygame.time.Clock()
 
     def run(self) -> None:
@@ -30,9 +28,6 @@ class DisplayManager:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.__active.clear()
-
-            # draw the map
-            self.__game_map.draw(self.__screen)
 
             # delay for a constant framerate
             self.__clock.tick(FPS_MAX)
