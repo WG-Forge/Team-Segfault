@@ -1,4 +1,3 @@
-import time
 from abc import abstractmethod
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
@@ -79,7 +78,7 @@ class Player(Thread):
 
                 # play your move if you are the current player
                 if self.__current_player[0] == self.idx:
-                    time.sleep(1)  # comment/uncomment this for a turn delay effect
+                    # time.sleep(1)  # comment/uncomment this for a turn delay effect
                     self._make_turn_plays()
 
                 # force next turn

@@ -1,36 +1,24 @@
 import os
-from threading import Event
 
 import pygame
-from pygame import Surface
 
-from consts import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT
+from consts import SCREEN_WIDTH, SCREEN_HEIGHT
+from map.hex import Hex
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
 
 class EndScreen:
-    def __init__(self, active: Event):
-        super().__init__()
-
-        pygame.init()
-
-        self.__active = active
-
-        pygame.display.set_caption("Game has just finished!")
-
-        self.__screen: Surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.__clock = pygame.time.Clock()
-
-    def run(self) -> None:
-        while self.__active.is_set():
-            # handle events
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.__active.clear()
-
-            # delay for a constant framerate
-            self.__clock.tick(FPS_MAX)
-
-        # cleanup
-        pygame.quit()
+    @staticmethod
+    def draw_podium(screen, players):
+        screen.fill('blue')
+        width = Hex.radius_x * 4
+        third_height = Hex.radius_y * 2
+        pygame.draw.rect(screen, 'grey', (SCREEN_WIDTH // 2 - width * 1.5, SCREEN_HEIGHT // 2 - third_height * 2,
+                                          width, third_height * 2))
+        pygame.draw.rect(screen, 'yellow', (SCREEN_WIDTH // 2 - width / 2, SCREEN_HEIGHT // 2 - 3 * third_height,
+                                            width, third_height * 3))
+        pygame.draw.rect(screen, 'brown', (SCREEN_WIDTH // 2 + width / 2, SCREEN_HEIGHT // 2 - third_height,
+                                           width, third_height))
+        for player in players:
+            pass

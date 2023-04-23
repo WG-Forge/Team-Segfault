@@ -5,8 +5,7 @@ from map.hex import Hex
 
 class TankDrawer(pygame.sprite.Sprite):
     # timers representing how long will tank on previous position be visible
-    __timer = 40
-    __timer_destroyed = 20
+    __timer = 30
 
     def __init__(self, tank):
         pygame.sprite.Sprite.__init__(self)
@@ -22,8 +21,8 @@ class TankDrawer(pygame.sprite.Sprite):
         self.rect.center = Hex.make_center(tank.get_coord())
 
         # used for translucent sprite drawing
-        self.__transparent_image = self.image.copy()
-        self.__last_position = self.rect.center
+        self.__transparent_image = None
+        self.__last_position = None
         self.__counter = -1
         # used for changing alpha value; alpha is in range [1, 255]
         self.__step = 255 / TankDrawer.__timer

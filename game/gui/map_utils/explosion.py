@@ -1,5 +1,7 @@
 import pygame
 
+from consts import SOUND_MUTED, SOUND_VOLUME
+
 
 class Explosion(pygame.sprite.Sprite):
     def __init__(self, coord: (int, int), scale_x, scale_y):
@@ -20,10 +22,18 @@ class Explosion(pygame.sprite.Sprite):
         # used for delaying explosion if the bullet is too slow; should not be delayed when turns are fast
         # self.delay = explosion_delay
 
+        self.__sound = pygame.mixer.Sound('game/assets/sounds/explosion.mp3')
+        self.__sound.set_volume(SOUND_VOLUME)
+        self.__sound_played = SOUND_MUTED
+
     def update(self):
         # if self.delay >= 0:
         #     self.delay -= 1
         #     return
+
+        if self.__sound_played is False:
+            self.__sound.play()
+            self.__sound_played = True
 
         explosion_speed = 3
         self.counter += 1

@@ -1,5 +1,6 @@
 import pygame
 
+from consts import SOUND_MUTED, SOUND_VOLUME
 from map.hex import Hex
 
 
@@ -30,7 +31,15 @@ class Projectile(pygame.sprite.Sprite):
         self.counter = 0
         self.step = 1 / Projectile.__bullet_travel_time
 
+        # sound
+        self.__sound = pygame.mixer.Sound('game/assets/sounds/shot.mp3')
+        self.__sound.set_volume(SOUND_VOLUME)
+        self.__sound_played = SOUND_MUTED
+
     def update(self) -> None:
+        if self.__sound_played is False:
+            self.__sound.play()
+            self.__sound_played = True
         self.counter += self.step
 
         if self.counter >= 1:
