@@ -12,7 +12,7 @@ class TankDestroyer(Tank):
     __symbol: str = 'v'
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
-        image_path = 'game/assets/tank_classes/td.png'
+        image_path = 'assets/tank_classes/td.png'
         super().__init__(tank_id, tank_info, colour, player_index, image_path)
 
     def shot_moves(self, target: tuple) -> tuple:

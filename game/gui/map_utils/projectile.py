@@ -6,7 +6,7 @@ from map.hex import Hex
 
 class Projectile(pygame.sprite.Sprite):
     __bullet_travel_time = 5
-    __image = pygame.image.load('game/assets/white_bullet.png')
+    __image = pygame.image.load('assets/white_bullet.png')
 
     def __init__(self, start_pos: (), end_pos: (), color):
         pygame.sprite.Sprite.__init__(self)
@@ -32,7 +32,7 @@ class Projectile(pygame.sprite.Sprite):
         self.step = 1 / Projectile.__bullet_travel_time
 
         # sound
-        self.__sound = pygame.mixer.Sound('game/assets/sounds/shot.mp3')
+        self.__sound = pygame.mixer.Sound('assets/sounds/shot.mp3')
         self.__sound.set_volume(SOUND_VOLUME)
         self.__sound_played = SOUND_MUTED
 

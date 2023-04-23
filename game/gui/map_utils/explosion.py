@@ -8,7 +8,7 @@ class Explosion(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.images = []
         for i in range(7):
-            img = pygame.image.load(f'game/assets/explosion/{i}.png')
+            img = pygame.image.load(f'assets/explosion/{i}.png')
             img = pygame.transform.scale(img, (scale_x, scale_y))
             self.images.append(img)
 
@@ -22,7 +22,7 @@ class Explosion(pygame.sprite.Sprite):
         # used for delaying explosion if the bullet is too slow; should not be delayed when turns are fast
         # self.delay = explosion_delay
 
-        self.__sound = pygame.mixer.Sound('game/assets/sounds/explosion.mp3')
+        self.__sound = pygame.mixer.Sound('assets/sounds/explosion.mp3')
         self.__sound.set_volume(SOUND_VOLUME)
         self.__sound_played = SOUND_MUTED
 
