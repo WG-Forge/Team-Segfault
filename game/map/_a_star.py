@@ -22,7 +22,7 @@ def a_star(game_map: dict, tank: Tank, finish: tuple) -> Union[tuple, None]:
             current = heapq.heappop(frontier)[1]
             if current == finish:
                 break
-            for movement in Hex.movements:
+            for movement in Hex.moves:
                 coord = Hex.coord_sum(current, movement)
                 entities = game_map.get(coord)
                 if entities and not (isinstance(entities['feature'], Obstacle) or coord in passable_obstacles):

@@ -8,7 +8,8 @@ from pygame_utils.display_manager import DisplayManager
 
 
 class Game(Thread):
-    def __init__(self, game_name: str = None, num_turns: int = None, max_players: int = 1) -> None:
+    def __init__(self, game_name: str = None, num_turns: int = None,
+                 max_players: int = 1, graphics: bool = True) -> None:
         super().__init__()
 
         self.__game_map = None
@@ -22,6 +23,7 @@ class Game(Thread):
         self.__num_players: int = 0
         self.__lobby_players: int = 0
         self.__winner = None
+        self.__winner_name = None
 
         self.__players_queue: [Player] = []
         self.__current_turn: [] = [-1]
@@ -33,6 +35,8 @@ class Game(Thread):
 
         self.__turn_played_sem: Semaphore = Semaphore(0)
         self.__current_player_idx: list[1] = [-1]
+
+        self.__graphics: bool = graphics
 
     def __str__(self):
         out: str = ""
@@ -96,7 +100,7 @@ class Game(Thread):
             self.__connect_remote_player(player, user_info)
             player.start()
 
-    def start_game(self) -> None:
+    def start_game(self, game_actions=None) -> None:
         if not self.__players_queue:
             raise RuntimeError("Can't start game with no players!")
 
@@ -105,6 +109,7 @@ class Game(Thread):
 
         # Add the queued local players to the game
         for player in self.__players_queue:
+            player.set_game_actions(game_actions[player.name])
             self.__connect_local_player(player)
 
         self.__init_game_state()
@@ -170,7 +175,7 @@ class Game(Thread):
                 self.add_remote_player(player)
 
         # initialize the game map (now adds tanks to players & game_map too)
-        self.__game_map = Map(client_map, game_state, self.__active_players, self.__current_turn)
+        self.__game_map = Map(client_map, game_state, self.__active_players, self.__current_turn, self.__graphics)
 
         self.__num_turns = game_state["num_turns"]
         self.__max_players = game_state["num_players"]
@@ -208,7 +213,10 @@ class Game(Thread):
 
     def __end_game(self):
         if self.__winner:
-            winner_name = self.__active_players[self.__winner].name
-            print(f'The winner is: {winner_name}.')
+            self.__winner_name = self.__active_players[self.__winner].name
+            print(f'The winner is: {self.__winner_name}.')
         else:
             print('The game is a draw.')
+
+    def get_winner_name(self):
+        return self.__winner_name

@@ -13,14 +13,17 @@ from map.hex import Hex
 
 
 class Map:
-    def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[1]):
+    def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[1],
+                 graphics: bool = True):
         self.__players: tuple = Map.__add_players(active_players)
         self.__tanks: dict[str, Tank] = {}
         self.__map: dict = {}
         self.__base_coords: tuple = ()
+        self.__base_adjacent_coords: tuple = ()
         self.__spawn_coords: tuple = ()
         self.__make_map(client_map, game_state, active_players)
         self.__destroyed: List[Tank] = []
+        self.__graphics = graphics
 
         self.__path_finding_algorithm: Callable = _a_star.a_star
 
@@ -65,6 +68,12 @@ class Map:
         self.__base_coords = tuple([tuple(coord.values()) for coord in coords])
         for coord in self.__base_coords:
             self.__map[coord]['feature'] = Base(coord)
+        self.__make_base_adjacents()
+
+    def __make_base_adjacents(self):
+        adjacent_deltas = Hex.make_ring(1)
+        self.__base_adjacent_coords = list({Hex.coord_sum(delta, base_coord) for base_coord in self.__base_coords
+                                            for delta in adjacent_deltas} - set(self.__base_coords))
 
     def __make_obstacles(self, obstacles: []) -> None:
         for d in obstacles:
@@ -74,7 +83,8 @@ class Map:
     """     DRAWING     """
 
     def draw(self, screen: Surface):
-        self.__map_drawer.draw(screen)
+        if self.__graphics:
+            self.__map_drawer.draw(screen)
 
     """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
 
@@ -125,25 +135,38 @@ class Map:
             entities = self.__map.get(coord)
             if entities and not isinstance(entities['feature'], Obstacle):
                 enemy = self.__map[coord]['tank']
-                if enemy and not (td.get_player_index() == enemy.get_player_index() or
-                                  self.is_neutral(td, enemy) or enemy.is_destroyed()):
+                if self.__is_enemy(td, enemy):
                     self.local_shoot(td, enemy)
             else:
                 break
 
     def is_neutral(self, player_tank: Tank, enemy_tank: Tank) -> bool:
-        # Neutrality rule logic implemented here, return True if not neutral, False if neutral
+        # Neutrality rule logic implemented here, return True if neutral, False if not neutral
         player_index, enemy_index = player_tank.get_player_index(), enemy_tank.get_player_index()
         other_index = next(iter({0, 1, 2} - {player_index, enemy_index}))
         other_player, enemy_player = self.__players[other_index], self.__players[enemy_index]
         return not enemy_player.has_shot(player_index) and other_player.has_shot(enemy_index)
 
+    def __is_enemy(self, friend: Tank, enemy: Tank) -> bool:
+        return enemy and not (friend.get_player_index() == enemy.get_player_index() or
+                              self.is_neutral(friend, enemy) or enemy.is_destroyed())
+
     """     NAVIGATION    """
 
-    def closest_base(self, to: tuple) -> Union[tuple, None]:
+    def enemies_in_range(self, tank: Tank) -> List[Tank]:
+        print(tank.coords_in_range())
+        return [enemy for coord in tank.coords_in_range() if
+                (enemy := self.__map.get(coord, {}).get('tank')) is not None and self.__is_enemy(tank, enemy)]
+
+    def closest_free_base(self, to: tuple) -> Union[tuple, None]:
         free_base_coords = tuple(c for c in self.__base_coords if self.__map[c]['tank'] is None or c == to)
         if free_base_coords:
             return min(free_base_coords, key=lambda coord: Hex.manhattan_dist(to, coord))
+
+    def closest_free_base_adjacent(self, to: tuple) -> Union[tuple, None]:
+        free_base_adjacents = [c for c in self.__base_adjacent_coords if self.__map[c]['tank'] is None or c == to]
+        if free_base_adjacents:
+            return min(free_base_adjacents, key=lambda coord: Hex.manhattan_dist(to, coord))
 
     def closest_enemies(self, tank: Tank) -> List[Tank]:
         # Returns a sorted list by distance of enemy tanks

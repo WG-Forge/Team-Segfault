@@ -1,6 +1,8 @@
 from abc import abstractmethod
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
+from types import Union
+from typing import Union
 
 from client.game_client import GameClient
 from entity.tanks.tank import Tank
@@ -38,7 +40,7 @@ class Player(Thread):
         self.__player_colour = Player.__possible_colours[player_index]
         self.__has_shot = []  # Holds a list of enemies this player has shot last turn
 
-        self._turn_actions: dict | None = None
+        self._game_actions: Union[dict, None] = None
 
     def __hash__(self):
         return hash(self.name)
@@ -113,8 +115,8 @@ class Player(Thread):
     def get_damage_points(self) -> int:
         return self._damage_points
 
-    def set_turn_actions(self, actions: dict) -> None:
-        self._turn_actions = actions
+    def set_game_actions(self, actions: dict) -> None:
+        self._game_actions = actions
 
     def register_shot(self, enemy_index: int) -> None:
         self.__has_shot.append(enemy_index)
