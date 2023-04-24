@@ -10,7 +10,7 @@ class MediumTank(Tank):
     __fire_deltas: tuple = Hex.fire_deltas(__min_range, __max_range)
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
-        image_path = 'game/assets/tank_classes/mt.png'
+        image_path = 'assets/tank_classes/mt.png'
         super().__init__(tank_id, tank_info, colour, player_index, image_path)
 
     def coords_in_range(self) -> tuple:

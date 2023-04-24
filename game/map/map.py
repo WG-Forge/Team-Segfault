@@ -7,16 +7,19 @@ from entity.map_features.empty import Empty
 from entity.map_features.obstacle import Obstacle
 from entity.tanks.tank import Tank
 from entity.tanks.tank_maker import TankMaker
+from gui.map_utils.map_drawer import MapDrawer
 from map import _a_star
-from map._map_drawer import MapDrawer
 from map.hex import Hex
 
 
 class Map:
     def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[1]):
+
         self.__players: dict = Map.__add_players(active_players)
-        self.__tanks: dict[str, Tank] = {}
+        self.__tanks: dict[int, Tank] = {}
+
         self.__map: dict = {}
+        self.__map_size = client_map['size']
         self.__base_coords: tuple = ()
         self.__base_adjacent_coords: tuple = ()
         self.__spawn_coords: tuple = ()
@@ -85,8 +88,8 @@ class Map:
 
     """     GETTERS     """
 
-    def get_tank(self, vehicle_id: str) -> Tank:
-        return self.__tanks[str(vehicle_id)]
+    def get_tank(self, vehicle_id: int) -> Tank:
+        return self.__tanks[vehicle_id]
 
     """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
 
@@ -119,6 +122,8 @@ class Map:
 
     def local_shoot(self, tank: Tank, target: Tank) -> None:
         destroyed = target.register_hit_return_destroyed()
+        self.__map_drawer.add_shot(Hex.make_center(tank.get_coord()), Hex.make_center(target.get_coord()),
+                                   tank.get_color())
         if destroyed:
             # update player damage points
             self.__players[tank.get_player_index()].register_destroyed_vehicle(target)
@@ -173,9 +178,23 @@ class Map:
     def closest_enemies(self, tank: Tank) -> List[Tank]:
         # Returns a sorted list by distance of enemy tanks
         tank_idx, tank_coord = tank.get_player_index(), tank.get_coord()
-        enemies = [player for player in self.__players.values() if player.get_index() != tank_idx]
+        enemies = [self.__players[player] for player in self.__players if player != tank_idx]
         return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.get_tanks()),
                       key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.get_coord(), tank_coord))
 
     def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> Union[tuple, None]:
         return self.__path_finding_algorithm(self.__map, tank, finish)
+
+    """Getters"""
+
+    def get_map_size(self) -> int:
+        return self.__map_size
+
+    def get_players(self) -> dict:
+        return self.__players
+
+    def get_map(self) -> dict:
+        return self.__map
+
+    def get_tank_color(self, tank_id: int):
+        return self.__tanks[tank_id].get_color()

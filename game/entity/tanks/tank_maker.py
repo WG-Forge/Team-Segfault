@@ -16,8 +16,8 @@ class TankMaker:
     }
 
     @staticmethod
-    def create_tank_and_spawn(tank_id: int, tank_info: dict, tank_color: str, player_index: int) -> tuple:
+    def create_tank_and_spawn(tank_id: int, tank_info: dict, tank_color, player_index: int) -> tuple:
         tank_class = TankMaker.TANK_TYPES[tank_info["vehicle_type"]]
         tank = tank_class(tank_id, tank_info, tank_color, player_index)
-        spawn = Spawn(tank.get_coord(), tank_id)
+        spawn = Spawn(tank.get_coord(), tank_id, tank_color)
         return tank, spawn
