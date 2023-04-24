@@ -131,6 +131,13 @@ class Map:
 
         self.__players[tank.get_player_index()].register_shot(target.get_player_index())
 
+    def local_shoot_tuple(self, tank: Tank, coord: tuple):
+        entities = self.__map.get(coord)
+        if entities and not isinstance(entities['feature'], Obstacle):
+            enemy = self.__map[coord]['tank']
+            if self.__is_enemy(tank, enemy):
+                self.local_shoot(tank, enemy)
+
     def td_shoot(self, td: Tank, target: tuple) -> None:
         danger_zone = Hex.danger_zone(td.get_coord(), target)
         for coord in danger_zone:

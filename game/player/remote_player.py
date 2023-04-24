@@ -25,7 +25,7 @@ class RemotePlayer(Player):
         # Vector table pointer for mapping actions to their respective handlers
         self.__result_vtp = {
             Action.MOVE: game_map.local_move,
-            Action.SHOOT: game_map.td_shoot
+            Action.SHOOT: game_map.local_shoot_tuple
         }
         super().add_map(game_map)
 
@@ -39,18 +39,16 @@ class RemotePlayer(Player):
 
     def __place_actions(self) -> None:
 
-        # force a turn first to make sure the game actions are correct
+        # force the turn end first to make sure the game actions are correct
         self._game_client.force_turn()
 
         game_actions: dict = self._game_client.get_game_actions()
 
         for game_action in game_actions["actions"]:
-            if game_action["player_id"] != self.idx:
-                continue
-
             action: Action = game_action["action_type"]
             data: dict = game_action["data"]
             vehicle_id: str = data["vehicle_id"]
+            # TODO order these actions based on the ordering of tanks that can be played in a turn
 
             tank: Tank = self._map.get_tank(vehicle_id)
             target: tuple = Hex.unpack_coords(data["target"])

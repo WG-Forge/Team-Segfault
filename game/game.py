@@ -5,6 +5,7 @@ from client.game_client import GameClient
 from map.map import Map
 from player.player import Player
 from player.player_maker import PlayerMaker, PlayerTypes
+from player.remote_player import RemotePlayer
 from pygame_utils.display_manager import DisplayManager
 
 
@@ -23,7 +24,6 @@ class Game(Thread):
         self.__num_turns: int = num_turns
         self.__max_players: int = max_players
         self.__num_players: int = 0
-        self.__num_remote_players: int = 0
         self.__winner = None
         self.__winner_name = None
         self.__started: bool = False
@@ -94,12 +94,11 @@ class Game(Thread):
         else:
             self.__players_queue.append(player)
 
-    def add_remote_player(self, user_info: dict) -> None:
+    def __add_remote_player(self, user_info: dict) -> None:
         if not user_info["is_observer"]:
             self.lobby_players += 1
 
         self.__num_players += 1
-        self.__num_remote_players += 1
 
         player: Player = PlayerMaker.create_player(player_type=PlayerTypes.Remote,
                                                    turn_played_sem=self.__turn_played_sem,
@@ -153,8 +152,8 @@ class Game(Thread):
         for player in self.__active_players.values():
             player.next_turn_sem.release()
 
-        # if no remote players, end the shadow observer turn
-        if self.__num_remote_players == 0 and not self.over.is_set():
+        # if current player isn't a remote player, end the turn TODO - this can be done better
+        if not isinstance(self.__current_player, RemotePlayer) and not self.over.is_set():
             self.__shadow_client.force_turn()
 
         # wait for everyone to finish their turns
@@ -179,13 +178,18 @@ class Game(Thread):
         self.__active_players[player.idx] = player
 
     def __init_game_state(self) -> None:
-        client_map: dict = self.__shadow_client.get_map()
         game_state: dict = self.__shadow_client.get_game_state()
+        while game_state["num_players"] != len(game_state["players"]):
+            # wait for all the players to join
+            # poll for the game state - TODO this currently just bricks the menu screen - make a different solution
+            game_state = self.__shadow_client.get_game_state()
+
+        client_map: dict = self.__shadow_client.get_map()
 
         # add all remote players
         for player in game_state["players"]:
-            if player["idx"] not in self.__active_players:
-                self.add_remote_player(player)
+            if player["idx"] not in self.__active_players and not player["is_observer"]:
+                self.__add_remote_player(player)
 
         # initialize the game map (now adds tanks to players & game_map too)
         self.game_map = Map(client_map, game_state, self.__active_players, self.__current_turn)

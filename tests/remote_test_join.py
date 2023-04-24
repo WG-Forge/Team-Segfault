@@ -6,8 +6,9 @@ from game.game import Game
 def remote_test_join():
     # Multiplayer game with a single observer, used to connect to a remote game
     print("*** Remote game test ***")
-    name: str = "Test game: Remote Test"
+    name: str = "Test game: Remote Test 100"
     game = Game(game_name=name)
+    game.add_local_player(name="Red", is_observer=False)
     game.start_menu()
     print()
 
