@@ -22,7 +22,7 @@ class BotPlayer(Player):
         try:
             # play your move if you are the current player
             if self._current_player[0] == self.idx:
-                # time.sleep(2)  # comment/uncomment this for a turn delay effect
+                # time.sleep(1)  # comment/uncomment this for a turn delay effect
                 self.__place_actions()
         finally:
             # end your turn

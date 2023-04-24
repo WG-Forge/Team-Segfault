@@ -6,11 +6,10 @@ from game.game import Game
 def remote_test_create():
     # Multiplayer game with a fixed name and three bot players
     print("*** Remote game test ***")
-    name: str = "Test game: Remote Test"
+    name: str = "Test game: Remote Test 100"
     game = Game(game_name=name, max_players=3, num_turns=45)
     game.add_local_player(name="Blue", is_observer=False)
     game.add_local_player(name="Pink", is_observer=False)
-    game.add_local_player(name="Red", is_observer=False)
     game.add_local_player(name="Orange", is_observer=True)
     game.add_local_player(name="Green", is_observer=True)
     game.start_menu()
