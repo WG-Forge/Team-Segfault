@@ -1,6 +1,6 @@
 import os
 
-from consts import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE
+from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE
 from pygame_utils.menu import *
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center

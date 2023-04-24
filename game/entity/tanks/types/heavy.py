@@ -33,8 +33,11 @@ class HeavyTank(Tank):
     def get_speed(self) -> int:
         return self.__sp
 
-    def get_symbol(self) -> str:
-        return HeavyTank.__symbol
-
     def get_fire_deltas(self) -> tuple:
         return HeavyTank.__fire_deltas
+
+    def fire_corridors(self) -> tuple:
+        return ()
+
+    def td_shooting_coord(self, target: tuple) -> tuple:
+        return ()

@@ -18,10 +18,6 @@ class TankDestroyer(Tank):
     def coords_in_range(self) -> tuple:
         return tuple(Hex.coord_sum(delta, self._coord) for delta in TankDestroyer.__fire_deltas)
 
-    def fire_corridors(self) -> tuple:
-        return tuple([tuple([Hex.coord_sum(self._coord, delta) for delta in corridor_deltas]) for corridor_deltas in
-                      TankDestroyer.__fire_corridor_deltas])
-
     def shot_moves(self, target: tuple) -> tuple:
         # returns coords to where "self" can move shoot "target", ordered from closest to furthest away from "self"
         fire_locs_around_enemy = Hex.possible_shots(target, TankDestroyer.__fire_deltas)
@@ -43,14 +39,15 @@ class TankDestroyer(Tank):
     def get_speed(self) -> int:
         return self.__sp
 
-    def get_symbol(self) -> str:
-        return TankDestroyer.__symbol
-
     def get_fire_deltas(self) -> tuple:
         return TankDestroyer.__fire_deltas
+
+    def fire_corridors(self) -> tuple:
+        return tuple([tuple([Hex.coord_sum(self._coord, delta) for delta in corridor_deltas]) for corridor_deltas in
+                      TankDestroyer.__fire_corridor_deltas])
 
     def td_shooting_coord(self, target: tuple) -> tuple:
         # Returns the coord where the TD needs to fire to, to hit the tank in 'target' ('target' is in TD fire pattern)
         distance = Hex.manhattan_dist(self._coord, target)
         if distance == 1: return target
-        return Hex.coord_sum(target, Hex.coord_mult(Hex.dir_vec(target, self._coord), distance-1))
+        return Hex.coord_sum(target, Hex.coord_mult(Hex.dir_vec(target, self._coord), distance - 1))

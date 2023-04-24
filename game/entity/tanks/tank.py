@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
 import pygame
 from pygame import Surface
@@ -7,7 +7,8 @@ from entity.entity import Entity
 from map.hex import Hex
 
 
-class Tank(Entity):
+class Tank(Entity, ABC):
+    """ Abstract Tank class """
     __damage = 1
 
     def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int, image_path: str):
@@ -95,9 +96,6 @@ class Tank(Entity):
 
     @abstractmethod
     def shot_moves(self, target: tuple) -> tuple: pass  # sorted coords to where "self" can move to shoot "target"
-
-    @abstractmethod
-    def get_symbol(self) -> str: pass
 
     @abstractmethod
     def get_speed(self) -> int: pass

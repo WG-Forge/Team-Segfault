@@ -30,8 +30,16 @@ class RemotePlayer(Player):
         super().add_map(game_map)
 
     def _make_turn_plays(self) -> None:
+        if self._current_player[0] == self.idx:
+            self.__place_actions()
+
+    def _finalize(self):
+        # No need to do anything currently
+        pass
+
+    def __place_actions(self) -> None:
+
         # force a turn first to make sure the game actions are correct
-        # a.k.a. wait on a barrier
         self._game_client.force_turn()
 
         game_actions: dict = self._game_client.get_game_actions()
@@ -43,7 +51,6 @@ class RemotePlayer(Player):
             action: Action = game_action["action_type"]
             data: dict = game_action["data"]
             vehicle_id: str = data["vehicle_id"]
-            print(vehicle_id)
 
             tank: Tank = self._map.get_tank(vehicle_id)
             target: tuple = Hex.unpack_coords(data["target"])

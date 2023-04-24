@@ -1,7 +1,8 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
 
-class Entity:
+# Entity - Abstract Base Class
+class Entity(ABC):
     def __init__(self, name: str):
         self._type: str = name
 

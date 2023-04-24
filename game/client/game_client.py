@@ -45,14 +45,16 @@ class GameClient:
 
         d = {k: v for k, v in d.items() if v is not None}
 
-        return self.__send_and_receive_data(d, Action.LOGIN)
+        self.__send_action(Action.LOGIN, d)
+        return self.__receive_response()
 
     def logout(self) -> None:
         """
         User logout
         :param
         """
-        self.__send_and_receive_data({}, Action.LOGOUT)
+        self.__send_action(Action.LOGOUT)
+        self.__receive_response()
 
     def get_map(self) -> dict:
         """
@@ -60,7 +62,8 @@ class GameClient:
         :param
         :return: map dict
         """
-        return self.__send_and_receive_data({}, Action.MAP)
+        self.__send_action(Action.MAP)
+        return self.__receive_response()
 
     def get_game_state(self) -> dict:
         """
@@ -68,7 +71,8 @@ class GameClient:
         :param
         :return: game state dict
         """
-        return self.__send_and_receive_data({}, Action.GAME_STATE)
+        self.__send_action(Action.GAME_STATE)
+        return self.__receive_response()
 
     def get_game_actions(self) -> dict:
         """
@@ -76,7 +80,8 @@ class GameClient:
         Represent changes between turns.
         :return: game actions dict
         """
-        return self.__send_and_receive_data({}, Action.GAME_ACTIONS)
+        self.__send_action(Action.GAME_ACTIONS)
+        return self.__receive_response()
 
     def force_turn(self) -> int:
         """
@@ -85,7 +90,8 @@ class GameClient:
         :return: 0 if turn has happened, -1 otherwise (TIMEOUT error)
         """
         try:
-            self.__send_and_receive_data({}, Action.TURN)
+            self.__send_action(Action.TURN)
+            self.__receive_response()
         except TimeoutError:
             return -1
         else:
@@ -96,19 +102,22 @@ class GameClient:
         Chat, just for fun and testing
         :param msg: message sent
         """
-        self.__send_and_receive_data({"message": msg}, Action.CHAT)
+        self.__send_action(Action.CHAT, {"message": msg})
+        self.__receive_response()
 
     def server_move(self, move_dict: dict) -> None:
         """
         Changes vehicle position
         """
-        self.__send_and_receive_data(move_dict, Action.MOVE)
+        self.__send_action(Action.MOVE, move_dict)
+        self.__receive_response()
 
     def server_shoot(self, shoot_dict: dict) -> None:
         """
         Shoot at a hex position
         """
-        self.__send_and_receive_data(shoot_dict, Action.SHOOT)
+        self.__send_action(Action.SHOOT, shoot_dict)
+        self.__receive_response()
 
     @staticmethod
     def __unpack_helper(data) -> (Result, str):
@@ -116,7 +125,10 @@ class GameClient:
         msg = data[:msg_len]
         return resp_code, msg
 
-    def __send_and_receive_data(self, dct: dict, act: Action) -> dict:
+    def __send_action(self, act: Action, dct=None) -> None:
+        if dct is None:
+            dct = {}
+
         msg: bytes = b''
         if dct:
             msg = bytes(json.dumps(dct), 'utf-8')
@@ -125,11 +137,8 @@ class GameClient:
         if not self.__service.send_data(out):
             raise ConnectionError(f"Error: Data was not sent correctly.")
 
-        if Action != Action.TURN:
-            ret = self.__service.receive_data()
-        else:
-            return {}
-
+    def __receive_response(self) -> dict:
+        ret = self.__service.receive_data()
         resp_code, msg = self.__unpack_helper(ret)
 
         if resp_code == Result.TIMEOUT:

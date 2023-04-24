@@ -23,6 +23,7 @@ class Game(Thread):
         self.__num_turns: int = num_turns
         self.__max_players: int = max_players
         self.__num_players: int = 0
+        self.__num_remote_players: int = 0
         self.__winner = None
         self.__winner_name = None
         self.__started: bool = False
@@ -30,9 +31,17 @@ class Game(Thread):
         self.__players_queue: [Player] = []
         self.__current_turn: [] = [-1]
         self.__current_player = None
-        self.__current_client = None
 
-        self.__game_clients: dict[Player, GameClient] = {}
+        # Observer connection that is used for collecting data
+        self.__shadow_client = GameClient()
+
+        # TODO have a more secure way to generate the shadow client name, in order to avoid potential collisions
+        self.__shadow_client.login(name=f"{game_name}-Team-Segfault-Shadow-{random.randint(0, 100000)}",
+                                   game_name=game_name,
+                                   num_turns=self.__num_turns,
+                                   num_players=self.__max_players,
+                                   is_observer=True)
+
         self.__active_players: dict[int, Player] = {}
 
         self.__turn_played_sem: Semaphore = Semaphore(0)
@@ -90,6 +99,7 @@ class Game(Thread):
             self.lobby_players += 1
 
         self.__num_players += 1
+        self.__num_remote_players += 1
 
         player: Player = PlayerMaker.create_player(player_type=PlayerTypes.Remote,
                                                    turn_played_sem=self.__turn_played_sem,
@@ -97,14 +107,9 @@ class Game(Thread):
                                                    player_index=self.lobby_players - 1,
                                                    over=self.over)
 
-        if self.__started:
-            # TODO do something in the else branch
-            self.__connect_remote_player(player, user_info)
+        self.__connect_remote_player(player, user_info)
 
     def start_game(self, game_actions=None) -> None:
-        if not self.__players_queue:
-            raise RuntimeError("Can't start game with no players!")
-
         # Set the state to started
         self.__started = True
 
@@ -148,41 +153,34 @@ class Game(Thread):
         for player in self.__active_players.values():
             player.next_turn_sem.release()
 
+        # if no remote players, end the shadow observer turn
+        if self.__num_remote_players == 0 and not self.over.is_set():
+            self.__shadow_client.force_turn()
+
         # wait for everyone to finish their turns
         for _ in range(self.__num_players):
             self.__turn_played_sem.acquire()
 
     def __connect_local_player(self, player: Player) -> None:
-        self.__game_clients[player] = GameClient()
-        user_info: dict = self.__game_clients[player].login(player.name, player.password,
-                                                            self.__game_name, self.__num_turns,
-                                                            self.__max_players, player.is_observer)
+        game_client: GameClient = GameClient()
+        user_info: dict = game_client.login(player.name, player.password,
+                                            self.__game_name, self.__num_turns,
+                                            self.__max_players, player.is_observer)
 
-        player.add_to_game(user_info, self.__game_clients[player])
+        player.add_to_game(user_info, game_client)
         player.start()
 
         self.__active_players[player.idx] = player
 
-        # current client is last one added
-        self.__current_client = self.__game_clients[player]
-
     def __connect_remote_player(self, player: Player, user_info: dict) -> None:
-        # current client must exist
-        self.__game_clients[player] = GameClient()
-        self.__game_clients[player].login(player.name + str(random.randint(0, 100000)), player.password,
-                                          self.__game_name, self.__num_turns,
-                                          self.__max_players, is_observer=True)
-
-        player.add_to_game(user_info, self.__game_clients[player])
+        player.add_to_game(user_info, self.__shadow_client)
         player.start()
-        # TODO use a local client for now -> in the future make a singleton object for getting a new connection (in a
-        #  round-robin way)
 
         self.__active_players[player.idx] = player
 
     def __init_game_state(self) -> None:
-        client_map: dict = self.__current_client.get_map()
-        game_state: dict = self.__current_client.get_game_state()
+        client_map: dict = self.__shadow_client.get_map()
+        game_state: dict = self.__shadow_client.get_game_state()
 
         # add all remote players
         for player in game_state["players"]:
@@ -202,16 +200,14 @@ class Game(Thread):
         # output the game info to console
         print(self)
 
-    def __start_next_turn(self, game_state: dict = None) -> None:
+    def __start_next_turn(self) -> None:
 
         # start the next turn
-        if not game_state:
-            game_state = self.__current_client.get_game_state()
+        game_state = self.__shadow_client.get_game_state()
 
         self.__current_turn[0] = game_state["current_turn"]
         self.__current_player_idx[0] = game_state["current_player_idx"]
         self.__current_player = self.__active_players[self.__current_player_idx[0]]
-        self.__current_client = self.__game_clients[self.__current_player]
 
         # Reset current player attacks
         self.__current_player.register_turn()
@@ -232,3 +228,10 @@ class Game(Thread):
             print(f'The winner is: {self.__winner_name}.')
         else:
             print('The game is a draw.')
+
+        self.__logout()
+
+    def __logout(self):
+        # end by logging out of the shadow observer
+        self.__shadow_client.logout()
+        self.__shadow_client.disconnect()

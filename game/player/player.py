@@ -93,7 +93,7 @@ class Player(Thread):
                 self.__turn_played_sem.release()
 
         # finalization
-        self.__logout()
+        self._finalize()
 
     def get_color(self) -> str:
         return self.__player_colour
@@ -129,6 +129,6 @@ class Player(Thread):
     def _make_turn_plays(self) -> None:
         pass
 
-    def __logout(self):
-        self._game_client.logout()
-        self._game_client.disconnect()
+    @abstractmethod
+    def _finalize(self):
+        pass

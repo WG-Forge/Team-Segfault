@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
 import pygame
 from pygame import Surface
@@ -7,7 +7,7 @@ from entity.entity import Entity
 from map.hex import Hex
 
 
-class Feature(Entity):
+class Feature(Entity, ABC):
     """ Abstract feature class """
 
     def __init__(self, name: str, coord: tuple):

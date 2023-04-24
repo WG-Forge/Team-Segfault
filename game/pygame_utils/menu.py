@@ -1,6 +1,6 @@
 import pygame
 
-from consts import BLACK
+from constants import BLACK
 
 
 class Menu:

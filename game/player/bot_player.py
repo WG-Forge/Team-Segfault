@@ -28,6 +28,11 @@ class BotPlayer(Player):
             # end your turn
             self._game_client.force_turn()
 
+    def _finalize(self):
+        # manage your own connection
+        self._game_client.logout()
+        self._game_client.disconnect()
+
     def __place_actions(self) -> None:
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
 

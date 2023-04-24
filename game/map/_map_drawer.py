@@ -2,7 +2,7 @@ import pygame
 from pygame import Surface
 from pygame.sprite import Sprite
 
-from consts import SCREEN_WIDTH, SCREEN_HEIGHT
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT
 from entity.tanks.tank import Tank
 from map.hex import Hex
 from pygame_utils.explosion import Explosion
