@@ -1,13 +1,15 @@
 import os
 
 from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE
-from pygame_utils.menu import *
+from gui.map_utils.menu import *
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
 
 class DisplayManager:
+
     def __init__(self, game):
+
         super().__init__()
         pygame.init()
 
@@ -17,7 +19,7 @@ class DisplayManager:
         self.DISPLAY_H = SCREEN_HEIGHT
 
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.menu_assets_path = 'game/assets/menu/'
+        self.menu_assets_path = 'assets/menu/'
         self.font_name = self.menu_assets_path + '8-BIT WONDER.TTF'
 
         pygame.display.set_caption("Tank Game")

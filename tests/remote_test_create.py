@@ -1,4 +1,4 @@
-from game.game import Game
+from game import Game
 
 
 # Run directly from this module, and then run the remote_test_join as a separate entity

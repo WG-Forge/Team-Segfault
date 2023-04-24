@@ -1,4 +1,4 @@
-from game.game import Game
+from game import Game
 
 
 # Run directly from this module, previously having run the remote_test_create as a separate entity

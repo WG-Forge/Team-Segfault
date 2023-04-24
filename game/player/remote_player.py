@@ -47,7 +47,7 @@ class RemotePlayer(Player):
         for game_action in game_actions["actions"]:
             action: Action = game_action["action_type"]
             data: dict = game_action["data"]
-            vehicle_id: str = data["vehicle_id"]
+            vehicle_id: int = int(data["vehicle_id"])
             # TODO order these actions based on the ordering of tanks that can be played in a turn
 
             tank: Tank = self._map.get_tank(vehicle_id)

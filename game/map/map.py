@@ -45,7 +45,7 @@ class Map:
             tank_coord = tank.get_coord()
             self.__map[tank_coord]['tank'] = tank
             self.__map[tank_coord]['feature'] = spawn
-            self.__tanks[vehicle_id] = tank
+            self.__tanks[int(vehicle_id)] = tank
             player.add_tank(tank)
 
         # Put entities in map
@@ -101,7 +101,7 @@ class Map:
             server_coord = (vehicle_info["position"]["x"], vehicle_info["position"]["y"], vehicle_info["position"]["z"])
             server_hp, server_cp = vehicle_info['health'], vehicle_info["capture_points"]
 
-            tank = self.__tanks[vehicle_id]
+            tank = self.__tanks[int(vehicle_id)]
             self.local_move(tank, server_coord) if server_coord != tank.get_coord() else None
             tank.set_hp(server_hp) if server_hp != tank.get_hp() else None
             tank.set_cp(server_cp) if server_cp != tank.get_cp() else None

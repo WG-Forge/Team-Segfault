@@ -4,6 +4,7 @@ from threading import Thread, Semaphore, Event
 from typing import Union
 
 from client.game_client import GameClient
+from constants import PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR
 from entity.tanks.tank import Tank
 from map.map import Map
 
@@ -11,7 +12,7 @@ from map.map import Map
 @dataclass
 class Player(Thread):
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
-    __possible_colours = ((224, 206, 70), (70, 191, 224), (201, 26, 40))  # yellow, blue, red
+    __possible_colours = (PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR)
 
     def __init__(self,
                  turn_played_sem: Semaphore, current_player: list[1], player_index: int, over: Event,

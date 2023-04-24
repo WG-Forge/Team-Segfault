@@ -11,14 +11,14 @@ class Tank(Entity, ABC):
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
-        self.__cp = tank_info["capture_points"]
+        self.__cp: int = tank_info["capture_points"]
         self.__spawn_coord: tuple = (tank_info["position"]["x"], tank_info["position"]["y"], tank_info["position"]["z"])
         self.__tank_colour: str = colour
         self.__player_index: int = player_index
         self.__destroyed: bool = False
         self._coord: tuple = self.__spawn_coord
 
-        self.__image_path = image_path
+        self.__image_path: str = image_path
 
         super().__init__(tank_info["vehicle_type"])
 

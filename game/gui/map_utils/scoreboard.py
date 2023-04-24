@@ -6,11 +6,13 @@ from map.hex import Hex
 
 class Scoreboard:
     # todo: bottom right - add catapult / bonuses; top right - add legend
+    # def __init__(self, players: dict):
+
     def __init__(self, players: dict):
 
         # images
-        self.__tank_image = pygame.image.load('game/assets/tank_icon.png')
-        self.__flag = pygame.image.load('game/assets/flag.png')
+        self.__tank_image = pygame.image.load('assets/tank_icon.png')
+        self.__flag = pygame.image.load('assets/flag.png')
 
         # used for coloring tank icons
         self.__color_image = pygame.Surface(self.__tank_image.get_size())

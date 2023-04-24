@@ -1,14 +1,15 @@
 import pygame
 
+from constants import BULLET_IMAGE, BULLET_SOUND
 from constants import SOUND_MUTED, SOUND_VOLUME
 from map.hex import Hex
 
 
 class Projectile(pygame.sprite.Sprite):
     __bullet_travel_time = 5
-    __image = pygame.image.load('assets/white_bullet.png')
+    __image = pygame.image.load(BULLET_IMAGE)
 
-    def __init__(self, start_pos: (), end_pos: (), color):
+    def __init__(self, start_pos: tuple[int, int], end_pos: tuple[int, int], color: tuple[int, int, int] | str):
         pygame.sprite.Sprite.__init__(self)
 
         self.shot_vector = (end_pos[0] - start_pos[0], end_pos[1] - start_pos[1])
@@ -32,7 +33,7 @@ class Projectile(pygame.sprite.Sprite):
         self.step = 1 / Projectile.__bullet_travel_time
 
         # sound
-        self.__sound = pygame.mixer.Sound('assets/sounds/shot.mp3')
+        self.__sound = pygame.mixer.Sound(BULLET_SOUND)
         self.__sound.set_volume(SOUND_VOLUME)
         self.__sound_played = SOUND_MUTED
 

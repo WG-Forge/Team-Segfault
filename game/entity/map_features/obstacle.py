@@ -1,8 +1,7 @@
+from constants import OBSTACLE_COLOR
 from entity.map_features.feature import Feature
 
 
 class Obstacle(Feature):
-    __color: tuple = (51, 46, 46)  # dark red
-
     def __init__(self, coord: tuple):
-        super().__init__('obstacle', coord, Obstacle.__color)
+        super().__init__('obstacle', coord, OBSTACLE_COLOR)
