@@ -107,11 +107,11 @@ class MapDrawer:
     """Adding sprites to their group"""
 
     def add_explosion(self, tank: Tank, target: Tank) -> None:
-        explosion: Sprite = Explosion(Hex.make_center(target.get_coord()), Hex.radius_x * 2, Hex.radius_y * 2)
-        self.__explosion_group.add(explosion)
-
         self.__max_damage_points = \
             max(self.__max_damage_points, self.__players[tank.get_player_index()].get_damage_points())
+
+        explosion: Sprite = Explosion(Hex.make_center(target.get_coord()), Hex.radius_x * 2, Hex.radius_y * 2)
+        self.__explosion_group.add(explosion)
 
     def add_shot(self, start_pos: (), end_pos: (), color):
         projectile: Sprite = Projectile(start_pos, end_pos, color)
