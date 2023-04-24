@@ -44,7 +44,7 @@ class Map:
                                                           player.get_index())
             tank_coord = tank.get_coord()
             self.__map[tank_coord]['tank'] = tank
-            self.__map[tank_coord]['feature'] = spawn
+            self.__map[tank.get_spawn_coord()]['feature'] = spawn
             self.__tanks[int(vehicle_id)] = tank
             player.add_tank(tank)
 

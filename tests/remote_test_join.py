@@ -8,7 +8,7 @@ def remote_test_join():
     print("*** Remote game test ***")
     name: str = "Test game: Remote Test 100"
     game = Game(game_name=name)
-    game.add_local_player(name="Red", is_observer=False)
+    game.add_local_player(name="Reed", is_observer=True)
     game.start_menu()
     print()
 

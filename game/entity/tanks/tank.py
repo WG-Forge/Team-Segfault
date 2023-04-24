@@ -12,11 +12,15 @@ class Tank(Entity, ABC):
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
         self.__cp: int = tank_info["capture_points"]
-        self.__spawn_coord: tuple = (tank_info["position"]["x"], tank_info["position"]["y"], tank_info["position"]["z"])
+        self.__spawn_coord: tuple = (tank_info["spawn_position"]["x"],
+                                     tank_info["spawn_position"]["y"],
+                                     tank_info["spawn_position"]["z"])
         self.__tank_colour: str = colour
         self.__player_index: int = player_index
         self.__destroyed: bool = False
-        self._coord: tuple = self.__spawn_coord
+        self._coord: tuple = (tank_info["position"]["x"],
+                              tank_info["position"]["y"],
+                              tank_info["position"]["z"])
 
         self.__image_path: str = image_path
 
