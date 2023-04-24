@@ -24,11 +24,12 @@ class MainMenu(Menu):
         Menu.__init__(self, game)
         self.state = "Start"
 
-        self.statex = (self.mid_w, self.mid_w, self.mid_w)
-        self.statey = (self.mid_h + 30, self.mid_h + 50, self.mid_h + 70)
-        self.states = ("Start", "Options", "Credits")
-        self.state_ind = 0
+        # todo: remove magic numbers with font scaling or screen size
+        self.states = ("Start", "Options", "Help", "Credits", "Exit")
         self.state_sz = len(self.states)
+        self.state_ind = 0
+        self.statex = tuple([self.mid_w for _ in range(self.state_sz)])
+        self.statey = tuple([self.mid_h + 30 + 20 * i for i in range(self.state_sz)])
         self.cursor_rect.midtop = (self.statex[self.state_ind] + self.offset, self.statey[self.state_ind])
 
     def display_menu(self):
@@ -39,9 +40,8 @@ class MainMenu(Menu):
             self.display_manager.screen.fill(BLACK)
             self.display_manager.draw_text('Main Menu', 20, self.display_manager.DISPLAY_W / 2,
                                            self.display_manager.DISPLAY_H / 2 - 20)
-            self.display_manager.draw_text("Play", 20, self.statex[0], self.statey[0])
-            self.display_manager.draw_text("Options", 20, self.statex[1], self.statey[1])
-            self.display_manager.draw_text("Credits", 20, self.statex[2], self.statey[2])
+            for i in range(self.state_sz):
+                self.display_manager.draw_text(self.states[i], 20, self.statex[i], self.statey[i])
             self.draw_cursor()
             self.blit_screen()
 

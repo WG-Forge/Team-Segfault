@@ -22,6 +22,9 @@ SOUND_VOLUME = 0.1
 EXPLOSION_SOUND = 'assets/sounds/explosion.mp3'
 BULLET_SOUND = 'assets/sounds/shot.mp3'
 
+# menu constants
+MENU_FONT = 'assets/menu/8-BIT WONDER.TTF'
+
 # image paths
 SPG_IMAGE_PATH = 'assets/tank_classes/spg.png'
 HT_IMAGE_PATH = 'assets/tank_classes/ht.png'
