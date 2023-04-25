@@ -19,17 +19,17 @@ SOUND_MUTED = False
 SOUND_VOLUME = 0.1
 
 # sound paths
-EXPLOSION_SOUND = 'assets/sounds/explosion.mp3'
-BULLET_SOUND = 'assets/sounds/shot.mp3'
+EXPLOSION_SOUND = 'game/assets/sounds/explosion.mp3'
+BULLET_SOUND = 'game/assets/sounds/shot.mp3'
 
 # menu constants
-MENU_FONT = 'assets/menu/8-BIT WONDER.TTF'
+MENU_FONT = 'game/assets/menu/8-BIT WONDER.TTF'
 
 # image paths
-SPG_IMAGE_PATH = 'assets/tank_classes/spg.png'
-HT_IMAGE_PATH = 'assets/tank_classes/ht.png'
-LT_IMAGE_PATH = 'assets/tank_classes/lt.png'
-MT_IMAGE_PATH = 'assets/tank_classes/mt.png'
-TD_IMAGE_PATH = 'assets/tank_classes/td.png'
-EXPLOSION_IMAGES = [f'assets/explosion/{i}.png' for i in range(7)]
-BULLET_IMAGE = 'assets/white_bullet.png'
+SPG_IMAGE_PATH = 'game/assets/tank_classes/spg.png'
+HT_IMAGE_PATH = 'game/assets/tank_classes/ht.png'
+LT_IMAGE_PATH = 'game/assets/tank_classes/lt.png'
+MT_IMAGE_PATH = 'game/assets/tank_classes/mt.png'
+TD_IMAGE_PATH = 'game/assets/tank_classes/td.png'
+EXPLOSION_IMAGES = [f'game/assets/explosion/{i}.png' for i in range(7)]
+BULLET_IMAGE = 'game/assets/white_bullet.png'
