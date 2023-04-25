@@ -1,6 +1,7 @@
 import pygame
 from pygame import Surface
 
+from constants import FLAG_PATH, TANK_ICON_PATH
 from map.hex import Hex
 
 
@@ -8,8 +9,8 @@ class Scoreboard:
     def __init__(self, players: dict):
 
         # images
-        self.__tank_image = pygame.image.load('assets/tank_icon.png')
-        self.__flag = pygame.image.load('assets/flag.png')
+        self.__tank_image = pygame.image.load(TANK_ICON_PATH)
+        self.__flag = pygame.image.load(FLAG_PATH)
 
         # used for coloring tank icons
         self.__color_image = pygame.Surface(self.__tank_image.get_size())

@@ -1,7 +1,9 @@
 import os
 
-from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE, MENU_FONT
-from gui.menu import *
+import pygame
+import pygame_menu
+
+from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, SOUND_VOLUME
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
@@ -13,63 +15,80 @@ class DisplayManager:
         super().__init__()
         pygame.init()
 
-        self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
-
-        self.DISPLAY_W = SCREEN_WIDTH
-        self.DISPLAY_H = SCREEN_HEIGHT
-
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.font_name = MENU_FONT
 
-        pygame.display.set_caption("Tank Game")
+        pygame.display.set_caption("Team Segfault")
 
         self.running = True
         self.playing = False
-
-        # Referencing the main menu object - which won't change
-        self.main_menu = MainMenu(self)
-        self.options = OptionsMenu(self)
-        self.credits = CreditsMenu(self)
-
-        # This variable will change based on the menu
-        self.curr_menu = self.main_menu
 
         self.game = game
 
         self.__clock = pygame.time.Clock()
 
+        # configure controls window
+        self.controls = pygame_menu.Menu('Controls', SCREEN_WIDTH, SCREEN_HEIGHT, theme=pygame_menu.themes.THEME_DARK)
+        # self.controls.add.button('')
+        self.controls.add.button('Back', pygame_menu.events.BACK)
+
+        # configure credits window
+        self.credits = pygame_menu.Menu('Credits', SCREEN_WIDTH, SCREEN_HEIGHT, theme=pygame_menu.themes.THEME_DARK)
+        self.credits.add.button('Vuk Djordjevic')
+        self.credits.add.button('Ricardo Suarez del Valle')
+        self.credits.add.button('Jovan Milanovic')
+        self.credits.add.button('Back', pygame_menu.events.BACK)
+
+        # configure main menu screen
+        self.menu = pygame_menu.Menu('Tank game', SCREEN_WIDTH, SCREEN_HEIGHT, theme=pygame_menu.themes.THEME_DARK)
+
+        # todo: maybe allow the user to input player1 name?
+        # self.menu.add.text_input('Name :', default=PLAYER1_NAME, onchange=self.change_name)
+        self.menu.add.button('Play', self.start_the_game)
+        self.menu.add.range_slider('Volume', 0, (0, 1), increment=0.1, onchange=self.change_volume)
+        self.menu.add.button('Controls', self.controls)
+        self.menu.add.button('Credits', self.credits)
+
+        self.menu.add.button('Quit', pygame_menu.events.EXIT)
+
+        # configure end game menu
+        self.end_game_menu = pygame_menu.Menu('Game finished!', SCREEN_WIDTH, SCREEN_HEIGHT,
+                                              theme=pygame_menu.themes.THEME_DARK)
+        self.end_game_menu.add.button('Play again', self.play_again)
+        self.end_game_menu.add.button('Check stats', self.show_stats)
+        self.end_game_menu.add.button('Exit', pygame_menu.events.EXIT)
+
+    def start_the_game(self) -> None:
+        self.menu.disable()
+        self.playing = True
+        self.game.start_game()
+
+    def change_volume(self, value: float) -> None:
+        # since the sounds are too loud, (0, 1) is being mapped to (0, 0.5)
+        SOUND_VOLUME[0] = value / 2
+
+    def change_name(self, value: str) -> None:
+        PLAYER1_NAME = value
+
+    def play_again(self) -> None:
+        pass
+
+    def show_stats(self) -> None:
+        pass
+
     def check_events(self):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 # set the game end
                 self.game.over.set()
                 self.playing = False
                 self.running = False
-                self.curr_menu.run_display = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    self.START_KEY = True
-                if event.key == pygame.K_BACKSPACE:
-                    self.BACK_KEY = True
-                if event.key == pygame.K_DOWN:
-                    self.DOWN_KEY = True
-                if event.key == pygame.K_UP:
-                    self.UP_KEY = True
-
-    def reset_keys(self):
-        self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
-
-    def draw_text(self, text, size, x, y):
-        font = pygame.font.Font(self.font_name, size)
-        text_surface = font.render(text, True, WHITE)
-        text_rect = text_surface.get_rect()
-        text_rect.center = (x, y)
-        self.screen.blit(text_surface, text_rect)
 
     def run(self) -> None:
 
+        # start menu loop
+        self.menu.mainloop(self.screen)
+
         while self.running:
-            self.curr_menu.display_menu()
 
             while self.playing and not self.game.over.is_set():
                 self.check_events()
@@ -83,8 +102,11 @@ class DisplayManager:
                 # update display
                 pygame.display.flip()
 
-            if self.playing and self.game.over.is_set():
-                # quit from the game if it has ended - potentially draw a victory screen here
+            # check if game has ended
+            if self.game.over.is_set():
+                if self.playing:
+                    self.end_game_menu.mainloop(self.screen)
+                    pass
                 break
 
         # cleanup

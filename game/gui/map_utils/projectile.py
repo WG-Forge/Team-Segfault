@@ -1,13 +1,13 @@
 import pygame
 
-from constants import BULLET_IMAGE, BULLET_SOUND
-from constants import SOUND_MUTED, SOUND_VOLUME
+from constants import BULLET_IMAGE_PATH, BULLET_SOUND
+from constants import SOUND_VOLUME
 from map.hex import Hex
 
 
 class Projectile(pygame.sprite.Sprite):
     __bullet_travel_time = 5
-    __image = pygame.image.load(BULLET_IMAGE)
+    __image = pygame.image.load(BULLET_IMAGE_PATH)
 
     def __init__(self, start_pos: tuple[int, int], end_pos: tuple[int, int], color: tuple[int, int, int] | str):
         pygame.sprite.Sprite.__init__(self)
@@ -34,8 +34,8 @@ class Projectile(pygame.sprite.Sprite):
 
         # sound
         self.__sound = pygame.mixer.Sound(BULLET_SOUND)
-        self.__sound.set_volume(SOUND_VOLUME)
-        self.__sound_played = SOUND_MUTED
+        self.__sound.set_volume(SOUND_VOLUME[0])
+        self.__sound_played = False
 
     def update(self) -> None:
         if self.__sound_played is False:

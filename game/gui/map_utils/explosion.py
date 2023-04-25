@@ -1,6 +1,6 @@
 import pygame
 
-from constants import SOUND_MUTED, SOUND_VOLUME, EXPLOSION_IMAGES, EXPLOSION_SOUND
+from constants import SOUND_VOLUME, EXPLOSION_IMAGES, EXPLOSION_SOUND
 
 
 class Explosion(pygame.sprite.Sprite):
@@ -27,8 +27,8 @@ class Explosion(pygame.sprite.Sprite):
         # self.delay = explosion_delay
 
         self.__sound = pygame.mixer.Sound(EXPLOSION_SOUND)
-        self.__sound.set_volume(SOUND_VOLUME)
-        self.__sound_played = SOUND_MUTED
+        self.__sound.set_volume(SOUND_VOLUME[0])
+        self.__sound_played = False
 
     def update(self):
         # if self.delay >= 0:
