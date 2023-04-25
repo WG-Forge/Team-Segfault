@@ -18,7 +18,7 @@ OBSTACLE_COLOR = (51, 46, 46)
 DEFAULT_SPAWN_COLOR = (135, 126, 126)
 
 # player names
-PLAYER1_NAME = 'Playa'
+PLAYER1_NAME = ['Playa']
 
 # sound options
 SOUND_VOLUME = [0.0]

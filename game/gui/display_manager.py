@@ -3,7 +3,7 @@ import os
 import pygame
 import pygame_menu
 
-from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, SOUND_VOLUME
+from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, SOUND_VOLUME, PLAYER1_NAME
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
@@ -41,8 +41,7 @@ class DisplayManager:
         # configure main menu screen
         self.menu = pygame_menu.Menu('Tank game', SCREEN_WIDTH, SCREEN_HEIGHT, theme=pygame_menu.themes.THEME_DARK)
 
-        # todo: maybe allow the user to input player1 name?
-        # self.menu.add.text_input('Name :', default=PLAYER1_NAME, onchange=self.change_name)
+        self.menu.add.text_input('Name :', default=PLAYER1_NAME[0], onchange=self.change_name)
         self.menu.add.button('Play', self.start_the_game)
         self.menu.add.range_slider('Volume', 0, (0, 1), increment=0.1, onchange=self.change_volume)
         self.menu.add.button('Controls', self.controls)
@@ -67,7 +66,7 @@ class DisplayManager:
         SOUND_VOLUME[0] = value / 2
 
     def change_name(self, value: str) -> None:
-        PLAYER1_NAME = value
+        PLAYER1_NAME[0] = value
 
     def play_again(self) -> None:
         pass

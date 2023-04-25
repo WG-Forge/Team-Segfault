@@ -2,6 +2,7 @@ import random
 from threading import Semaphore, Thread, Event
 
 from client.game_client import GameClient
+from constants import PLAYER1_NAME
 from gui.display_manager import DisplayManager
 from map.map import Map
 from player.player import Player
@@ -48,6 +49,8 @@ class Game(Thread):
         self.__current_player_idx: list[1] = [-1]
 
         self.__graphics: bool = graphics
+
+        self.buffered_players: list[(str, bool)] = []
 
     def __str__(self):
         out: str = ""
@@ -113,10 +116,14 @@ class Game(Thread):
         self.__started = True
 
         # Add the queued local players to the game
-        for player in self.__players_queue:
-            if game_actions:
-                player.set_turn_actions(game_actions[player.name])
-            self.__connect_local_player(player)
+        # for player in self.__players_queue:
+        #     if game_actions:
+        #         player.set_turn_actions(game_actions[player.name])
+        #     self.__connect_local_player(player)
+        # set first player name to PLAYER1_NAME
+        self.buffered_players[0] = (PLAYER1_NAME[0], self.buffered_players[0][1])
+        for player, observer in self.buffered_players:
+            self.add_local_player(player, is_observer=observer)
 
         self.__init_game_state()
 
@@ -242,3 +249,10 @@ class Game(Thread):
         # end by logging out of the shadow observer
         self.__shadow_client.logout()
         self.__shadow_client.disconnect()
+
+    def load_game_info(self, players: list[(str, bool)]):
+        """
+        Used for not connecting to the server before 'Play' has been pressed
+        """
+        for player, observer in players:
+            self.buffered_players.append((player, observer))
