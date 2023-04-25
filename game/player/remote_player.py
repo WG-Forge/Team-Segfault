@@ -2,7 +2,6 @@ from threading import Event, Semaphore
 from typing import Callable
 
 from client.server_enum import Action
-from entity.tanks.tank import Tank
 from map.hex import Hex
 from map.map import Map
 from player.player import Player
@@ -22,11 +21,6 @@ class RemotePlayer(Player):
         self.__result_vtp: dict[Action, Callable] | None = None
 
     def add_map(self, game_map: Map):
-        # Vector table pointer for mapping actions to their respective handlers
-        self.__result_vtp = {
-            Action.MOVE: game_map.local_move,
-            Action.SHOOT: game_map.local_shoot_tuple
-        }
         super().add_map(game_map)
 
     def _make_turn_plays(self) -> None:
@@ -43,14 +37,26 @@ class RemotePlayer(Player):
         self._game_client.force_turn()
 
         game_actions: dict = self._game_client.get_game_actions()
+        action_dict = {}
 
         for game_action in game_actions["actions"]:
             action: Action = game_action["action_type"]
             data: dict = game_action["data"]
             vehicle_id: int = int(data["vehicle_id"])
-            # TODO order these actions based on the ordering of tanks that can be played in a turn
+            action_dict[vehicle_id] = data, action
 
-            tank: Tank = self._map.get_tank(vehicle_id)
+        for tank in self._tanks:
+            if not tank.get_id() in action_dict:
+                continue
+
+            data = action_dict[tank.get_id()][0]
+            action = action_dict[tank.get_id()][1]
             target: tuple = Hex.unpack_coords(data["target"])
 
-            self.__result_vtp[action](tank, target)
+            if action == Action.SHOOT:
+                if tank.get_type() == 'at_spg':
+                    self._map.td_shoot(tank, target)
+                else:
+                    self._map.local_shoot_tuple(tank, target)
+            else:
+                self._map.local_move(tank, target)

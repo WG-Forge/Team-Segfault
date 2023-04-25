@@ -86,11 +86,6 @@ class Map:
     def draw(self, screen: Surface):
         self.__map_drawer.draw(screen)
 
-    """     GETTERS     """
-
-    def get_tank(self, vehicle_id: int) -> Tank:
-        return self.__tanks[vehicle_id]
-
     """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
 
     def update_turn(self, game_state: dict) -> None:
@@ -148,9 +143,10 @@ class Map:
         for coord in danger_zone:
             entities = self.__map.get(coord)
             if entities and not isinstance(entities['feature'], Obstacle):
-                enemy = self.__map[coord]['tank']
-                if self.__is_enemy(td, enemy):
-                    self.local_shoot(td, enemy)
+                target_tank = self.__map[coord]['tank']
+                # Target tank can be an ally or an enemy
+                if target_tank:
+                    self.local_shoot(td, target_tank)
             else:
                 break
 
