@@ -6,7 +6,7 @@ from entity.map_features.base import Base
 from entity.map_features.empty import Empty
 from entity.map_features.obstacle import Obstacle
 from entity.tanks.tank import Tank
-from entity.tanks.tank_maker import TankMaker
+from entity.tanks.tank_factory import TankFactory
 from gui.map_utils.map_drawer import MapDrawer
 from map import _a_star
 from map.hex import Hex
@@ -40,8 +40,8 @@ class Map:
         # put tanks in tanks & map & put spawns in map
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             player = active_players[vehicle_info["player_id"]]
-            tank, spawn = TankMaker.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.get_color(),
-                                                          player.get_index())
+            tank, spawn = TankFactory.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.get_color(),
+                                                            player.get_index())
             tank_coord = tank.get_coord()
             self.__map[tank_coord]['tank'] = tank
             self.__map[tank.get_spawn_coord()]['feature'] = spawn
