@@ -6,7 +6,7 @@ from entity.map_features.base import Base
 from entity.map_features.empty import Empty
 from entity.map_features.obstacle import Obstacle
 from entity.tanks.tank import Tank
-from entity.tanks.tank_maker import TankMaker
+from entity.tanks.tank_factory import TankFactory
 from gui.map_utils.map_drawer import MapDrawer
 from map import _a_star
 from map.hex import Hex
@@ -40,11 +40,11 @@ class Map:
         # put tanks in tanks & map & put spawns in map
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             player = active_players[vehicle_info["player_id"]]
-            tank, spawn = TankMaker.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.get_color(),
-                                                          player.get_index())
+            tank, spawn = TankFactory.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.color,
+                                                            player.get_index())
             tank_coord = tank.get_coord()
             self.__map[tank_coord]['tank'] = tank
-            self.__map[tank.get_spawn_coord()]['feature'] = spawn
+            self.__map[tank.spawn_coord]['feature'] = spawn
             self.__tanks[int(vehicle_id)] = tank
             player.add_tank(tank)
 
@@ -98,13 +98,13 @@ class Map:
 
             tank = self.__tanks[int(vehicle_id)]
             self.local_move(tank, server_coord) if server_coord != tank.get_coord() else None
-            tank.set_hp(server_hp) if server_hp != tank.get_hp() else None
-            tank.set_cp(server_cp) if server_cp != tank.get_cp() else None
+            tank.hp = server_hp if server_hp != tank.hp else tank.hp
+            tank.cp = server_cp if server_cp != tank.cp else tank.cp
 
     def __respawn_destroyed_tanks(self) -> None:
         while self.__destroyed:
             tank = self.__destroyed.pop()
-            self.local_move(tank, tank.get_spawn_coord())
+            self.local_move(tank, tank.spawn_coord)
             tank.respawn()
 
     """     MOVE & FIRE CONTROL        """
@@ -117,7 +117,7 @@ class Map:
     def local_shoot(self, tank: Tank, target: Tank) -> None:
         destroyed = target.register_hit_return_destroyed()
         self.__map_drawer.add_shot(Hex.make_center(tank.get_coord()), Hex.make_center(target.get_coord()),
-                                   tank.get_color())
+                                   tank.color)
         if destroyed:
             # update player damage points
             self.__players[tank.get_player_index()].register_destroyed_vehicle(target)
@@ -158,13 +158,13 @@ class Map:
 
     def is_enemy(self, friend: Tank, enemy: Tank) -> bool:
         return enemy and not (friend.get_player_index() == enemy.get_player_index() or
-                              self.is_neutral(friend, enemy) or enemy.is_destroyed())
+                              self.is_neutral(friend, enemy) or enemy.is_destroyed)
 
     """     NAVIGATION    """
 
     def tanks_in_range(self, tank: Tank) -> List[Tank]:
         return [tank for coord in tank.coords_in_range() if
-                (tank := self.__map.get(coord, {}).get('tank')) is not None and not tank.is_destroyed()]
+                (tank := self.__map.get(coord, {}).get('tank')) is not None and not tank.is_destroyed]
 
     def enemies_in_range(self, tank: Tank) -> List[Tank]:
         return [enemy for enemy in self.tanks_in_range(tank) if self.is_enemy(tank, enemy)]
@@ -188,17 +188,3 @@ class Map:
 
     def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> Union[tuple, None]:
         return self.__path_finding_algorithm(self.__map, tank, finish)
-
-    """     GETTERS     """
-
-    def get_map_size(self) -> int:
-        return self.__map_size
-
-    def get_players(self) -> dict:
-        return self.__players
-
-    def get_map(self) -> dict:
-        return self.__map
-
-    def get_tank_color(self, tank_id: int):
-        return self.__tanks[tank_id].get_color()

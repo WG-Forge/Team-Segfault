@@ -1,12 +1,13 @@
 import random
 from threading import Semaphore, Thread, Event
+from typing import Dict
 
 from client.game_client import GameClient
 from constants import HEX_RADIUS_Y, HEX_RADIUS_X
 from gui.display_manager import DisplayManager
 from map.map import Map
 from player.player import Player
-from player.player_maker import PlayerMaker, PlayerTypes
+from player.player_factory import PlayerFactory, PlayerTypes
 from player.remote_player import RemotePlayer
 
 
@@ -26,7 +27,7 @@ class Game(Thread):
         self.__max_players: int = max_players
         self.__num_players: int = 0
         self.__winner = None
-        self.__winner_name = None
+        self.__winner_index = None
         self.__started: bool = False
 
         self.__players_queue: [Player] = []
@@ -81,14 +82,14 @@ class Game(Thread):
         else:
             player_type = PlayerTypes.Bot
 
-        player = PlayerMaker.create_player(player_type=player_type,
-                                           name=name,
-                                           password=password,
-                                           is_observer=is_observer,
-                                           turn_played_sem=self.__turn_played_sem,
-                                           current_player_idx=self.__current_player_idx,
-                                           player_index=self.lobby_players - 1,
-                                           over=self.over)
+        player = PlayerFactory.create_player(player_type=player_type,
+                                             name=name,
+                                             password=password,
+                                             is_observer=is_observer,
+                                             turn_played_sem=self.__turn_played_sem,
+                                             current_player_idx=self.__current_player_idx,
+                                             player_index=self.lobby_players - 1,
+                                             over=self.over)
 
         if self.__started:
             self.__connect_local_player(player)
@@ -101,25 +102,24 @@ class Game(Thread):
 
         self.__num_players += 1
 
-        player: Player = PlayerMaker.create_player(player_type=PlayerTypes.Remote,
-                                                   turn_played_sem=self.__turn_played_sem,
-                                                   current_player_idx=self.__current_player_idx,
-                                                   player_index=self.lobby_players - 1,
-                                                   over=self.over)
+        player: Player = PlayerFactory.create_player(player_type=PlayerTypes.Remote,
+                                                     turn_played_sem=self.__turn_played_sem,
+                                                     current_player_idx=self.__current_player_idx,
+                                                     player_index=self.lobby_players - 1,
+                                                     over=self.over)
 
         self.__connect_remote_player(player, user_info)
 
-    def start_game(self, game_actions=None) -> None:
+    def start_game(self, ) -> None:
         # Set the state to started
         self.__started = True
 
-        # Add the game actions to the queued local players
-        for player in self.__players_queue:
-            if game_actions:
-                player.set_turn_actions(game_actions[player.name])
-
         # start the game loop
         self.start()
+
+    def set_game_actions(self, game_actions: Dict[int, Dict[str, str]]):
+        for player in self.__players_queue:
+            player.set_turn_actions(game_actions[player.get_index()])
 
     def start_menu(self) -> None:
         try:
@@ -129,11 +129,10 @@ class Game(Thread):
             # in case the main thread is interrupted
             self.over.set()
 
-    def get_winner_name(self):
+    def get_winner_index(self):
         # wait for game end event
         self.over.wait()
-
-        return self.__winner_name
+        return self.__winner_index
 
     def run(self) -> None:
         self.__init_game_state()
@@ -239,7 +238,6 @@ class Game(Thread):
         # Reset current player attacks
         self.__current_player.register_turn()
 
-        print()
         print(f"Current turn: {self.__current_turn[0]}, "
               f"current player: {self.__current_player.name}")
 
@@ -251,8 +249,9 @@ class Game(Thread):
 
     def __end_game(self):
         if self.__winner:
-            self.__winner_name = self.__active_players[self.__winner].name
-            print(f'The winner is: {self.__winner_name}.')
+            winner = self.__active_players[self.__winner]
+            self.__winner_index = winner.get_index()
+            print(f'The winner is: {winner.name}.')
         else:
             print('The game is a draw.')
 

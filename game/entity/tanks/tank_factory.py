@@ -7,7 +7,7 @@ from entity.tanks.types.light import LightTank
 from entity.tanks.types.medium import MediumTank
 
 
-class TankMaker:
+class TankFactory:
     TANK_TYPES = {
         Entities.LIGHT_TANK: LightTank,
         Entities.MEDIUM_TANK: MediumTank,
@@ -18,7 +18,7 @@ class TankMaker:
 
     @staticmethod
     def create_tank_and_spawn(tank_id: int, tank_info: dict, tank_color, player_index: int) -> tuple:
-        tank_class = TankMaker.TANK_TYPES[Entities(tank_info["vehicle_type"])]
+        tank_class = TankFactory.TANK_TYPES[tank_info["vehicle_type"]]
         tank = tank_class(tank_id, tank_info, tank_color, player_index)
-        spawn = Spawn(tank.get_spawn_coord(), tank_id, tank_color)
+        spawn = Spawn(tank.spawn_coord, tank_id, tank_color)
         return tank, spawn

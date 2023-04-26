@@ -12,11 +12,12 @@ class TankDrawer(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.__tank = tank
         # load image
-        self.image = pygame.image.load(tank.get_image_path())
+        self.image = pygame.image.load(tank.image_path)
         self.image = pygame.transform.scale(self.image, (HEX_RADIUS_X[0] * 1.5, HEX_RADIUS_Y[0] * 1.5))
         # color sprite image
         color_image = pygame.Surface(self.image.get_size())
-        color_image.fill(tank.get_color())
+        print(tank.color)
+        color_image.fill(tank.color)
         self.image.blit(color_image, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         self.rect = self.image.get_rect()
         self.rect.center = Hex.make_center(tank.get_coord())
@@ -40,11 +41,11 @@ class TankDrawer(pygame.sprite.Sprite):
             self.rect.center = new_pos
 
         # display hp if tank has any
-        if self.__tank.get_hp() == 0:
+        if self.__tank.hp == 0:
             return
         font_size = round(min(HEX_RADIUS_Y[0], HEX_RADIUS_X[0]))
         font = pygame.font.SysFont('arial', font_size, bold=True)
-        text = font.render(str(self.__tank.get_hp()), True, 'white')
+        text = font.render(str(self.__tank.hp), True, 'white')
         text_rect = text.get_rect(bottomleft=(Hex.make_center(self.__tank.get_coord())[0] + HEX_RADIUS_X[0] / 2,
                                               Hex.make_center(self.__tank.get_coord())[1] + HEX_RADIUS_Y[0] / 2))
         screen.blit(text, text_rect)

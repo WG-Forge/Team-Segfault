@@ -5,6 +5,3 @@ class Catapult(Entity):
 
     def __init__(self):
         super().__init__(Entities.CATAPULT)
-
-    def draw(self, screen, font_size) -> None:
-        pass

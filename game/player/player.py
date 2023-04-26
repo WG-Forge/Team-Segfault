@@ -98,7 +98,8 @@ class Player(Thread):
         # finalization
         self._finalize()
 
-    def get_color(self) -> str:
+    @property
+    def color(self) -> str:
         return self.__player_colour
 
     def get_index(self):
@@ -111,7 +112,7 @@ class Player(Thread):
         return player_index in self.__has_shot
 
     def get_capture_points(self) -> int:
-        return sum(tank.get_cp() for tank in self._tanks)
+        return sum(tank.cp for tank in self._tanks)
 
     def get_damage_points(self) -> int:
         return self._damage_points
@@ -126,7 +127,7 @@ class Player(Thread):
         self.__has_shot = []
 
     def register_destroyed_vehicle(self, tank: Tank) -> None:
-        self._damage_points += tank.get_max_hp()
+        self._damage_points += tank.max_hp
 
     @abstractmethod
     def _make_turn_plays(self) -> None:

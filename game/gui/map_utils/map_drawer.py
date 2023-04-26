@@ -88,14 +88,14 @@ class MapDrawer:
 
     def draw_feature(self, screen, feature):
         """Renders the hexagon on the screen and draw a white border around the hexagon"""
-        pygame.draw.polygon(screen, feature.get_color(), feature.get_corners())
-        pygame.draw.aalines(screen, (255, 255, 255), closed=True, points=feature.get_corners())
+        pygame.draw.polygon(screen, feature.color, feature.corners)
+        pygame.draw.aalines(screen, (255, 255, 255), closed=True, points=feature.corners)
 
     def draw_legend(self, screen: Surface):
         y = 0
         for feature in self.__map_legend_items:
             text = self.__font.render(' ' + str(feature.type), True, 'grey')
-            text_rect = text.get_rect(midleft=(feature.get_center()[0] + HEX_RADIUS_X[0], feature.get_center()[1]))
+            text_rect = text.get_rect(midleft=(feature.center[0] + HEX_RADIUS_X[0], feature.center[1]))
             screen.blit(text, text_rect)
             y += 2 * HEX_RADIUS_Y[0]
             self.draw_feature(screen, feature)

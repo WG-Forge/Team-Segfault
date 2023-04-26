@@ -13,7 +13,7 @@ class PlayerTypes(Enum):
     Observer = 3
 
 
-class PlayerMaker:
+class PlayerFactory:
     __CLASS_MAPPING = {
         PlayerTypes.Remote: RemotePlayer,
         PlayerTypes.Bot: BotPlayer,
@@ -29,7 +29,7 @@ class PlayerMaker:
                       name: str = None,
                       password: str = None,
                       is_observer: bool = None) -> Player:
-        player_class = PlayerMaker.__CLASS_MAPPING[player_type]
+        player_class = PlayerFactory.__CLASS_MAPPING[player_type]
         return player_class(name=name,
                             password=password,
                             is_observer=is_observer,

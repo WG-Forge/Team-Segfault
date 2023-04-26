@@ -39,7 +39,7 @@ class Scoreboard:
 
                 tank_image_rect = self.__tank_image.get_rect(topleft=(0, i * (font_size + self.__rad_y_third)))
 
-                self.__color_image.fill(player.get_color())
+                self.__color_image.fill(player.color)
                 ti = self.__tank_image.copy()
                 ti.blit(self.__color_image, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
                 screen.blit(ti, tank_image_rect)
@@ -54,7 +54,7 @@ class Scoreboard:
         for player in self.__players:
             if player is not None:
                 i += 1
-                pygame.draw.rect(screen, player.get_color(),
+                pygame.draw.rect(screen, player.color,
                                  (self.__rad_x_third, i * (font_size + self.__rad_y_third),
                                   player.get_capture_points() * HEX_RADIUS_X[0], HEX_RADIUS_Y[0]))
 
@@ -74,7 +74,7 @@ class Scoreboard:
             if player is not None:
                 i += 1
                 text = font.render('    player id ' + str(player.get_index()) + ': '
-                                   + str(player.get_damage_points()), True, player.get_color())
+                                   + str(player.get_damage_points()), True, player.color)
                 screen.blit(text, dest=(0, screen.get_height() - (4 - i) * (font_size + self.__rad_y_third)))
 
     """Damage scoreboards"""
@@ -94,7 +94,7 @@ class Scoreboard:
         for player in self.__players.values():
             if player is not None:
                 i += 1
-                self.__color_image.fill(player.get_color())
+                self.__color_image.fill(player.color)
                 ti = self.__tank_image.copy()
                 ti.blit(self.__color_image, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
                 screen.blit(ti,
@@ -106,7 +106,7 @@ class Scoreboard:
                     y_pos = screen.get_height() \
                             - (self.__n_players + 1 - i) * (font_size + self.__rad_y_third)  # + HEX_RADIUS_Y[0] / 4
                     width = self.__max_rect_length * player.get_damage_points() / max_damage
-                    pygame.draw.rect(screen, player.get_color(),
+                    pygame.draw.rect(screen, player.color,
                                      (x_pos, y_pos + self.__rad_y_third, width, HEX_RADIUS_Y[0]))
 
                     # write hp
@@ -119,7 +119,7 @@ class Scoreboard:
             if player is not None:
                 i += 1
                 text = font.render('    player id ' + str(player.get_index()) + ': '
-                                   + str(player.get_capture_points()), True, player.get_color())
+                                   + str(player.get_capture_points()), True, player.color)
                 screen.blit(text, dest=(0, i * (font_size + self.__rad_y_third)))
 
     """Update functions"""

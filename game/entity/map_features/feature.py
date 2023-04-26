@@ -11,11 +11,14 @@ class Feature(Entity):
         self.__color = color
         super().__init__(name)
 
-    def get_corners(self) -> tuple:
+    @property
+    def corners(self) -> tuple:
         return self.__corners
 
-    def get_center(self) -> tuple:
+    @property
+    def center(self) -> tuple:
         return self.__center
 
-    def get_color(self) -> tuple:
+    @property
+    def color(self) -> tuple:
         return self.__color
