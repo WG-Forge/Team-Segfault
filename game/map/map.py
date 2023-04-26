@@ -110,9 +110,8 @@ class Map:
     """     MOVE & FIRE CONTROL        """
 
     def local_move(self, tank: Tank, new_coord: tuple) -> None:
-        old_coord = tank.get_coord()
         self.__map[new_coord]['tank'] = tank  # New pos now has tank
-        self.__map[old_coord]['tank'] = None  # Old pos is now empty
+        self.__map[tank.get_coord()]['tank'] = None  # Old pos is now empty
         tank.set_coord(new_coord)  # tank has new position
 
     def local_shoot(self, tank: Tank, target: Tank) -> None:
@@ -135,7 +134,7 @@ class Map:
         entities = self.__map.get(coord)
         if entities and not isinstance(entities['feature'], Obstacle):
             enemy = self.__map[coord]['tank']
-            if self.__is_enemy(tank, enemy):
+            if self.is_enemy(tank, enemy):
                 self.local_shoot(tank, enemy)
 
     def td_shoot(self, td: Tank, target: tuple) -> None:
@@ -157,26 +156,28 @@ class Map:
         other_player, enemy_player = self.__players[other_index], self.__players[enemy_index]
         return not enemy_player.has_shot(player_index) and other_player.has_shot(enemy_index)
 
-    def __is_enemy(self, friend: Tank, enemy: Tank) -> bool:
+    def is_enemy(self, friend: Tank, enemy: Tank) -> bool:
         return enemy and not (friend.get_player_index() == enemy.get_player_index() or
                               self.is_neutral(friend, enemy) or enemy.is_destroyed())
 
     """     NAVIGATION    """
 
-    def enemies_in_range(self, tank: Tank) -> List[Tank]:
-        print(tank.coords_in_range())
-        return [enemy for coord in tank.coords_in_range() if
-                (enemy := self.__map.get(coord, {}).get('tank')) is not None and self.__is_enemy(tank, enemy)]
+    def tanks_in_range(self, tank: Tank) -> List[Tank]:
+        return [tank for coord in tank.coords_in_range() if
+                (tank := self.__map.get(coord, {}).get('tank')) is not None and not tank.is_destroyed()]
 
-    def closest_free_base(self, to: tuple) -> Union[tuple, None]:
+    def enemies_in_range(self, tank: Tank) -> List[Tank]:
+        return [enemy for enemy in self.tanks_in_range(tank) if self.is_enemy(tank, enemy)]
+
+    def closest_free_bases(self, to: tuple) -> Union[List[tuple], None]:
         free_base_coords = tuple(c for c in self.__base_coords if self.__map[c]['tank'] is None or c == to)
         if free_base_coords:
-            return min(free_base_coords, key=lambda coord: Hex.manhattan_dist(to, coord))
+            return sorted(free_base_coords, key=lambda coord: Hex.manhattan_dist(to, coord))
 
-    def closest_free_base_adjacent(self, to: tuple) -> Union[tuple, None]:
+    def closest_free_base_adjacents(self, to: tuple) -> Union[List[tuple], None]:
         free_base_adjacents = [c for c in self.__base_adjacent_coords if self.__map[c]['tank'] is None or c == to]
         if free_base_adjacents:
-            return min(free_base_adjacents, key=lambda coord: Hex.manhattan_dist(to, coord))
+            return sorted(free_base_adjacents, key=lambda coord: Hex.manhattan_dist(to, coord))
 
     def closest_enemies(self, tank: Tank) -> List[Tank]:
         # Returns a sorted list by distance of enemy tanks
@@ -188,7 +189,7 @@ class Map:
     def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> Union[tuple, None]:
         return self.__path_finding_algorithm(self.__map, tank, finish)
 
-    """Getters"""
+    """     GETTERS     """
 
     def get_map_size(self) -> int:
         return self.__map_size

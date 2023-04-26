@@ -2,7 +2,7 @@ import random
 from threading import Semaphore, Thread, Event
 
 from client.game_client import GameClient
-from constants import PLAYER1_NAME
+from constants import HEX_RADIUS_Y, HEX_RADIUS_X
 from gui.display_manager import DisplayManager
 from map.map import Map
 from player.player import Player
@@ -49,8 +49,6 @@ class Game(Thread):
         self.__current_player_idx: list[1] = [-1]
 
         self.__graphics: bool = graphics
-
-        self.buffered_players: list[(str, bool)] = []
 
     def __str__(self):
         out: str = ""
@@ -115,17 +113,10 @@ class Game(Thread):
         # Set the state to started
         self.__started = True
 
-        # Add the queued local players to the game
-        # for player in self.__players_queue:
-        #     if game_actions:
-        #         player.set_turn_actions(game_actions[player.name])
-        #     self.__connect_local_player(player)
-        # set first player name to PLAYER1_NAME
-        self.buffered_players[0] = (PLAYER1_NAME[0], self.buffered_players[0][1])
-        for player, observer in self.buffered_players:
-            self.add_local_player(player, is_observer=observer)
-
-        self.__init_game_state()
+        # Add the game actions to the queued local players
+        for player in self.__players_queue:
+            if game_actions:
+                player.set_turn_actions(game_actions[player.name])
 
         # start the game loop
         self.start()
@@ -145,6 +136,8 @@ class Game(Thread):
         return self.__winner_name
 
     def run(self) -> None:
+        self.__init_game_state()
+
         while not self.over.is_set():
             # start the next turn
             self.__start_next_turn()
@@ -154,12 +147,15 @@ class Game(Thread):
 
         self.__end_game()
 
-    def __handle_players(self):
+    def __notify_all_players(self):
         # release all players using their private semaphores
         for player in self.__active_players.values():
             player.next_turn_sem.release()
 
-        # if current player isn't a remote player, end the turn TODO - this can be done better
+    def __handle_players(self):
+        self.__notify_all_players()
+
+        # if current player isn't a remote player, end the turn
         if not isinstance(self.__current_player, RemotePlayer) and not self.over.is_set():
             self.__shadow_client.force_turn()
 
@@ -184,20 +180,37 @@ class Game(Thread):
 
         self.__active_players[player.idx] = player
 
-    def __init_game_state(self) -> None:
+    def __wait_for_full_lobby(self) -> dict | None:
+        """ Return game state if the lobby is full, else None if the game was interrupted """
         game_state: dict = self.__shadow_client.get_game_state()
 
-        while game_state["num_players"] != len(game_state["players"]):
+        while not self.over.is_set() and game_state["num_players"] != len(game_state["players"]):
             # wait for all the players to join
-            # poll for the game state - TODO this currently just bricks the menu screen - make a different solution
             game_state = self.__shadow_client.get_game_state()
 
-        client_map: dict = self.__shadow_client.get_map()
+        if self.over.is_set():
+            # the game was interrupted - return
+            self.__notify_all_players()
+            return None
 
+        return game_state
+
+    def __init_game_state(self) -> None:
+        # Add the queued local players to the game
+        for player in self.__players_queue:
+            self.__connect_local_player(player)
+
+        game_state: dict = self.__wait_for_full_lobby()
+
+        if not game_state:
+            # the game was interrupted
+            return
+
+        client_map: dict = self.__shadow_client.get_map()
+        HEX_RADIUS_X[0] //= (client_map['size'] - 1) * 2 * 2
+        HEX_RADIUS_Y[0] //= (client_map['size'] - 1) * 2 * 2
         # add all remote players
         for player in game_state["players"]:
-            # if player["idx"] not in self.__active_players:
-            #     self.__add_remote_player(player)
             if player["idx"] not in self.__active_players and not player["is_observer"]:
                 self.__add_remote_player(player)
 
@@ -249,10 +262,3 @@ class Game(Thread):
         # end by logging out of the shadow observer
         self.__shadow_client.logout()
         self.__shadow_client.disconnect()
-
-    def load_game_info(self, players: list[(str, bool)]):
-        """
-        Used for not connecting to the server before 'Play' has been pressed
-        """
-        for player, observer in players:
-            self.buffered_players.append((player, observer))

@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 
-from entity.entity import Entity
+from entity.entity import Entity, Entities
 
 
 class Tank(Entity, ABC):
@@ -24,7 +24,7 @@ class Tank(Entity, ABC):
 
         self.__image_path: str = image_path
 
-        super().__init__(tank_info["vehicle_type"])
+        super().__init__(Entities(tank_info["vehicle_type"]))
 
     def update_hp(self, hp: int):
         self.__hp = hp

@@ -4,12 +4,13 @@ import struct
 from client.server_enum import Action
 from client.server_enum import Result
 from client.service import Service
+from constants import HOST_PORT, HOST_NAME
 
 
 class GameClient:
     def __init__(self) -> None:
         self.__service = Service()
-        self.__service.connect("wgforge-srv.wargaming.net", 443)
+        self.__service.connect(HOST_NAME, HOST_PORT)
 
     def __enter__(self):
         return GameClient

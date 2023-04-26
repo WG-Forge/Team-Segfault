@@ -2,6 +2,7 @@ from threading import Event, Semaphore
 from typing import Callable
 
 from client.server_enum import Action
+from entity.entity_enum import Entities
 from map.hex import Hex
 from map.map import Map
 from player.player import Player
@@ -54,7 +55,7 @@ class RemotePlayer(Player):
             target: tuple = Hex.unpack_coords(data["target"])
 
             if action == Action.SHOOT:
-                if tank.get_type() == 'at_spg':
+                if tank.type == Entities.ARTILLERY:
                     self._map.td_shoot(tank, target)
                 else:
                     self._map.local_shoot_tuple(tank, target)

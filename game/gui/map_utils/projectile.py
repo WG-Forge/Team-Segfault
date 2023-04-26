@@ -1,26 +1,24 @@
 import pygame
 
-from constants import BULLET_IMAGE_PATH, BULLET_SOUND
-from constants import SOUND_VOLUME
-from map.hex import Hex
+from constants import BULLET_IMAGE_PATH, BULLET_SOUND, SOUND_VOLUME, HEX_RADIUS_X, HEX_RADIUS_Y
 
 
 class Projectile(pygame.sprite.Sprite):
     __bullet_travel_time = 5
-    __image = pygame.image.load(BULLET_IMAGE_PATH)
+    __IMAGE = pygame.image.load(BULLET_IMAGE_PATH)
 
     def __init__(self, start_pos: tuple[int, int], end_pos: tuple[int, int], color: tuple[int, int, int] | str):
-        pygame.sprite.Sprite.__init__(self)
+        super().__init__()
 
         self.shot_vector = (end_pos[0] - start_pos[0], end_pos[1] - start_pos[1])
         self.start_pos = start_pos
 
-        self.image = Projectile.__image
+        self.image = Projectile.__IMAGE
         # rotate bullet so it is pointing to end_pos
         angle = pygame.Vector2(1, 0).angle_to(pygame.Vector2(self.shot_vector))
         angle = -angle
         self.image = pygame.transform.rotate(self.image, angle)
-        self.image = pygame.transform.scale(self.image, (Hex.radius_x / 2, Hex.radius_x / 2))
+        self.image = pygame.transform.scale(self.image, (HEX_RADIUS_X[0] / 2, HEX_RADIUS_Y[0] / 2))
         # color the bullet
         color_image = pygame.Surface(self.image.get_size())
         color_image.fill(color)

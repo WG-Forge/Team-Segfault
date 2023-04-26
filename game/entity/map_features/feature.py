@@ -1,11 +1,11 @@
-from entity.entity import Entity
+from entity.entity import Entity, Entities
 from map.hex import Hex
 
 
 class Feature(Entity):
     """ Abstract feature class """
 
-    def __init__(self, name: str, coord: tuple, color):
+    def __init__(self, name: Entities, coord: tuple, color):
         self.__corners: tuple = Hex.make_corners(coord)
         self.__center: tuple = Hex.make_center(coord)
         self.__color = color

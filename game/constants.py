@@ -1,14 +1,20 @@
+# server info
+HOST_NAME = "wgforge-srv.wargaming.net"
+HOST_PORT = 443
+
 # gui constants
 FPS_MAX = 30  # max frames per second
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
-# menu constants
-MENU_FONT_PATH = 'game/assets/menu/8-BIT WONDER.TTF'
+# this is reduced when on game start
+HEX_RADIUS_X = [SCREEN_WIDTH]
+HEX_RADIUS_Y = [SCREEN_HEIGHT]
 
 # colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+GAME_BACKGROUND = (47, 31, 128)
 PLAYER1_COLOR = (224, 206, 70)  # yellow
 PLAYER2_COLOR = (70, 191, 224)  # blue
 PLAYER3_COLOR = (201, 26, 40)  # red

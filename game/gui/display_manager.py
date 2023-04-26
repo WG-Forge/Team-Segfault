@@ -92,8 +92,9 @@ class DisplayManager:
             while self.playing and not self.game.over.is_set():
                 self.check_events()
 
-                # draw the map
-                self.game.game_map.draw(self.screen)
+                if self.game.game_map:
+                    # draw the map if the game started
+                    self.game.game_map.draw(self.screen)
 
                 # delay for a constant framerate
                 self.__clock.tick(FPS_MAX)

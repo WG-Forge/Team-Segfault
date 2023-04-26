@@ -5,13 +5,15 @@ from typing import Union
 
 from client.game_client import GameClient
 from constants import PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR
+from entity.entity_enum import Entities
 from entity.tanks.tank import Tank
 from map.map import Map
 
 
 @dataclass
 class Player(Thread):
-    __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
+    __type_order = (
+        Entities.ARTILLERY, Entities.LIGHT_TANK, Entities.HEAVY_TANK, Entities.MEDIUM_TANK, Entities.TANK_DESTROYER)
     __possible_colours = (PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR)
 
     def __init__(self,
@@ -64,9 +66,9 @@ class Player(Thread):
 
     def add_tank(self, new_tank: Tank) -> None:
         # Adds the tank in order of who gets priority movement
-        new_tank_priority = Player.__type_order.index(new_tank.get_type())
+        new_tank_priority = Player.__type_order.index(new_tank.type)
         for i, old_tank in enumerate(self._tanks):
-            old_tank_priority = Player.__type_order.index(old_tank.get_type())
+            old_tank_priority = Player.__type_order.index(old_tank.type)
             if new_tank_priority <= old_tank_priority:
                 self._tanks.insert(i, new_tank)
                 return

@@ -2,7 +2,7 @@ import pygame
 from pygame import Surface
 from pygame.sprite import Sprite
 
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT
+from constants import SCREEN_WIDTH, GAME_BACKGROUND, HEX_RADIUS_X, HEX_RADIUS_Y
 from entity.map_features.base import Base
 from entity.map_features.empty import Empty
 from entity.map_features.obstacle import Obstacle
@@ -16,20 +16,16 @@ from map.hex import Hex
 
 class MapDrawer:
     def __init__(self, map_size: int, players: dict, game_map: dict, current_turn: list[1]):
-        self.__num_of_radii = (map_size - 1) * 2 * 2
         self.__map_size = map_size
         self.__turn: list[1] = current_turn
         self.__max_damage_points: int = 0
         self.__players = players
         self.__map = game_map
 
-        Hex.radius_x = SCREEN_WIDTH // self.__num_of_radii  # number of half radii on x axis
-        Hex.radius_y = SCREEN_HEIGHT // self.__num_of_radii  # number of half radii on y axis
-
+        Explosion.set_image_scale()
         self.__scoreboard = Scoreboard(players)
-        self.__scoreboard.update_image_size(Hex.radius_x * 2, Hex.radius_y * 2)
-        self.__scoreboard.set_radii(Hex.radius_x / 3, Hex.radius_y / 3)
-        self.__font_size = round(1.2 * min(Hex.radius_y, Hex.radius_x))
+        # self.__scoreboard.update_image_size(HEX_RADIUS_X[0] * 2, HEX_RADIUS_Y[0] * 2)
+        self.__font_size = round(1.2 * min(HEX_RADIUS_X[0], HEX_RADIUS_Y[0]))
         self.__font = None
         self.__explosion_group = pygame.sprite.Group()
         self.__projectile_group = pygame.sprite.Group()
@@ -56,7 +52,7 @@ class MapDrawer:
             self.__font = pygame.font.SysFont('georgia', self.__font_size, bold=True)
 
         # fill with background color
-        screen.fill((47, 31, 128))
+        screen.fill(GAME_BACKGROUND)
 
         # display tanks and features
         for coord, entities in self.__map.items():
@@ -98,10 +94,10 @@ class MapDrawer:
     def draw_legend(self, screen: Surface):
         y = 0
         for feature in self.__map_legend_items:
-            text = self.__font.render(' ' + str(feature.get_type()), True, 'grey')
-            text_rect = text.get_rect(midleft=(feature.get_center()[0] + Hex.radius_x, feature.get_center()[1]))
+            text = self.__font.render(' ' + str(feature.type), True, 'grey')
+            text_rect = text.get_rect(midleft=(feature.get_center()[0] + HEX_RADIUS_X[0], feature.get_center()[1]))
             screen.blit(text, text_rect)
-            y += 2 * Hex.radius_y
+            y += 2 * HEX_RADIUS_Y[0]
             self.draw_feature(screen, feature)
 
     """Adding sprites to their group"""
@@ -110,7 +106,7 @@ class MapDrawer:
         self.__max_damage_points = \
             max(self.__max_damage_points, self.__players[tank.get_player_index()].get_damage_points())
 
-        explosion: Sprite = Explosion(Hex.make_center(target.get_coord()), Hex.radius_x * 2, Hex.radius_y * 2)
+        explosion: Sprite = Explosion(Hex.make_center(target.get_coord()))
         self.__explosion_group.add(explosion)
 
     def add_shot(self, start_pos: (), end_pos: (), color):
