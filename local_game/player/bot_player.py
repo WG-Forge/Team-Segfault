@@ -6,34 +6,11 @@ from player.player import Player
 
 
 class BotPlayer(Player):
-    def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
-                 current_player: list[1], player_index: int, over: Event):
-        super().__init__(name=name,
-                         password=password,
-                         is_observer=is_observer,
-                         turn_played_sem=turn_played_sem,
-                         current_player=current_player,
-                         player_index=player_index,
-                         over=over)
-
+    def __init__(self, idx: int):
+        super().__init__(idx)
         self.__turn: int = 0
 
     def _make_turn_plays(self) -> None:
-        try:
-            # play your move if you are the current player
-            if self._current_player[0] == self.idx:
-                # time.sleep(1)  # comment/uncomment this for a turn delay effect
-                self.__place_actions()
-        finally:
-            # end your turn
-            self._game_client.force_turn()
-
-    def _finalize(self):
-        # manage your own connection
-        self._game_client.logout()
-        self._game_client.disconnect()
-
-    def __place_actions(self) -> None:
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
 
         if self._game_actions:
@@ -42,10 +19,11 @@ class BotPlayer(Player):
                 self.__do(action, tank)
         else:
             # multiplayer game:
-            actions = ('A', 'B', 'C', 'D', 'E')
-            for action, tank in zip(actions, self._tanks):
-                self.__do(action, tank)
-
+            for tank in self._tanks:
+                if tank.get_type() == 'light_tank':
+                    self.__move_and_camp(tank, 'in base')
+                else:
+                    self.__shoot_else_move(tank, 'close enemy')
         self.__turn += 1
 
     def __do(self, action: str, tank: Tank) -> None:
@@ -94,11 +72,11 @@ class BotPlayer(Player):
     def __move(self, where: str, who: Tank) -> bool:
         who_coord, go_to = who.get_coord(), None
         if where == 'close to base':
-            go_to = self._map.closest_free_base_adjacents(who_coord)
+            go_to = self._map.closest_free_base_adjacent(who_coord)
         elif where == 'in base':
             go_to = self._map.closest_free_bases(who_coord)
         elif where == 'close enemy':
-            go_to = who.shot_moves(self._map.closest_enemies(who)[0].get_coord())
+            go_to = who.shot_moves(self._map.enemies_in_range(who)[0].get_coord())
         for coord in go_to:
             if who_coord == coord or self.__move_to_if_possible(who, coord):
                 return True
@@ -114,7 +92,6 @@ class BotPlayer(Player):
     def __update_maps_with_move(self, tank: Tank, action_coord: tuple) -> None:
         x, y, z = action_coord
         self._map.local_move(tank, action_coord)
-        self._game_client.server_move({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
 
     def __update_maps_with_shot(self, tank: Tank, enemy: Tank, is_td=False):
         if is_td:
@@ -124,5 +101,3 @@ class BotPlayer(Player):
         else:
             x, y, z = enemy.get_coord()
             self._map.local_shoot(tank, enemy)
-
-        self._game_client.server_shoot({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})

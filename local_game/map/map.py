@@ -10,6 +10,7 @@ from entity.tanks.tank_maker import TankMaker
 from gui.map_utils.map_drawer import MapDrawer
 from map import _a_star
 from map.hex import Hex
+from server_data.data_io import *
 
 
 class Map:
@@ -23,7 +24,7 @@ class Map:
         self.__base_coords: tuple = ()
         self.__base_adjacent_coords: tuple = ()
         self.__spawn_coords: tuple = ()
-        self.__make_map(client_map, game_state, active_players)
+        self.__make_map(active_players)
         self.__destroyed: List[Tank] = []
 
         self.__path_finding_algorithm: Callable = _a_star.a_star
@@ -32,7 +33,9 @@ class Map:
 
     """     MAP MAKING      """
 
-    def __make_map(self, client_map: dict, game_state: dict, active_players: dict) -> None:
+    def __make_map(self, active_players: dict) -> None:
+        client_map = load_server_map()
+        game_state = load_game_state()
         # Make empty map
         rings = [Hex.make_ring(ring_num) for ring_num in range(client_map["size"])]
         self.__map = {coord: {'feature': Empty(coord), 'tank': None} for ring in rings for coord in ring}
@@ -86,26 +89,6 @@ class Map:
     def draw(self, screen: Surface):
         self.__map_drawer.draw(screen)
 
-    """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
-
-    def update_turn(self, game_state: dict) -> None:
-        # At the beginning of each turn move the tanks that have been destroyed in the previous turn to their spawn
-        self.__respawn_destroyed_tanks()
-
-        for vehicle_id, vehicle_info in game_state["vehicles"].items():
-            server_coord = (vehicle_info["position"]["x"], vehicle_info["position"]["y"], vehicle_info["position"]["z"])
-            server_hp, server_cp = vehicle_info['health'], vehicle_info["capture_points"]
-
-            tank = self.__tanks[int(vehicle_id)]
-            self.local_move(tank, server_coord) if server_coord != tank.get_coord() else None
-            tank.set_hp(server_hp) if server_hp != tank.get_hp() else None
-            tank.set_cp(server_cp) if server_cp != tank.get_cp() else None
-
-    def __respawn_destroyed_tanks(self) -> None:
-        while self.__destroyed:
-            tank = self.__destroyed.pop()
-            self.local_move(tank, tank.get_spawn_coord())
-            tank.respawn()
 
     """     MOVE & FIRE CONTROL        """
 
@@ -160,6 +143,12 @@ class Map:
         return enemy and not (friend.get_player_index() == enemy.get_player_index() or
                               self.is_neutral(friend, enemy) or enemy.is_destroyed())
 
+    def __respawn_destroyed_tanks(self) -> None:
+        while self.__destroyed:
+            tank = self.__destroyed.pop()
+            self.local_move(tank, tank.get_spawn_coord())
+            tank.respawn()
+
     """     NAVIGATION    """
 
     def tanks_in_range(self, tank: Tank) -> List[Tank]:
@@ -174,10 +163,10 @@ class Map:
         if free_base_coords:
             return sorted(free_base_coords, key=lambda coord: Hex.manhattan_dist(to, coord))
 
-    def closest_free_base_adjacents(self, to: tuple) -> Union[List[tuple], None]:
+    def closest_free_base_adjacent(self, to: tuple) -> Union[tuple, None]:
         free_base_adjacents = [c for c in self.__base_adjacent_coords if self.__map[c]['tank'] is None or c == to]
         if free_base_adjacents:
-            return sorted(free_base_adjacents, key=lambda coord: Hex.manhattan_dist(to, coord))
+            return min(free_base_adjacents, key=lambda coord: Hex.manhattan_dist(to, coord))
 
     def closest_enemies(self, tank: Tank) -> List[Tank]:
         # Returns a sorted list by distance of enemy tanks
