@@ -44,3 +44,5 @@ TD_IMAGE_PATH = 'game/assets/tank_classes/td.png'
 FLAG_PATH = 'game/assets/flag.png'
 EXPLOSION_IMAGES = [f'game/assets/explosion/{i}.png' for i in range(7)]
 BULLET_IMAGE_PATH = 'game/assets/white_bullet.png'
+
+MENU_IMAGE = 'game/assets/menu/Background.png'

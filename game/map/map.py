@@ -1,4 +1,4 @@
-from typing import List, Union, Callable
+from typing import List, Union, Callable, Dict
 
 from pygame import Surface
 
@@ -13,12 +13,12 @@ from map.hex import Hex
 
 
 class Map:
-    def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[1]):
+    def __init__(self, client_map: Dict, game_state: Dict, active_players: Dict, current_turn: list[1]):
 
-        self.__players: dict = Map.__add_players(active_players)
-        self.__tanks: dict[int, Tank] = {}
+        self.__players: Dict = Map.__add_players(active_players)
+        self.__tanks: Dict[int, Tank] = {}
 
-        self.__map: dict = {}
+        self.__map: Dict = {}
         self.__map_size = client_map['size']
         self.__base_coords: tuple = ()
         self.__base_adjacent_coords: tuple = ()
@@ -32,7 +32,7 @@ class Map:
 
     """     MAP MAKING      """
 
-    def __make_map(self, client_map: dict, game_state: dict, active_players: dict) -> None:
+    def __make_map(self, client_map: Dict, game_state: Dict, active_players: Dict) -> None:
         # Make empty map
         rings = [Hex.make_ring(ring_num) for ring_num in range(client_map["size"])]
         self.__map = {coord: {'feature': Empty(coord), 'tank': None} for ring in rings for coord in ring}
@@ -41,7 +41,7 @@ class Map:
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             player = active_players[vehicle_info["player_id"]]
             tank, spawn = TankFactory.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.color,
-                                                            player.get_index())
+                                                            player.index)
             tank_coord = tank.get_coord()
             self.__map[tank_coord]['tank'] = tank
             self.__map[tank.spawn_coord]['feature'] = spawn
@@ -58,14 +58,14 @@ class Map:
                 print(f"Support for {entity} needed")
 
     @staticmethod
-    def __add_players(active_players: dict) -> dict:
+    def __add_players(active_players: Dict) -> Dict:
         players = {}
         for player_id, player in active_players.items():
             if not player.is_observer:
-                players[player.get_index()] = player
+                players[player.index] = player
         return players
 
-    def __make_bases(self, coords: dict) -> None:
+    def __make_bases(self, coords: Dict) -> None:
         self.__base_coords = tuple([tuple(coord.values()) for coord in coords])
         for coord in self.__base_coords:
             self.__map[coord]['feature'] = Base(coord)
@@ -88,7 +88,7 @@ class Map:
 
     """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
 
-    def update_turn(self, game_state: dict) -> None:
+    def update_turn(self, game_state: Dict) -> None:
         # At the beginning of each turn move the tanks that have been destroyed in the previous turn to their spawn
         self.__respawn_destroyed_tanks()
 
@@ -183,7 +183,7 @@ class Map:
         # Returns a sorted list by distance of enemy tanks
         tank_idx, tank_coord = tank.get_player_index(), tank.get_coord()
         enemies = [self.__players[player] for player in self.__players if player != tank_idx]
-        return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.get_tanks()),
+        return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.tanks),
                       key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.get_coord(), tank_coord))
 
     def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> Union[tuple, None]:

@@ -44,7 +44,7 @@ class Game(Thread):
                                    num_players=self.__max_players,
                                    is_observer=True)
 
-        self.__active_players: dict[int, Player] = {}
+        self.__active_players: Dict[int, Player] = {}
 
         self.__turn_played_sem: Semaphore = Semaphore(0)
         self.__current_player_idx: list[1] = [-1]
@@ -96,7 +96,7 @@ class Game(Thread):
         else:
             self.__players_queue.append(player)
 
-    def __add_remote_player(self, user_info: dict) -> None:
+    def __add_remote_player(self, user_info: Dict) -> None:
         if not user_info["is_observer"]:
             self.lobby_players += 1
 
@@ -119,7 +119,7 @@ class Game(Thread):
 
     def set_game_actions(self, game_actions: Dict[int, Dict[str, str]]):
         for player in self.__players_queue:
-            player.set_turn_actions(game_actions[player.get_index()])
+            player.set_turn_actions(game_actions[player.index])
 
     def start_menu(self) -> None:
         try:
@@ -164,7 +164,7 @@ class Game(Thread):
 
     def __connect_local_player(self, player: Player) -> None:
         game_client: GameClient = GameClient()
-        user_info: dict = game_client.login(player.name, player.password,
+        user_info: Dict = game_client.login(player.name, player.password,
                                             self.__game_name, self.__num_turns,
                                             self.__max_players, player.is_observer)
 
@@ -173,15 +173,15 @@ class Game(Thread):
 
         self.__active_players[player.idx] = player
 
-    def __connect_remote_player(self, player: Player, user_info: dict) -> None:
+    def __connect_remote_player(self, player: Player, user_info: Dict) -> None:
         player.add_to_game(user_info, self.__shadow_client)
         player.start()
 
         self.__active_players[player.idx] = player
 
-    def __wait_for_full_lobby(self) -> dict | None:
+    def __wait_for_full_lobby(self) -> Dict | None:
         """ Return game state if the lobby is full, else None if the game was interrupted """
-        game_state: dict = self.__shadow_client.get_game_state()
+        game_state: Dict = self.__shadow_client.get_game_state()
 
         while not self.over.is_set() and game_state["num_players"] != len(game_state["players"]):
             # wait for all the players to join
@@ -199,13 +199,13 @@ class Game(Thread):
         for player in self.__players_queue:
             self.__connect_local_player(player)
 
-        game_state: dict = self.__wait_for_full_lobby()
+        game_state: Dict = self.__wait_for_full_lobby()
 
         if not game_state:
             # the game was interrupted
             return
 
-        client_map: dict = self.__shadow_client.get_map()
+        client_map: Dict = self.__shadow_client.get_map()
         HEX_RADIUS_X[0] //= (client_map['size'] - 1) * 2 * 2
         HEX_RADIUS_Y[0] //= (client_map['size'] - 1) * 2 * 2
         # add all remote players
@@ -250,7 +250,7 @@ class Game(Thread):
     def __end_game(self):
         if self.__winner:
             winner = self.__active_players[self.__winner]
-            self.__winner_index = winner.get_index()
+            self.__winner_index = winner.index
             print(f'The winner is: {winner.name}.')
         else:
             print('The game is a draw.')

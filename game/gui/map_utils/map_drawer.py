@@ -104,7 +104,7 @@ class MapDrawer:
 
     def add_explosion(self, tank: Tank, target: Tank) -> None:
         self.__max_damage_points = \
-            max(self.__max_damage_points, self.__players[tank.get_player_index()].get_damage_points())
+            max(self.__max_damage_points, self.__players[tank.get_player_index()].damage_points)
 
         explosion: Sprite = Explosion(Hex.make_center(target.get_coord()))
         self.__explosion_group.add(explosion)

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
-from typing import Union
+from typing import Union, Dict
 
 from client.game_client import GameClient
 from constants import PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR
@@ -27,24 +27,24 @@ class Player(Thread):
         self.is_observer: bool = is_observer
 
         self.next_turn_sem = Semaphore(0)
-        self._current_player = current_player
-        self.__turn_played_sem = turn_played_sem
-        self.__over = over
+        self._current_player: list[1] = current_player
+        self.__turn_played_sem: Semaphore = turn_played_sem
+        self.__over: Event = over
 
         self._game_client: GameClient | None = None
         self._map: Map | None = None
 
-        self._damage_points = 0
-        self._capture_points = 0
+        self._damage_points: int = 0
+        self._capture_points: int = 0
         self._tanks: list[Tank] = []
-        self._tank_map: dict[int, Tank] = {}
-        self._player_index = player_index
-        self.__player_colour = Player.__possible_colours[player_index]
+        self._tank_map: Dict[int, Tank] = {}
+        self._player_index: int = player_index
+        self.__player_colour: tuple[int, int, int] | str = Player.__possible_colours[player_index]
         self.__has_shot = []  # Holds a list of enemies this player has shot last turn
 
-        self._game_actions: Union[dict, None] = None
+        self._game_actions: Union[Dict, None] = None
 
-        self._turn_actions: Union[dict, None] = None
+        self._turn_actions: Union[Dict, None] = None
 
     def __hash__(self):
         return super.__hash__(self)
@@ -56,7 +56,7 @@ class Player(Thread):
 
         return out
 
-    def add_to_game(self, player_info: dict, game_client: GameClient):
+    def add_to_game(self, player_info: Dict, game_client: GameClient):
         self.name: str = player_info["name"]
         self.idx: int = player_info["idx"]
         self.is_observer: bool = player_info["is_observer"]
@@ -102,22 +102,26 @@ class Player(Thread):
     def color(self) -> str:
         return self.__player_colour
 
-    def get_index(self):
+    @property
+    def index(self):
         return self._player_index
 
-    def get_tanks(self):
+    @property
+    def tanks(self):
         return self._tanks
 
     def has_shot(self, player_index: int) -> bool:
         return player_index in self.__has_shot
 
-    def get_capture_points(self) -> int:
+    @property
+    def capture_points(self) -> int:
         return sum(tank.cp for tank in self._tanks)
 
-    def get_damage_points(self) -> int:
+    @property
+    def damage_points(self) -> int:
         return self._damage_points
 
-    def set_turn_actions(self, actions: dict) -> None:
+    def set_turn_actions(self, actions: Dict) -> None:
         self._turn_actions = actions
 
     def register_shot(self, enemy_index: int) -> None:
