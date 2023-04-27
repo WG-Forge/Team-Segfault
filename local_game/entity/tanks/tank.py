@@ -1,13 +1,13 @@
 from abc import abstractmethod, ABC
 
-from entity.entity import Entity
+from ..entity import Entity
 
 
 class Tank(Entity, ABC):
     """ Abstract Tank class """
     __damage = 1
 
-    def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int, image_path: str):
+    def __init__(self, tank_id: int, tank_info: dict, player_index: int):
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
@@ -15,14 +15,12 @@ class Tank(Entity, ABC):
         self.__spawn_coord: tuple = (tank_info["spawn_position"]["x"],
                                      tank_info["spawn_position"]["y"],
                                      tank_info["spawn_position"]["z"])
-        self.__tank_colour: str = colour
+
         self.__player_index: int = player_index
         self.__destroyed: bool = False
         self._coord: tuple = (tank_info["position"]["x"],
                               tank_info["position"]["y"],
                               tank_info["position"]["z"])
-
-        self.__image_path: str = image_path
 
         super().__init__(tank_info["vehicle_type"])
 

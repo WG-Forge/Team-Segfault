@@ -1,14 +1,12 @@
 from abc import abstractmethod
-from typing import Union
+from typing import Dict
 
-from constants import PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR
-from entity.tanks.tank import Tank
-from map.map import Map
+from ..entity.tanks.tank import Tank
+from ..map.map import Map
 
 
-class Player():
+class Player:
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
-    __possible_colours = (PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR)
 
     def __init__(self, idx: int):
 
@@ -20,11 +18,7 @@ class Player():
         self.__winner: bool = False
 
         self._tanks: list[Tank] = []
-        self._tank_map: dict[int, Tank] = {}
-
-        self.__player_colour = Player.__possible_colours[idx]
         self.__has_shot = []  # Holds a list of enemies this player has shot last turn
-        self._game_actions: Union[dict, None] = None
 
     def add_tank(self, new_tank: Tank) -> None:
         # Adds the tank in order of who gets priority movement
@@ -41,8 +35,6 @@ class Player():
 
     def run(self) -> None: self._make_turn_plays()
 
-    def get_color(self) -> str: return self.__player_colour
-
     def get_index(self): return self._idx
 
     def get_tanks(self): return self._tanks
@@ -53,13 +45,12 @@ class Player():
 
     def get_damage_points(self) -> int: return self._damage_points
 
-    def set_turn_actions(self, actions: dict) -> None: self._turn_actions = actions
-
     def register_shot(self, enemy_index: int) -> None: self.__has_shot.append(enemy_index)
 
     def register_turn(self) -> None: self.__has_shot = []
 
-    def register_destroyed_vehicle(self, tank: Tank) -> None: self._damage_points += tank.get_max_hp()
+    def register_destroyed_vehicle(self, tank: Tank) -> None:
+        self._damage_points += tank.get_max_hp()
 
     def is_winner(self) -> bool: return self.__winner
 

@@ -1,21 +1,22 @@
-from threading import Semaphore, Event
-from typing import List
+from abc import ABC
+from typing import List, Dict
 
-from entity.tanks.tank import Tank
-from player.player import Player
+from ..entity.tanks.tank import Tank
+from .player import Player
 
 
-class BotPlayer(Player):
-    def __init__(self, idx: int):
+class BotPlayer(Player, ABC):
+    def __init__(self, idx: int, game_actions: Dict[str, str]):
         super().__init__(idx)
+        self.__game_actions = game_actions
         self.__turn: int = 0
 
     def _make_turn_plays(self) -> None:
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
 
-        if self._game_actions:
+        if self.__game_actions:
             for tank in self._tanks:
-                action = self._game_actions[tank.get_type()][self.__turn]
+                action = self.__game_actions[tank.get_type()][self.__turn]
                 self.__do(action, tank)
         else:
             # multiplayer game:
@@ -40,7 +41,9 @@ class BotPlayer(Player):
 
     def __move_and_camp(self, tank: Tank, where: str) -> None:
         if not self.__move(where, tank):
-            self.__camp(tank, self._map.enemies_in_range(tank))
+            enemies_in_range = self._map.enemies_in_range(tank)
+            if enemies_in_range:
+                self.__camp(tank, enemies_in_range)
 
     def __shoot_else_move(self, tank: Tank, where: str) -> None:
         enemies_in_range = self._map.enemies_in_range(tank)
@@ -72,14 +75,15 @@ class BotPlayer(Player):
     def __move(self, where: str, who: Tank) -> bool:
         who_coord, go_to = who.get_coord(), None
         if where == 'close to base':
-            go_to = self._map.closest_free_base_adjacent(who_coord)
+            go_to = self._map.closest_free_base_adjacents(who_coord)
         elif where == 'in base':
             go_to = self._map.closest_free_bases(who_coord)
         elif where == 'close enemy':
-            go_to = who.shot_moves(self._map.enemies_in_range(who)[0].get_coord())
-        for coord in go_to:
-            if who_coord == coord or self.__move_to_if_possible(who, coord):
-                return True
+            go_to = who.shot_moves(self._map.closest_enemies(who)[0].get_coord())
+        if go_to:  #TODO: Solve this dirty fix, find out why 'go_to' is None in edge cases
+            for coord in go_to:
+                if who_coord == coord or self.__move_to_if_possible(who, coord):
+                    return True
         return False
 
     def __move_to_if_possible(self, tank: Tank, where: tuple) -> bool:

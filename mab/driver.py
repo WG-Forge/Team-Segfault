@@ -44,7 +44,7 @@ class Driver:
     def __continue_training(self) -> None:
         results_table = Driver.load_results_table_from_json()
         for index, player in self.__players.items():
-            player.set_results_table(results_table[index])
+            player.set_results_table(results_table[str(index)])
 
         num_games = Driver.load_num_games_from_json()
         self.__explore_prob = Driver.calc_explore_prob(num_games)

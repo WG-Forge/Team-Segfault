@@ -11,6 +11,8 @@ from gui.map_utils.map_drawer import MapDrawer
 from map import _a_star
 from map.hex import Hex
 
+from local_game.server_data.data_io import *
+
 
 class Map:
     def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[1]):
@@ -36,6 +38,10 @@ class Map:
         # Make empty map
         rings = [Hex.make_ring(ring_num) for ring_num in range(client_map["size"])]
         self.__map = {coord: {'feature': Empty(coord), 'tank': None} for ring in rings for coord in ring}
+
+        # Uncomment to save new maps to run in the local version
+        # save_server_map(client_map)
+        # save_game_state(game_state)
 
         # put tanks in tanks & map & put spawns in map
         for vehicle_id, vehicle_info in game_state["vehicles"].items():

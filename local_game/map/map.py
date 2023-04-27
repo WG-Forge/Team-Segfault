@@ -2,25 +2,24 @@ from typing import List, Union, Callable
 
 from pygame import Surface
 
-from entity.map_features.base import Base
-from entity.map_features.empty import Empty
-from entity.map_features.obstacle import Obstacle
-from entity.tanks.tank import Tank
-from entity.tanks.tank_maker import TankMaker
-from gui.map_utils.map_drawer import MapDrawer
-from map import _a_star
-from map.hex import Hex
-from server_data.data_io import *
+from ..entity.map_features.base import Base
+from ..entity.map_features.empty import Empty
+from ..entity.map_features.obstacle import Obstacle
+from ..entity.tanks.tank import Tank
+from ..entity.tanks.tank_factory import TankFactory
+from . import _a_star
+from .hex import Hex
+from ..server_data.data_io import *
 
 
 class Map:
-    def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[1]):
+    def __init__(self, active_players: dict):
 
         self.__players: dict = Map.__add_players(active_players)
         self.__tanks: dict[int, Tank] = {}
 
         self.__map: dict = {}
-        self.__map_size = client_map['size']
+        self.__map_size: int = 0
         self.__base_coords: tuple = ()
         self.__base_adjacent_coords: tuple = ()
         self.__spawn_coords: tuple = ()
@@ -29,22 +28,23 @@ class Map:
 
         self.__path_finding_algorithm: Callable = _a_star.a_star
 
-        self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn)
-
     """     MAP MAKING      """
 
-    def __make_map(self, active_players: dict) -> None:
+    def __make_map(self, players: dict) -> None:
         client_map = load_server_map()
         game_state = load_game_state()
+
+        self.__map_size = client_map['size']
         # Make empty map
-        rings = [Hex.make_ring(ring_num) for ring_num in range(client_map["size"])]
+        rings = [Hex.make_ring(ring_num) for ring_num in range(self.__map_size)]
         self.__map = {coord: {'feature': Empty(coord), 'tank': None} for ring in rings for coord in ring}
+
+        player_idxs = {player_dict['idx']: i for i, player_dict in enumerate(game_state['players'])}
 
         # put tanks in tanks & map & put spawns in map
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
-            player = active_players[vehicle_info["player_id"]]
-            tank, spawn = TankMaker.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.get_color(),
-                                                          player.get_index())
+            player = players[player_idxs[vehicle_info['player_id']]]
+            tank, spawn = TankFactory.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.get_index())
             tank_coord = tank.get_coord()
             self.__map[tank_coord]['tank'] = tank
             self.__map[tank.get_spawn_coord()]['feature'] = spawn
@@ -64,8 +64,7 @@ class Map:
     def __add_players(active_players: dict) -> dict:
         players = {}
         for player_id, player in active_players.items():
-            if not player.is_observer:
-                players[player.get_index()] = player
+            players[player.get_index()] = player
         return players
 
     def __make_bases(self, coords: dict) -> None:
@@ -99,14 +98,9 @@ class Map:
 
     def local_shoot(self, tank: Tank, target: Tank) -> None:
         destroyed = target.register_hit_return_destroyed()
-        self.__map_drawer.add_shot(Hex.make_center(tank.get_coord()), Hex.make_center(target.get_coord()),
-                                   tank.get_color())
         if destroyed:
             # update player damage points
             self.__players[tank.get_player_index()].register_destroyed_vehicle(target)
-
-            # add explosion
-            self.__map_drawer.add_explosion(tank, target)
 
             # add to destroyed tanks
             self.__destroyed.append(target)
@@ -143,12 +137,6 @@ class Map:
         return enemy and not (friend.get_player_index() == enemy.get_player_index() or
                               self.is_neutral(friend, enemy) or enemy.is_destroyed())
 
-    def __respawn_destroyed_tanks(self) -> None:
-        while self.__destroyed:
-            tank = self.__destroyed.pop()
-            self.local_move(tank, tank.get_spawn_coord())
-            tank.respawn()
-
     """     NAVIGATION    """
 
     def tanks_in_range(self, tank: Tank) -> List[Tank]:
@@ -163,10 +151,10 @@ class Map:
         if free_base_coords:
             return sorted(free_base_coords, key=lambda coord: Hex.manhattan_dist(to, coord))
 
-    def closest_free_base_adjacent(self, to: tuple) -> Union[tuple, None]:
+    def closest_free_base_adjacents(self, to: tuple) -> Union[List[tuple], None]:
         free_base_adjacents = [c for c in self.__base_adjacent_coords if self.__map[c]['tank'] is None or c == to]
         if free_base_adjacents:
-            return min(free_base_adjacents, key=lambda coord: Hex.manhattan_dist(to, coord))
+            return sorted(free_base_adjacents, key=lambda coord: Hex.manhattan_dist(to, coord))
 
     def closest_enemies(self, tank: Tank) -> List[Tank]:
         # Returns a sorted list by distance of enemy tanks

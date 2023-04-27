@@ -1,10 +1,10 @@
 import heapq
 from typing import Union
 
-from entity.map_features.obstacle import Obstacle
-from entity.map_features.spawn import Spawn
-from entity.tanks.tank import Tank
-from map.hex import Hex
+from ..entity.map_features.obstacle import Obstacle
+from ..entity.map_features.spawn import Spawn
+from ..entity.tanks.tank import Tank
+from ..map.hex import Hex
 
 
 def a_star(game_map: dict, tank: Tank, finish: tuple) -> Union[tuple, None]:

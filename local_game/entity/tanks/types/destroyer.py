@@ -1,6 +1,5 @@
-from constants import TD_IMAGE_PATH
-from entity.tanks.tank import Tank
-from map.hex import Hex
+from ..tank import Tank
+from ....map.hex import Hex
 
 
 class TankDestroyer(Tank):
@@ -12,8 +11,8 @@ class TankDestroyer(Tank):
     __fire_deltas = tuple(coord for coord in Hex.fire_deltas(__min_range, __max_range) if 0 in coord)
     __fire_corridor_deltas: tuple = Hex.td_fire_corridor_deltas(__max_range)
 
-    def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
-        super().__init__(tank_id, tank_info, colour, player_index, TD_IMAGE_PATH)
+    def __init__(self, tank_id: int, tank_info: dict, player_index: int):
+        super().__init__(tank_id, tank_info, player_index)
 
     def coords_in_range(self) -> tuple:
         return tuple(Hex.coord_sum(delta, self._coord) for delta in TankDestroyer.__fire_deltas)

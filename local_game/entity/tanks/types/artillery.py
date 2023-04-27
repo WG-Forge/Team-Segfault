@@ -1,6 +1,6 @@
-from constants import SPG_IMAGE_PATH
-from entity.tanks.tank import Tank
-from map.hex import Hex
+from ..tank import Tank
+from ....map.hex import Hex
+
 
 
 class Artillery(Tank):
@@ -10,8 +10,8 @@ class Artillery(Tank):
     __min_range: int = 3  # Manhattan min range
     __fire_deltas: tuple = Hex.fire_deltas(__min_range, __max_range)
 
-    def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int):
-        super().__init__(tank_id, tank_info, colour, player_index, SPG_IMAGE_PATH)
+    def __init__(self, tank_id: int, tank_info: dict, player_index: int):
+        super().__init__(tank_id, tank_info, player_index)
 
     def coords_in_range(self) -> tuple:
         return tuple(Hex.coord_sum(delta, self._coord) for delta in Artillery.__fire_deltas)
