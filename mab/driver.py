@@ -16,9 +16,11 @@ class Driver:
     # ResultsTable = {player_index: {tank_name: {action_combo: rewards}}}
     ResultsTable = Type[Dict[int, Dict[str, Dict[str, List[int]]]]]
 
-    def __init__(self, num_turns: int, num_players: int,  restart=False):
+    def __init__(self, num_turns: int,  restart=False, num_players: int = 3):
         # Player index corresponds to who starts first, so Players[0] plays turn 1
-        self.__players = {agent_index: Player(num_turns) for agent_index in range(num_players)}
+        group_size = Driver.calc_action_group_size(num_turns)
+        print('group_size', group_size)
+        self.__players = {agent_index: Player(num_turns, group_size) for agent_index in range(num_players)}
         self.__explore_prob: float = 1.0
         if not restart:
             self.__continue_training()
@@ -53,6 +55,15 @@ class Driver:
         results_table = {index: player.get_results_table() for index, player in self.__players.items()}
         Driver.dump_results_table_to_json(cast(Driver.ResultsTable, results_table))
         Driver.dump_num_games_to_json(self.__explore_prob)
+
+    @staticmethod
+    def calc_action_group_size(num_turns: int, action_num: int = 5, max_combos: int = 10000) -> int:
+        size = 1
+        while action_num ** (num_turns / size) > max_combos:
+            size += 1
+        return size - 1
+
+
 
     @staticmethod
     def calc_explore_prob(num_games: int) -> float:

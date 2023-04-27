@@ -11,8 +11,6 @@ from gui.map_utils.map_drawer import MapDrawer
 from map import _a_star
 from map.hex import Hex
 
-from local_game.server_data.data_io import *
-
 
 class Map:
     def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[1]):

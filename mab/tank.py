@@ -9,10 +9,12 @@ class Tank:
     __actions = ('A', 'B', 'C', 'D', 'E')
     __action_num = len(__actions)
 
-    def __init__(self, num_turns: int):
+    def __init__(self, num_turns: int, group_size: int):
         self.__tank_results_table: Dict[str, List[int]] = {}  # {arm combo name: [list of rewards]}
         self.__game_action_combo: str = ''  # String representing actions taken in this turn
         self.__num_turns = num_turns
+        self.__group_size: int = group_size
+        self.__num_groups: int = num_turns//group_size
 
     def register_reward(self, reward: int) -> None:
         # If the combination of arms used in this turn has never been used create a new entry in
@@ -28,7 +30,10 @@ class Tank:
 
     def get_explore_actions(self) -> str:
         # Returns a random set of actions to explore the different probabilities of each
-        action_combo = [Tank.__actions[rnd.randint(0, Tank.__action_num - 1)] for _ in range(self.__num_turns)]
+        action_combo = [
+            Tank.__actions[rnd.randint(0, Tank.__action_num - 1)] * self.__group_size
+            for _ in range(self.__num_groups)
+        ]
         self.__game_action_combo = ''.join(action_combo)
         return self.__game_action_combo
 

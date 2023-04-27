@@ -1,7 +1,7 @@
 import json
 
 
-dir_path = 'local_game\\server_data\\'
+dir_path = 'mab\\local_game\\server_data\\'
 
 def load_server_map() -> dict:
     with open(dir_path + 'server_map.json', 'r') as f:
