@@ -81,7 +81,7 @@ class Game(Thread):
         else:
             player_type = PlayerTypes.Bot
 
-        player = PlayerMaker.create_player(player_type=player_type,
+        player = PlayerFactory.create_player(player_type=player_type,
                                            name=name,
                                            password=password,
                                            is_observer=is_observer,

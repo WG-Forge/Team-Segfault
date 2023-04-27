@@ -25,7 +25,7 @@ class Driver:
 
     def get_game_actions(self) -> GameActions:
         game_actions = {}
-        for player_index, player in self.__players.values():
+        for player_index, player in self.__players.items():
             game_actions[player_index] = player.get_game_actions(self.__explore_prob)
         return cast(Driver.GameActions, game_actions)
 
