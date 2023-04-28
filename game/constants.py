@@ -27,8 +27,8 @@ BASE_COLOR = (39, 161, 72)
 EMPTY_COLOR = (87, 81, 81)
 OBSTACLE_COLOR = (51, 46, 46)
 DEFAULT_SPAWN_COLOR = (135, 126, 126)
-MENU_TEXT_COLOR = (48, 240, 144)
-MENU_SELECTED_TEXT_COLOR = (204, 52, 224)
+MENU_TEXT_COLOR = (231, 252, 3)
+MENU_SELECTED_TEXT_COLOR = (252, 186, 3)
 
 # player names
 PLAYER_NAMES = ['Playa', 'Bot 1', 'Bot 2', 'Bot 3']
@@ -48,9 +48,9 @@ LT_IMAGE_PATH = 'game/assets/tank_classes/lt.png'
 MT_IMAGE_PATH = 'game/assets/tank_classes/mt.png'
 TD_IMAGE_PATH = 'game/assets/tank_classes/td.png'
 
-CATAPULT_IMAGE_PATH = ''
-LIGHT_REPAIR_IMAGE_PATH = ''
-HARD_REPAIR_IMAGE_PATH = ''
+CATAPULT_IMAGE_PATH = 'game/assets/upgrades/catapult.png'
+LIGHT_REPAIR_IMAGE_PATH = 'game/assets/upgrades/light_repair.png'
+HARD_REPAIR_IMAGE_PATH = 'game/assets/upgrades/hard_repair.png'
 
 FLAG_PATH = 'game/assets/flag.png'
 EXPLOSION_IMAGES = [f'game/assets/explosion/{i}.png' for i in range(7)]

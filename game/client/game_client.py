@@ -13,7 +13,7 @@ class GameClient:
         self.__service.connect(HOST_NAME, HOST_PORT)
 
     def __enter__(self):
-        return GameClient
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.disconnect()

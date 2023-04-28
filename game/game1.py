@@ -14,7 +14,7 @@ class Game(Thread):
                  player_name: str = None, password: str = None, is_observer: bool = None) -> None:
         super().__init__()
 
-        self.__game_map = None
+        self.game_map = None
         self.__game_name: str = game_name
 
         # create an active event
@@ -26,12 +26,11 @@ class Game(Thread):
         self.__started: bool = False
 
         self.__current_turn: [] = [-1]
-        self.__current_player = None
 
         self.__current_player_idx: int = -1
 
         self.__game_client = GameClient()
-
+        # index is used for coloring
         self.__player = self.__add_player(player_name, password, is_observer, index)
 
     def __str__(self):
@@ -41,6 +40,9 @@ class Game(Thread):
                           f'number of turns: {self.__num_turns}.')
         return str(self.__player)
 
+    # def __del__(self):
+    #     self.__finalize()
+
     def __add_player(self, name: str, password: str = None, is_observer: bool = None, index: int = 0) -> Player:
         """
         Will connect the player if game has started.
@@ -49,7 +51,6 @@ class Game(Thread):
 
         player = BotPlayer(name=name, password=password, is_observer=is_observer, player_index=index, over=self.over)
 
-        self.__connect_player(player)
         return player
 
     def __connect_player(self, player: Player) -> None:
@@ -59,14 +60,6 @@ class Game(Thread):
                                             self.__max_players, player.is_observer)
 
         player.add_to_game(user_info)
-
-    # def start_menu(self) -> None:
-    #     try:
-    #         # initialize and start the pygame display manager from the main thread
-    #         DisplayManager(self).run()
-    #     finally:
-    #         # in case the main thread is interrupted
-    #         self.over.set()
 
     def run(self) -> None:
         self.__init_game_state()
@@ -93,6 +86,8 @@ class Game(Thread):
         """ Return game state if the lobby is full, else None if the game was interrupted """
         game_state: Dict = self.__game_client.get_game_state()
 
+        self.__wait_for_full_lobby()
+
         while not self.over.is_set() and game_state["num_players"] != len(game_state["players"]):
             # wait for all the players to join
             game_state = self.__game_client.get_game_state()
@@ -101,7 +96,7 @@ class Game(Thread):
 
     def __init_game_state(self) -> None:
         # Add the queued local players to the game
-
+        self.__connect_player(self.__player)
         game_state: Dict = self.__wait_for_full_lobby()
 
         if not game_state:
@@ -113,14 +108,14 @@ class Game(Thread):
         HEX_RADIUS_Y[0] //= (client_map['size'] - 1) * 2 * 2
 
         # initialize the game map (now adds tanks to players & game_map too)
-        self.__game_map = Map(client_map, game_state, active_players={self.__player.idx: self.__player},
-                              current_turn=self.__current_turn)
+        self.game_map = Map(client_map, game_state, active_players={self.__player.idx: self.__player},
+                            current_turn=self.__current_turn)
 
         self.__num_turns = game_state["num_turns"]
         self.__max_players = game_state["num_players"]
 
         # pass Map reference to players
-        self.__player.add_map(self.__game_map)
+        self.__player.add_map(self.game_map)
 
         # output the game info to console
         print(self)
@@ -134,9 +129,9 @@ class Game(Thread):
         self.__current_player_idx = game_state["current_player_idx"]
 
         print(f"Current turn: {self.__current_turn[0]}, "
-              f"current player: {self.__current_player.name}")
+              f"current player: {game_state['current_player_idx']}")
 
-        self.__game_map.update_turn(game_state)
+        self.game_map.update_turn(game_state)
 
         if game_state["winner"] or self.__current_turn[0] == self.__num_turns:
             self.__winner = game_state["winner"]
@@ -156,3 +151,7 @@ class Game(Thread):
         # manage your own connection
         self.__game_client.logout()
         self.__game_client.disconnect()
+
+    # @property
+    # def game_map(self) -> Dict:
+    #     return self.game_map
