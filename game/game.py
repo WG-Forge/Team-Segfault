@@ -4,7 +4,6 @@ from typing import Dict
 
 from client.game_client import GameClient
 from constants import HEX_RADIUS_Y, HEX_RADIUS_X
-from gui.display_manager import DisplayManager
 from map.map import Map
 from player.player import Player
 from player.player_factory import PlayerFactory, PlayerTypes
@@ -121,13 +120,13 @@ class Game(Thread):
         for player in self.__players_queue:
             player.set_turn_actions(game_actions[player.index])
 
-    def start_menu(self) -> None:
-        try:
-            # initialize and start the pygame display manager from the main thread
-            DisplayManager(self).run()
-        finally:
-            # in case the main thread is interrupted
-            self.over.set()
+    # def start_menu(self) -> None:
+    #     try:
+    #         # initialize and start the pygame display manager from the main thread
+    #         DisplayManager(self).run()
+    #     finally:
+    #         # in case the main thread is interrupted
+    #         self.over.set()
 
     def get_winner_index(self):
         # wait for game end event

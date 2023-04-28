@@ -1,16 +1,19 @@
 import os
+import random
 
 import pygame
 import pygame_menu
 
-from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, SOUND_VOLUME, PLAYER1_NAME, MENU_IMAGE
+from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, SOUND_VOLUME, PLAYER_NAMES, MENU_IMAGE, MENU_TEXT_COLOR, \
+    MENU_SELECTED_TEXT_COLOR, GAME_NAME
+from game.game import Game
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
 
 class DisplayManager:
 
-    def __init__(self, game):
+    def __init__(self):
 
         super().__init__()
         pygame.init()
@@ -22,51 +25,30 @@ class DisplayManager:
         self.__running = True
         self.__playing = False
 
-        self.__game = game
+        self.__game: Game | None = None
 
         self.__clock = pygame.time.Clock()
 
-        # configure controls window
-        self.__controls = pygame_menu.Menu('Controls', SCREEN_WIDTH, SCREEN_HEIGHT, theme=pygame_menu.themes.THEME_DARK)
-        # self.__controls.add.button('')
-        self.__controls.add.button('Back', pygame_menu.events.BACK)
+        # create theme
+        self.__create_menu_theme()
 
-        # configure credits window
-        self.__credits = pygame_menu.Menu('Credits', SCREEN_WIDTH, SCREEN_HEIGHT, theme=pygame_menu.themes.THEME_DARK)
-        self.__credits.add.button('Vuk Djordjevic')
-        self.__credits.add.button('Ricardo Suarez del Valle')
-        self.__credits.add.button('Jovan Milanovic')
-        self.__credits.add.button('Back', pygame_menu.events.BACK)
-
-        # todo find better image
-        menu_theme = pygame_menu.themes.THEME_DARK.copy()
-        image = pygame_menu.baseimage.BaseImage(
-            image_path=MENU_IMAGE,
-            drawing_mode=pygame_menu.baseimage.IMAGE_MODE_REPEAT_XY
-        )
-        menu_theme.background_color = image
-
-        # configure main menu screen
-        self.__menu = pygame_menu.Menu('Tank game', SCREEN_WIDTH, SCREEN_HEIGHT, theme=menu_theme)
-
-        self.__menu.add.text_input('Name :', default=PLAYER1_NAME[0], onchange=self.__change_name)
-        self.__menu.add.button('Play', self.__start_the_game)
-        self.__menu.add.range_slider('Volume', 0, (0, 1), increment=0.1, onchange=self.__change_volume)
-        self.__menu.add.button('Controls', self.__controls)
-        self.__menu.add.button('Credits', self.__credits)
-
-        self.__menu.add.button('Quit', pygame_menu.events.EXIT)
-
-        # configure end game menu
-        self.__end_game_menu = pygame_menu.Menu('Game finished!', SCREEN_WIDTH, SCREEN_HEIGHT,
-                                                theme=pygame_menu.themes.THEME_DARK)
-        self.__end_game_menu.add.button('Play again', self.__play_again)
-        self.__end_game_menu.add.button('Check stats', self.__show_stats)
-        self.__end_game_menu.add.button('Exit', pygame_menu.events.EXIT)
+        # submenus need to be created before main menu
+        self.__create_controls_menu()
+        self.__create_credits_menu()
+        self.__create_main_menu()
+        self.__create_end_game_menu()
 
     def __start_the_game(self) -> None:
-        self.__menu.disable()
+        self.__main_menu.disable()
         self.__playing = True
+        # create a game according to chosen settings (for now its only 1 player + 2 bots, 3 instances total)
+        name: str = "Test game 1: "
+        name += str(random.randint(0, 10000))
+        self.__game = Game(game_name=name, max_players=3, num_turns=45)
+        self.__game.add_local_player(name=PLAYER_NAMES[0], is_observer=False)
+        self.__game.add_local_player(name="Blue bot", is_observer=False)
+        self.__game.add_local_player(name="Red bot", is_observer=False)
+
         self.__game.start_game()
 
     def __change_volume(self, value: float) -> None:
@@ -74,10 +56,12 @@ class DisplayManager:
         SOUND_VOLUME[0] = value / 2
 
     def __change_name(self, value: str) -> None:
-        PLAYER1_NAME[0] = value
+        PLAYER_NAMES[0] = value
 
     def __play_again(self) -> None:
-        pass
+        # todo
+        self.__end_game_menu.disable()
+        self.__start_the_game()
 
     def __show_stats(self) -> None:
         pass
@@ -93,7 +77,7 @@ class DisplayManager:
     def run(self) -> None:
 
         # start menu loop
-        self.__menu.mainloop(self.__screen)
+        self.__main_menu.mainloop(self.__screen)
 
         while self.__running:
 
@@ -115,7 +99,53 @@ class DisplayManager:
                 if self.__playing:
                     self.__end_game_menu.mainloop(self.__screen)
                     pass
-                break
 
         # cleanup
         pygame.quit()
+
+    def __create_main_menu(self) -> None:
+        self.__main_menu = pygame_menu.Menu('Tank game', SCREEN_WIDTH, SCREEN_HEIGHT, theme=self.__menu_theme)
+
+        self.__main_menu.add.button('Play', self.__start_the_game)
+        self.__main_menu.add.selector('Game type', [('Multiplayer game simulation', 0),
+                                                    ('Multiplayer game against other players', 1),
+                                                    ('Solo (nameless) game', 2),
+                                                    ('Spectating game', 3)], default=0)
+        self.__main_menu.add.text_input('Nickname :', default=PLAYER_NAMES[0], onchange=self.__change_name)
+        self.__main_menu.add.text_input('Game name:', default=GAME_NAME[0], onchange=self.__change_name)
+        self.__main_menu.add.range_slider('Volume', 0, (0, 1), increment=0.1, onchange=self.__change_volume)
+        self.__main_menu.add.button('Controls', self.__controls)
+        self.__main_menu.add.button('Credits', self.__credits)
+
+        self.__main_menu.add.button('Quit', pygame_menu.events.EXIT)
+
+    def __create_credits_menu(self) -> None:
+        self.__credits = pygame_menu.Menu('Credits', SCREEN_WIDTH, SCREEN_HEIGHT, theme=self.__menu_theme)
+        self.__credits.add.label('Vuk Djordjevic')
+        self.__credits.add.label('Ricardo Suarez del Valle')
+        self.__credits.add.label('Jovan Milanovic')
+        self.__credits.add.button('Back', pygame_menu.events.BACK)
+
+    def __create_controls_menu(self) -> None:
+        self.__controls = pygame_menu.Menu('Controls', SCREEN_WIDTH, SCREEN_HEIGHT, theme=self.__menu_theme)
+        # self.__controls.add.button('')
+        self.__controls.add.button('Back', pygame_menu.events.BACK)
+
+    def __create_end_game_menu(self) -> None:
+        self.__end_game_menu = pygame_menu.Menu('Game finished!', SCREEN_WIDTH, SCREEN_HEIGHT,
+                                                theme=self.__menu_theme)
+        self.__end_game_menu.add.button('Play again', self.__play_again)
+        self.__end_game_menu.add.button('Check stats', self.__show_stats)
+        self.__end_game_menu.add.button('Exit', pygame_menu.events.EXIT)
+
+    def __create_menu_theme(self) -> None:
+        # todo find better colors (and image maybe)
+        self.__menu_theme = pygame_menu.themes.THEME_DARK.copy()
+        image = pygame_menu.baseimage.BaseImage(
+            image_path=MENU_IMAGE,
+            drawing_mode=pygame_menu.baseimage.IMAGE_MODE_FILL
+        )
+        self.__menu_theme.background_color = image
+        self.__menu_theme.widget_font = pygame_menu.font.FONT_NEVIS
+        self.__menu_theme.selection_color = MENU_SELECTED_TEXT_COLOR
+        self.__menu_theme.widget_font_color = MENU_TEXT_COLOR
