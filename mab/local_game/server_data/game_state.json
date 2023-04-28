@@ -1,0 +1,308 @@
+{
+  "num_players": 3,
+  "num_turns": 45,
+  "current_turn": 0,
+  "players": [
+    {
+      "idx": 8891,
+      "name": "Vuk",
+      "is_observer": false
+    },
+    {
+      "idx": 8893,
+      "name": "Ricardo",
+      "is_observer": false
+    },
+    {
+      "idx": 8894,
+      "name": "Igor",
+      "is_observer": false
+    }
+  ],
+  "observers": [
+    {
+      "idx": 8896,
+      "name": "Test game 1: 6478-Team-Segfault-Shadow-90314",
+      "is_observer": true
+    },
+    {
+      "idx": 8892,
+      "name": "Egor",
+      "is_observer": true
+    },
+    {
+      "idx": 8885,
+      "name": "Jovan",
+      "is_observer": true
+    },
+    {
+      "idx": 8895,
+      "name": "John Doe",
+      "is_observer": true
+    }
+  ],
+  "current_player_idx": 8891,
+  "finished": false,
+  "vehicles": {
+    "1": {
+      "player_id": 8891,
+      "vehicle_type": "at_spg",
+      "health": 2,
+      "spawn_position": {
+        "x": -3,
+        "y": -7,
+        "z": 10
+      },
+      "position": {
+        "x": -3,
+        "y": -7,
+        "z": 10
+      },
+      "capture_points": 0
+    },
+    "2": {
+      "player_id": 8891,
+      "vehicle_type": "heavy_tank",
+      "health": 3,
+      "spawn_position": {
+        "x": -5,
+        "y": -5,
+        "z": 10
+      },
+      "position": {
+        "x": -5,
+        "y": -5,
+        "z": 10
+      },
+      "capture_points": 0
+    },
+    "3": {
+      "player_id": 8891,
+      "vehicle_type": "light_tank",
+      "health": 1,
+      "spawn_position": {
+        "x": -6,
+        "y": -4,
+        "z": 10
+      },
+      "position": {
+        "x": -6,
+        "y": -4,
+        "z": 10
+      },
+      "capture_points": 0
+    },
+    "4": {
+      "player_id": 8891,
+      "vehicle_type": "medium_tank",
+      "health": 2,
+      "spawn_position": {
+        "x": -4,
+        "y": -6,
+        "z": 10
+      },
+      "position": {
+        "x": -4,
+        "y": -6,
+        "z": 10
+      },
+      "capture_points": 0
+    },
+    "5": {
+      "player_id": 8891,
+      "vehicle_type": "spg",
+      "health": 1,
+      "spawn_position": {
+        "x": -7,
+        "y": -3,
+        "z": 10
+      },
+      "position": {
+        "x": -7,
+        "y": -3,
+        "z": 10
+      },
+      "capture_points": 0
+    },
+    "6": {
+      "player_id": 8893,
+      "vehicle_type": "at_spg",
+      "health": 2,
+      "spawn_position": {
+        "x": -7,
+        "y": 10,
+        "z": -3
+      },
+      "position": {
+        "x": -7,
+        "y": 10,
+        "z": -3
+      },
+      "capture_points": 0
+    },
+    "7": {
+      "player_id": 8893,
+      "vehicle_type": "heavy_tank",
+      "health": 3,
+      "spawn_position": {
+        "x": -5,
+        "y": 10,
+        "z": -5
+      },
+      "position": {
+        "x": -5,
+        "y": 10,
+        "z": -5
+      },
+      "capture_points": 0
+    },
+    "8": {
+      "player_id": 8893,
+      "vehicle_type": "light_tank",
+      "health": 1,
+      "spawn_position": {
+        "x": -4,
+        "y": 10,
+        "z": -6
+      },
+      "position": {
+        "x": -4,
+        "y": 10,
+        "z": -6
+      },
+      "capture_points": 0
+    },
+    "9": {
+      "player_id": 8893,
+      "vehicle_type": "medium_tank",
+      "health": 2,
+      "spawn_position": {
+        "x": -6,
+        "y": 10,
+        "z": -4
+      },
+      "position": {
+        "x": -6,
+        "y": 10,
+        "z": -4
+      },
+      "capture_points": 0
+    },
+    "10": {
+      "player_id": 8893,
+      "vehicle_type": "spg",
+      "health": 1,
+      "spawn_position": {
+        "x": -3,
+        "y": 10,
+        "z": -7
+      },
+      "position": {
+        "x": -3,
+        "y": 10,
+        "z": -7
+      },
+      "capture_points": 0
+    },
+    "11": {
+      "player_id": 8894,
+      "vehicle_type": "at_spg",
+      "health": 2,
+      "spawn_position": {
+        "x": 10,
+        "y": -3,
+        "z": -7
+      },
+      "position": {
+        "x": 10,
+        "y": -3,
+        "z": -7
+      },
+      "capture_points": 0
+    },
+    "12": {
+      "player_id": 8894,
+      "vehicle_type": "heavy_tank",
+      "health": 3,
+      "spawn_position": {
+        "x": 10,
+        "y": -5,
+        "z": -5
+      },
+      "position": {
+        "x": 10,
+        "y": -5,
+        "z": -5
+      },
+      "capture_points": 0
+    },
+    "13": {
+      "player_id": 8894,
+      "vehicle_type": "light_tank",
+      "health": 1,
+      "spawn_position": {
+        "x": 10,
+        "y": -6,
+        "z": -4
+      },
+      "position": {
+        "x": 10,
+        "y": -6,
+        "z": -4
+      },
+      "capture_points": 0
+    },
+    "14": {
+      "player_id": 8894,
+      "vehicle_type": "medium_tank",
+      "health": 2,
+      "spawn_position": {
+        "x": 10,
+        "y": -4,
+        "z": -6
+      },
+      "position": {
+        "x": 10,
+        "y": -4,
+        "z": -6
+      },
+      "capture_points": 0
+    },
+    "15": {
+      "player_id": 8894,
+      "vehicle_type": "spg",
+      "health": 1,
+      "spawn_position": {
+        "x": 10,
+        "y": -7,
+        "z": -3
+      },
+      "position": {
+        "x": 10,
+        "y": -7,
+        "z": -3
+      },
+      "capture_points": 0
+    }
+  },
+  "attack_matrix": {
+    "8891": [],
+    "8893": [],
+    "8894": []
+  },
+  "winner": null,
+  "win_points": {
+    "8891": {
+      "capture": 0,
+      "kill": 0
+    },
+    "8893": {
+      "capture": 0,
+      "kill": 0
+    },
+    "8894": {
+      "capture": 0,
+      "kill": 0
+    }
+  }
+}

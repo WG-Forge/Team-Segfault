@@ -7,8 +7,8 @@ from mab.tank import Tank
 class Player:
     __tank_names = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
 
-    def __init__(self, num_turns: int):
-        self.__tanks = {name: Tank(num_turns) for name in Player.__tank_names}
+    def __init__(self, num_turns: int, group_size: int):
+        self.__tanks = {name: Tank(num_turns, group_size) for name in Player.__tank_names}
 
     def register_reward(self, reward: int) -> None:
         for bandit in self.__tanks.values():

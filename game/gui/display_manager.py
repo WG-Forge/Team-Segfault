@@ -61,6 +61,7 @@ class DisplayManager:
 
     def __play_again(self) -> None:
         # todo
+        self.__games = []
         self.__end_game_menu.disable()
         self.__start_the_game()
 

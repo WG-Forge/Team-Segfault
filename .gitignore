@@ -174,5 +174,6 @@ poetry.toml
 pyrightconfig.json
 
 local_game/
+mab/local_game/
 
 # End of https://www.toptal.com/developers/gitignore/api/python

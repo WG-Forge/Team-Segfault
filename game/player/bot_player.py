@@ -62,7 +62,9 @@ class BotPlayer(Player):
 
     def __move_and_camp(self, tank: Tank, where: str) -> None:
         if not self.__move(where, tank):
-            self.__camp(tank, self._map.enemies_in_range(tank))
+            enemies_in_range = self._map.enemies_in_range(tank)
+            if enemies_in_range:
+                self.__camp(tank, enemies_in_range)
 
     def __shoot_else_move(self, tank: Tank, where: str) -> None:
         enemies_in_range = self._map.enemies_in_range(tank)
@@ -99,9 +101,10 @@ class BotPlayer(Player):
             go_to = self._map.closest_free_bases(who_coord)
         elif where == 'close enemy':
             go_to = who.shot_moves(self._map.closest_enemies(who)[0].get_coord())
-        for coord in go_to:
-            if who_coord == coord or self.__move_to_if_possible(who, coord):
-                return True
+        if go_to:  # TODO: Solve this dirty fix, find out why 'go_to' is None in edge cases
+            for coord in go_to:
+                if who_coord == coord or self.__move_to_if_possible(who, coord):
+                    return True
         return False
 
     def __move_to_if_possible(self, tank: Tank, where: tuple) -> bool:
