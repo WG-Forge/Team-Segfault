@@ -36,13 +36,6 @@ class Game(Thread):
         # Observer connection that is used for collecting data
         self.__shadow_client = GameClient()
 
-        # TODO have a more secure way to generate the shadow client name, in order to avoid potential collisions
-        self.__shadow_client.login(name=f"{game_name}-Team-Segfault-Shadow-{random.randint(0, 100000)}",
-                                   game_name=game_name,
-                                   num_turns=self.__num_turns,
-                                   num_players=self.__max_players,
-                                   is_observer=True)
-
         self.__active_players: dict[int, Player] = {}
 
         self.__turn_played_sem: Semaphore = Semaphore(0)
@@ -82,13 +75,13 @@ class Game(Thread):
             player_type = PlayerTypes.Bot
 
         player = PlayerFactory.create_player(player_type=player_type,
-                                           name=name,
-                                           password=password,
-                                           is_observer=is_observer,
-                                           turn_played_sem=self.__turn_played_sem,
-                                           current_player_idx=self.__current_player_idx,
-                                           player_index=self.lobby_players - 1,
-                                           over=self.over)
+                                             name=name,
+                                             password=password,
+                                             is_observer=is_observer,
+                                             turn_played_sem=self.__turn_played_sem,
+                                             current_player_idx=self.__current_player_idx,
+                                             player_index=self.lobby_players - 1,
+                                             over=self.over)
 
         if self.__started:
             self.__connect_local_player(player)
@@ -101,15 +94,15 @@ class Game(Thread):
 
         self.__num_players += 1
 
-        player: Player = PlayerMaker.create_player(player_type=PlayerTypes.Remote,
-                                                   turn_played_sem=self.__turn_played_sem,
-                                                   current_player_idx=self.__current_player_idx,
-                                                   player_index=self.lobby_players - 1,
-                                                   over=self.over)
+        player: Player = PlayerFactory.create_player(player_type=PlayerTypes.Remote,
+                                                     turn_played_sem=self.__turn_played_sem,
+                                                     current_player_idx=self.__current_player_idx,
+                                                     player_index=self.lobby_players - 1,
+                                                     over=self.over)
 
         self.__connect_remote_player(player, user_info)
 
-    def start_game(self,) -> None:
+    def start_game(self) -> None:
         # Set the state to started
         self.__started = True
 
@@ -194,6 +187,12 @@ class Game(Thread):
         return game_state
 
     def __init_game_state(self) -> None:
+        self.__shadow_client.login(name=f"{self.__game_name}-Team-Segfault-Shadow-{random.randint(0, 100000)}",
+                                   game_name=self.__game_name,
+                                   num_turns=self.__num_turns,
+                                   num_players=self.__max_players,
+                                   is_observer=True)
+
         # Add the queued local players to the game
         for player in self.__players_queue:
             self.__connect_local_player(player)
