@@ -62,13 +62,17 @@ class MainMenu(Menu):
         if self.display_manager.START_KEY:
             if self.state == 'Start':
                 self.display_manager.playing = True
-
                 # start the game thread
                 self.display_manager.game.start()
+
             elif self.state == 'Options':
                 self.display_manager.curr_menu = self.display_manager.options
             elif self.state == 'Credits':
                 self.display_manager.curr_menu = self.display_manager.credits
+            else:
+                # exit
+                self.display_manager.running = False
+
             self.run_display = False
 
 

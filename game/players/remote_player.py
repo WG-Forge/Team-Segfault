@@ -1,6 +1,7 @@
 from threading import Event, Semaphore
 from typing import Callable
 
+from entities.entity_enum import Entities
 from game_map.hex import Hex
 from game_map.map import Map
 from players.player import Player
@@ -46,15 +47,15 @@ class RemotePlayer(Player):
             action_dict[vehicle_id] = data, action
 
         for tank in self._tanks:
-            if not tank.get_id() in action_dict:
+            if tank.tank_id not in action_dict:
                 continue
 
-            data = action_dict[tank.get_id()][0]
-            action = action_dict[tank.get_id()][1]
+            data = action_dict[tank.tank_id][0]
+            action = action_dict[tank.tank_id][1]
             target: tuple = Hex.unpack_coords(data["target"])
 
             if action == Action.SHOOT:
-                if tank.get_type() == 'at_spg':
+                if tank.type == Entities.TANK_DESTROYER:
                     self._map.td_shoot(tank, target)
                 else:
                     self._map.local_shoot_tuple(tank, target)

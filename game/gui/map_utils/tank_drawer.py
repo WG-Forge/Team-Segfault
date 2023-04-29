@@ -20,7 +20,7 @@ class TankDrawer(pygame.sprite.Sprite):
         color_image.fill(tank.color)
         self.image.blit(color_image, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         self.rect = self.image.get_rect()
-        self.rect.center = Hex.make_center(tank.get_coord())
+        self.rect.center = Hex.make_center(tank.coord)
 
         # used for translucent sprite drawing
         self.__transparent_image = None
@@ -31,7 +31,7 @@ class TankDrawer(pygame.sprite.Sprite):
 
     def update(self, screen) -> None:
         # self.rect.center = Hex.make_center(self.__tank.get_coord())
-        new_pos = Hex.make_center(self.__tank.get_coord())
+        new_pos = Hex.make_center(self.__tank.coord)
         if self.rect.center != new_pos:
             self.__counter = TankDrawer.__timer
             # coordinates need to be translated so that image is drawn from center (blit only has topleft drawing)
@@ -46,8 +46,8 @@ class TankDrawer(pygame.sprite.Sprite):
         font_size = round(min(HEX_RADIUS_Y[0], HEX_RADIUS_X[0]))
         font = pygame.font.SysFont('arial', font_size, bold=True)
         text = font.render(str(self.__tank.hp), True, 'white')
-        text_rect = text.get_rect(bottomleft=(Hex.make_center(self.__tank.get_coord())[0] + HEX_RADIUS_X[0] / 2,
-                                              Hex.make_center(self.__tank.get_coord())[1] + HEX_RADIUS_Y[0] / 2))
+        text_rect = text.get_rect(bottomleft=(Hex.make_center(self.__tank.coord)[0] + HEX_RADIUS_X[0] / 2,
+                                              Hex.make_center(self.__tank.coord)[1] + HEX_RADIUS_Y[0] / 2))
         screen.blit(text, text_rect)
 
         # display last position

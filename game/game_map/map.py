@@ -2,6 +2,7 @@ from typing import List, Union, Callable, Dict
 
 from pygame import Surface
 
+from constants import HEX_RADIUS_X, HEX_RADIUS_Y
 from entities.map_features.base import Base
 from entities.map_features.empty import Empty
 from entities.map_features.obstacle import Obstacle
@@ -14,6 +15,8 @@ from gui.map_utils.map_drawer import MapDrawer
 
 class Map:
     def __init__(self, client_map: Dict, game_state: Dict, active_players: Dict, current_turn: list[1]):
+        HEX_RADIUS_X[0] //= (client_map['size'] - 1) * 2 * 2
+        HEX_RADIUS_Y[0] //= (client_map['size'] - 1) * 2 * 2
 
         self.__players: Dict = Map.__add_players(active_players)
         self.__tanks: Dict[int, Tank] = {}
@@ -46,7 +49,7 @@ class Map:
             player = active_players[vehicle_info["player_id"]]
             tank, spawn = TankFactory.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.color,
                                                             player.index)
-            tank_coord = tank.get_coord()
+            tank_coord = tank.coord
             self.__map[tank_coord]['tank'] = tank
             self.__map[tank.spawn_coord]['feature'] = spawn
             self.__tanks[int(vehicle_id)] = tank
@@ -101,7 +104,7 @@ class Map:
             server_hp, server_cp = vehicle_info['health'], vehicle_info["capture_points"]
 
             tank = self.__tanks[int(vehicle_id)]
-            self.local_move(tank, server_coord) if server_coord != tank.get_coord() else None
+            self.local_move(tank, server_coord) if server_coord != tank.coord else None
             tank.hp = server_hp if server_hp != tank.hp else tank.hp
             tank.cp = server_cp if server_cp != tank.cp else tank.cp
 
@@ -115,16 +118,16 @@ class Map:
 
     def local_move(self, tank: Tank, new_coord: tuple) -> None:
         self.__map[new_coord]['tank'] = tank  # New pos now has tank
-        self.__map[tank.get_coord()]['tank'] = None  # Old pos is now empty
-        tank.set_coord(new_coord)  # tank has new position
+        self.__map[tank.coord]['tank'] = None  # Old pos is now empty
+        tank.coord = new_coord  # tank has new position
 
     def local_shoot(self, tank: Tank, target: Tank) -> None:
         destroyed = target.register_hit_return_destroyed()
-        self.__map_drawer.add_shot(Hex.make_center(tank.get_coord()), Hex.make_center(target.get_coord()),
+        self.__map_drawer.add_shot(Hex.make_center(tank.coord), Hex.make_center(target.coord),
                                    tank.color)
         if destroyed:
             # update player damage points
-            self.__players[tank.get_player_index()].register_destroyed_vehicle(target)
+            self.__players[tank.player_index].register_destroyed_vehicle(target)
 
             # add explosion
             self.__map_drawer.add_explosion(tank, target)
@@ -132,7 +135,7 @@ class Map:
             # add to destroyed tanks
             self.__destroyed.append(target)
 
-        self.__players[tank.get_player_index()].register_shot(target.get_player_index())
+        self.__players[tank.player_index].register_shot(target.player_index)
 
     def local_shoot_tuple(self, tank: Tank, coord: tuple):
         entities = self.__map.get(coord)
@@ -142,7 +145,7 @@ class Map:
                 self.local_shoot(tank, enemy)
 
     def td_shoot(self, td: Tank, target: tuple) -> None:
-        danger_zone = Hex.danger_zone(td.get_coord(), target)
+        danger_zone = Hex.danger_zone(td.coord, target)
         for coord in danger_zone:
             entities = self.__map.get(coord)
             if entities and not isinstance(entities['feature'], Obstacle):
@@ -155,13 +158,13 @@ class Map:
 
     def is_neutral(self, player_tank: Tank, enemy_tank: Tank) -> bool:
         # Neutrality rule logic implemented here, return True if neutral, False if not neutral
-        player_index, enemy_index = player_tank.get_player_index(), enemy_tank.get_player_index()
+        player_index, enemy_index = player_tank.player_index, enemy_tank.player_index
         other_index = next(iter({0, 1, 2} - {player_index, enemy_index}))
         other_player, enemy_player = self.__players[other_index], self.__players[enemy_index]
         return not enemy_player.has_shot(player_index) and other_player.has_shot(enemy_index)
 
     def is_enemy(self, friend: Tank, enemy: Tank) -> bool:
-        return enemy and not (friend.get_player_index() == enemy.get_player_index() or
+        return enemy and not (friend.player_index == enemy.player_index or
                               self.is_neutral(friend, enemy) or enemy.is_destroyed)
 
     """     NAVIGATION    """
@@ -185,10 +188,10 @@ class Map:
 
     def closest_enemies(self, tank: Tank) -> List[Tank]:
         # Returns a sorted list by distance of enemy tanks
-        tank_idx, tank_coord = tank.get_player_index(), tank.get_coord()
+        tank_idx, tank_coord = tank.player_index, tank.coord
         enemies = [self.__players[player] for player in self.__players if player != tank_idx]
         return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.tanks),
-                      key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.get_coord(), tank_coord))
+                      key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.coord, tank_coord))
 
     def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> Union[tuple, None]:
         return self.__path_finding_algorithm(self.__map, tank, finish)

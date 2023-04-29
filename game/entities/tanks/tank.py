@@ -27,12 +27,6 @@ class Tank(Entity, ABC):
 
         super().__init__(Entities(tank_info["vehicle_type"]))
 
-    def update_hp(self, hp: int):
-        self.__hp = hp
-
-    def update_cp(self, capture_pts: int):
-        self.__cp = capture_pts
-
     def register_hit_return_destroyed(self) -> bool:
         self.__hp -= Tank.__damage  # All tanks do 1 damage
         if self.__hp < 1:
@@ -46,11 +40,14 @@ class Tank(Entity, ABC):
 
     """     GETTERS     """
 
-    def get_coord(self) -> tuple: return self._coord
+    @property
+    def coord(self) -> tuple: return self._coord
 
-    def get_player_index(self) -> int: return self.__player_index
+    @property
+    def player_index(self) -> int: return self.__player_index
 
-    def get_id(self) -> int: return self.__tank_id
+    @property
+    def tank_id(self) -> int: return self.__tank_id
 
     @property
     def color(self) -> str | tuple[int, int, int]: return self.__tank_color
@@ -76,7 +73,8 @@ class Tank(Entity, ABC):
 
     """     SETTERS     """
 
-    def set_coord(self, new_coord: tuple) -> None:
+    @coord.setter
+    def coord(self, new_coord: tuple) -> None:
         self._coord = new_coord
 
     @hp.setter

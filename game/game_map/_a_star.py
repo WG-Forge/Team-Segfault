@@ -8,7 +8,7 @@ from game_map.hex import Hex
 
 
 def a_star(game_map: dict, tank: Tank, finish: tuple) -> Union[tuple, None]:
-    start, tank_id, speed = tank.get_coord(), tank.get_id(), tank.get_speed()
+    start, tank_id, speed = tank.coord, tank.tank_id, tank.get_speed()
     passable_obstacles = []
     cnt = 0
 

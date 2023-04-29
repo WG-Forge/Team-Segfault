@@ -1,16 +1,16 @@
 import json
 import struct
 
+from constants import HOST_PORT, HOST_NAME
 from remote.server_connection import ServerConnection
 from remote.server_enum import Action
 from remote.server_enum import Result
-from constants import HOST_PORT, HOST_NAME
 
 
 class GameClient:
     def __init__(self) -> None:
-        self.__service = Service()
-        self.__service.connect(HOST_NAME, HOST_PORT)
+        self.__server_connection = ServerConnection()
+        self.__server_connection.connect(HOST_NAME, HOST_PORT)
 
     def __enter__(self):
         return self

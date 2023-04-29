@@ -1,6 +1,7 @@
 from threading import Semaphore, Event
 from typing import List
 
+from entities.entity_enum import Entities
 from entities.tanks.tank import Tank
 from players.player import Player
 
@@ -81,12 +82,12 @@ class BotPlayer(Player):
 
     def __td_camp(self, td: Tank, tanks: List[Tank]) -> None:
         # Get the enemy in the fire corridor with the largest number of enemies and least friends
-        tanks_by_corridor = [[tank for tank in tanks if tank.get_coord() in c] for c in td.fire_corridors()]
+        tanks_by_corridor = [[tank for tank in tanks if tank.coord in c] for c in td.fire_corridors()]
 
         best_score, best_corridor = 0, None
         for corridor in tanks_by_corridor:
             score = sum([1 if self._map.is_enemy(td, tank) else -10
-                        if self._map.is_neutral(td, tank) else -1.1 for tank in corridor])
+            if self._map.is_neutral(td, tank) else -1.1 for tank in corridor])
             if score > best_score:
                 best_score, best_corridor = score, corridor
 
@@ -94,14 +95,14 @@ class BotPlayer(Player):
             self.__update_maps_with_shot(td, best_corridor[0], is_td=True)
 
     def __move(self, where: str, who: Tank) -> bool:
-        who_coord, go_to = who.get_coord(), None
+        who_coord, go_to = who.coord, None
         if where == 'close to base':
             go_to = self._map.closest_free_base_adjacents(who_coord)
         elif where == 'in base':
             go_to = self._map.closest_free_bases(who_coord)
         elif where == 'close enemy':
-            go_to = who.shot_moves(self._map.closest_enemies(who)[0].get_coord())
-        if go_to:  #TODO: Solve this dirty fix, find out why 'go_to' is None in edge cases
+            go_to = who.shot_moves(self._map.closest_enemies(who)[0].coord)
+        if go_to:  # TODO: Solve this dirty fix, find out why 'go_to' is None in edge cases
             for coord in go_to:
                 if who_coord == coord or self.__move_to_if_possible(who, coord):
                     return True
@@ -117,15 +118,15 @@ class BotPlayer(Player):
     def __update_maps_with_move(self, tank: Tank, action_coord: tuple) -> None:
         x, y, z = action_coord
         self._map.local_move(tank, action_coord)
-        self._game_client.server_move({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
+        self._game_client.server_move({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
 
     def __update_maps_with_shot(self, tank: Tank, enemy: Tank, is_td=False):
         if is_td:
-            td_shooting_coord = tank.td_shooting_coord(enemy.get_coord())
+            td_shooting_coord = tank.td_shooting_coord(enemy.coord)
             x, y, z = td_shooting_coord
             self._map.td_shoot(tank, td_shooting_coord)
         else:
-            x, y, z = enemy.get_coord()
+            x, y, z = enemy.coord
             self._map.local_shoot(tank, enemy)
 
-        self._game_client.server_shoot({"vehicle_id": tank.get_id(), "target": {"x": x, "y": y, "z": z}})
+        self._game_client.server_shoot({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})

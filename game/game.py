@@ -44,6 +44,8 @@ class Game(Thread):
 
         return out
 
+    """     GETTERS     """
+
     @property
     def max_players(self) -> int:
         return self.__max_players
@@ -72,16 +74,7 @@ class Game(Thread):
     def current_player(self) -> Player:
         return self.__current_player
 
-    def add_local_player(self, name: str, password: str = None, is_observer: bool = None) -> None:
-        self.__player_manager.add_local_player(name, password, is_observer)
-
-    def set_game_actions(self, game_actions: Dict[int, Dict[str, str]]) -> None:
-        self.__player_manager.set_game_actions(game_actions)
-
-    def get_winner_index(self) -> int:
-        # wait for game end event
-        self.over.wait()
-        return self.__winner_index
+    """     GAME LOGIC      """
 
     def run(self) -> None:
         self.__init_game_state()
@@ -94,6 +87,17 @@ class Game(Thread):
             self.__player_manager.handle_player_turns()
 
         self.__end_game()
+
+    def add_local_player(self, name: str, password: str = None, is_observer: bool = None) -> None:
+        self.__player_manager.add_local_player(name, password, is_observer)
+
+    def set_game_actions(self, game_actions: Dict[int, Dict[str, str]]) -> None:
+        self.__player_manager.set_game_actions(game_actions)
+
+    def get_winner_index(self) -> int:
+        # wait for game end event
+        self.over.wait()
+        return self.__winner_index
 
     def __wait_for_full_lobby(self) -> dict | None:
         """ Return game state if the lobby is full, else None if the game was interrupted """
@@ -167,7 +171,7 @@ class Game(Thread):
     def __end_game(self) -> None:
         if self.__winner:
             winner = self.__active_players[self.__winner]
-            self.__winner_index = winner.get_index()
+            self.__winner_index = winner.index
             print(f'The winner is: {winner.name}.')
         else:
             print('The game is a draw.')

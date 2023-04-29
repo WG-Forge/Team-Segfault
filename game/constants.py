@@ -29,12 +29,13 @@ OBSTACLE_COLOR = (51, 46, 46)
 DEFAULT_SPAWN_COLOR = (135, 126, 126)
 MENU_TEXT_COLOR = (231, 252, 3)
 MENU_SELECTED_TEXT_COLOR = (252, 186, 3)
+MENU_FONT = 'game/assets/menu/8-BIT WONDER.TTF'
 
 # player names
 PLAYER_NAMES = ['Playa', 'Bot 1', 'Bot 2', 'Bot 3']
 
 # sound options
-SOUND_VOLUME = [0.0]
+SOUND_VOLUME = [1.0]
 
 # sound paths
 EXPLOSION_SOUND = 'game/assets/sounds/explosion.mp3'

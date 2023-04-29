@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
 from typing import Union
@@ -10,7 +10,8 @@ from remote.game_client import GameClient
 
 
 @dataclass
-class Player(Thread):
+class Player(Thread, ABC):
+    """ Abstract base player class """
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
     __possible_colours = (PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR)
 
@@ -64,9 +65,9 @@ class Player(Thread):
 
     def add_tank(self, new_tank: Tank) -> None:
         # Adds the tank in order of who gets priority movement
-        new_tank_priority = Player.__type_order.index(new_tank.get_type())
+        new_tank_priority = Player.__type_order.index(new_tank.type)
         for i, old_tank in enumerate(self._tanks):
-            old_tank_priority = Player.__type_order.index(old_tank.get_type())
+            old_tank_priority = Player.__type_order.index(old_tank.type)
             if new_tank_priority <= old_tank_priority:
                 self._tanks.insert(i, new_tank)
                 return
@@ -96,26 +97,39 @@ class Player(Thread):
         # finalization
         self._finalize()
 
-    def get_color(self) -> str:
+    """     GETTERS     """
+
+    @property
+    def color(self) -> str:
         return self.__player_colour
 
-    def get_index(self):
+    @property
+    def index(self):
         return self._player_index
 
-    def get_tanks(self):
+    @property
+    def tanks(self):
         return self._tanks
 
-    def has_shot(self, player_index: int) -> bool:
-        return player_index in self.__has_shot
+    @property
+    def capture_points(self) -> int:
+        return sum(tank.cp for tank in self._tanks)
 
-    def get_capture_points(self) -> int:
-        return sum(tank.get_cp() for tank in self._tanks)
-
-    def get_damage_points(self) -> int:
+    @property
+    def damage_points(self) -> int:
         return self._damage_points
 
-    def set_turn_actions(self, actions: dict) -> None:
+    @property
+    def turn_actions(self) -> Union[dict, None]:
+        return self._turn_actions
+
+    """     SETTERS     """
+
+    @turn_actions.setter
+    def turn_actions(self, actions: dict) -> None:
         self._turn_actions = actions
+
+    """     MISC        """
 
     def register_shot(self, enemy_index: int) -> None:
         self.__has_shot.append(enemy_index)
@@ -124,7 +138,12 @@ class Player(Thread):
         self.__has_shot = []
 
     def register_destroyed_vehicle(self, tank: Tank) -> None:
-        self._damage_points += tank.get_max_hp()
+        self._damage_points += tank.max_hp
+
+    def has_shot(self, player_index: int) -> bool:
+        return player_index in self.__has_shot
+
+    """     ABSTRACTS       """
 
     @abstractmethod
     def _make_turn_plays(self) -> None:
