@@ -16,7 +16,6 @@ class TankDrawer(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (HEX_RADIUS_X[0] * 1.5, HEX_RADIUS_Y[0] * 1.5))
         # color sprite image
         color_image = pygame.Surface(self.image.get_size())
-        print(tank.color)
         color_image.fill(tank.color)
         self.image.blit(color_image, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         self.rect = self.image.get_rect()
