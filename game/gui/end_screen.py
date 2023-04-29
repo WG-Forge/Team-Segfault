@@ -3,7 +3,7 @@ import os
 import pygame
 
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
-from map.hex import Hex
+from game_map.hex import Hex
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 

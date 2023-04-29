@@ -1,7 +1,8 @@
 from game.game import Game
 
-
 # Run directly from this module, and then run the remote_test_join as a separate entity
+from gui.display_manager import DisplayManager
+
 
 def remote_test_create():
     # Multiplayer game with a fixed name and three bot players
@@ -11,7 +12,10 @@ def remote_test_create():
     game.add_local_player(name="Hazel", is_observer=False)
     game.add_local_player(name="Violet", is_observer=True)
     game.add_local_player(name="Green", is_observer=True)
-    game.start_menu()
+
+    displayManager = DisplayManager(game)
+    displayManager.run()
+
     print()
 
 

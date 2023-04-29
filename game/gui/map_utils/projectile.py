@@ -2,7 +2,7 @@ import pygame
 
 from constants import BULLET_IMAGE, BULLET_SOUND
 from constants import SOUND_MUTED, SOUND_VOLUME
-from map.hex import Hex
+from game_map.hex import Hex
 
 
 class Projectile(pygame.sprite.Sprite):

@@ -3,15 +3,15 @@ from pygame import Surface
 from pygame.sprite import Sprite
 
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
-from entity.map_features.base import Base
-from entity.map_features.empty import Empty
-from entity.map_features.obstacle import Obstacle
-from entity.tanks.tank import Tank
+from entities.map_features.base import Base
+from entities.map_features.empty import Empty
+from entities.map_features.obstacle import Obstacle
+from entities.tanks.tank import Tank
+from game_map.hex import Hex
 from gui.map_utils.explosion import Explosion
 from gui.map_utils.projectile import Projectile
 from gui.map_utils.scoreboard import Scoreboard
 from gui.map_utils.tank_drawer import TankDrawer
-from map.hex import Hex
 
 
 class MapDrawer:

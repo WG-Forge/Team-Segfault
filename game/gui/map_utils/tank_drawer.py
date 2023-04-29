@@ -1,6 +1,6 @@
 import pygame
 
-from map.hex import Hex
+from game_map.hex import Hex
 
 
 class TankDrawer(pygame.sprite.Sprite):

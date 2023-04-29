@@ -1,9 +1,9 @@
 import time
 
 
-def time_test(func):
+def time_test(func, *args):
     start_time = time.time()
-    func()
+    func(args)
     end_time = time.time()
 
     execution_time = end_time - start_time

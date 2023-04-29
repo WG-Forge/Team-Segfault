@@ -2,7 +2,7 @@ from tests.multiplayer_game import multiplayer_game
 
 if __name__ == '__main__':
     multiplayer_game()
-    # training_games(num_trainings=1, restart=True)
+    # single_player_game()
 
     # If you're going to change the number of turns set restart to True for the first training session
     # start = time.time()

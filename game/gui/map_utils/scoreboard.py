@@ -1,7 +1,7 @@
 import pygame
 from pygame import Surface
 
-from map.hex import Hex
+from game_map.hex import Hex
 
 
 class Scoreboard:

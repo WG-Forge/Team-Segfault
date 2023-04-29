@@ -14,14 +14,14 @@ def training_games(num_trainings: int, restart: bool = False):
 
     for _ in range(num_trainings):
         name: str = "Training game: " + str(random.randint(0, 10000))
-        game = Game(game_name=name, max_players=num_players, num_turns=num_turns, graphics=True)
+        game = Game(game_name=name, max_players=num_players, num_turns=num_turns)
         game.add_local_player(name='Vuuk', is_observer=False)
         game.add_local_player(name='Egoor', is_observer=False)
         game.add_local_player(name='Ricaardo', is_observer=False)
 
         game_actions = mab_driver.get_game_actions()
         game.set_game_actions(game_actions)
-        game.start_menu()
+        game.start()
 
         winner_index = game.get_winner_index()
         mab_driver.register_winner(winner_index)

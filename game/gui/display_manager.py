@@ -41,8 +41,10 @@ class DisplayManager:
     def check_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                # set the game end
+                # interrupt the game
                 self.game.over.set()
+
+                # set everything else to ended
                 self.playing = False
                 self.running = False
                 self.curr_menu.run_display = False
@@ -67,7 +69,14 @@ class DisplayManager:
         self.screen.blit(text_surface, text_rect)
 
     def run(self) -> None:
+        try:
+            self.__run()
+        finally:
+            # ensure cleanup
+            self.game.over.set()
+            pygame.quit()
 
+    def __run(self):
         while self.running:
             self.curr_menu.display_menu()
 
@@ -87,6 +96,3 @@ class DisplayManager:
             if self.playing and self.game.over.is_set():
                 # quit from the game if it has ended - potentially draw a victory screen here
                 break
-
-        # cleanup
-        pygame.quit()
