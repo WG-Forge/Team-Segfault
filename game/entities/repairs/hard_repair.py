@@ -1,10 +1,7 @@
-from entities.entity import Entity
+from entities.entity import Entity, Entities
 
 
 class HardRepair(Entity):
 
     def __init__(self):
-        super().__init__("hard_repair")
-
-    def draw(self, screen, font_size) -> None:
-        pass
+        super().__init__(Entities.HARD_REPAIR)

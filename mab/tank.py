@@ -1,7 +1,6 @@
+import random as rnd
 import statistics
 from typing import Dict, List
-
-import random as rnd
 
 
 class Tank:
@@ -14,7 +13,7 @@ class Tank:
         self.__game_action_combo: str = ''  # String representing actions taken in this turn
         self.__num_turns = num_turns
         self.__group_size: int = group_size
-        self.__num_groups: int = num_turns//group_size
+        self.__num_groups: int = num_turns // group_size
 
     def register_reward(self, reward: int) -> None:
         # If the combination of arms used in this turn has never been used create a new entry in

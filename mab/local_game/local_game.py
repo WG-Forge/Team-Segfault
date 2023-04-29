@@ -1,7 +1,7 @@
 from typing import Dict, Type, Union
 
-from .player.bot_player import BotPlayer
 from .map.map import Map
+from .player.bot_player import BotPlayer
 
 
 class LocalGame:
@@ -9,7 +9,7 @@ class LocalGame:
 
     def __init__(self, game_actions: GameActions, num_turns: int = 15) -> None:
         self.__winner_index = None
-        self.__run(game_actions,  num_turns)
+        self.__run(game_actions, num_turns)
 
     def __run(self, game_actions: GameActions, num_turns: int, num_players=3) -> None:
         players: Dict[int, BotPlayer] = {i: BotPlayer(i, game_actions[i]) for i in range(num_players)}

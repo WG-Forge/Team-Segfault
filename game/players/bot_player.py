@@ -38,7 +38,7 @@ class BotPlayer(Player):
 
         if self._game_actions:
             for tank in self._tanks:
-                action = self._game_actions[tank.get_type()][self.__turn]
+                action = self._game_actions[tank.type][self.__turn]
                 self.__do(action, tank)
         else:
             # multiplayer game:
@@ -74,7 +74,7 @@ class BotPlayer(Player):
             self.__move(where, tank)
 
     def __camp(self, tank: Tank, enemies_in_range: List[Tank]) -> None:
-        if tank.get_type() != 'at_spg':
+        if tank.type != Entities.TANK_DESTROYER:
             self.__update_maps_with_shot(tank, enemies_in_range[0])
         else:
             self.__td_camp(tank, self._map.tanks_in_range(tank))

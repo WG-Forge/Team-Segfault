@@ -1,9 +1,9 @@
-from ..map_features.spawn import Spawn
 from .types.artillery import Artillery
 from .types.destroyer import TankDestroyer
 from .types.heavy import HeavyTank
 from .types.light import LightTank
 from .types.medium import MediumTank
+from ..map_features.spawn import Spawn
 
 
 class TankFactory:

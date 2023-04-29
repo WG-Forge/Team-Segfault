@@ -1,16 +1,12 @@
 from math import sqrt
 
-from constants import SCREEN_HEIGHT, SCREEN_WIDTH
+from constants import SCREEN_HEIGHT, SCREEN_WIDTH, HEX_RADIUS_Y, HEX_RADIUS_X
 
 
 class Hex:
     __sqrt3 = sqrt(3)
     __rings = []
     moves = ((1, 0, -1), (0, 1, -1), (1, -1, 0), (-1, 0, 1), (0, -1, 1), (-1, 1, 0))
-
-    # default for map size 11
-    radius_x = SCREEN_WIDTH // 40
-    radius_y = SCREEN_HEIGHT // 40
 
     @staticmethod
     def td_fire_corridor_deltas(max_range: int) -> tuple:
@@ -97,7 +93,7 @@ class Hex:
         """Returns the center of a given hex in cartesian co-ordinates for current screen"""
         x, y, z = coord
         x, y = (1 * x - 0.5 * y - 0.5 * z), (Hex.__sqrt3 / 2 * y - Hex.__sqrt3 / 2 * z)
-        return SCREEN_WIDTH // 2 + round(x * Hex.radius_x), SCREEN_HEIGHT // 2 - round(y * Hex.radius_y)
+        return SCREEN_WIDTH // 2 + round(x * HEX_RADIUS_X[0]), SCREEN_HEIGHT // 2 - round(y * HEX_RADIUS_Y[0])
 
     @staticmethod
     def make_corners(coord: tuple) -> tuple:

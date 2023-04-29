@@ -1,5 +1,5 @@
-from typing import Dict, List
 import random as rnd
+from typing import Dict, List
 
 from mab.tank import Tank
 

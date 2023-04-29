@@ -1,10 +1,12 @@
 from abc import ABC
+from entities.entity_enum import Entities
 
 
 # Entity - Abstract Base Class
 class Entity(ABC):
-    def __init__(self, name: str):
-        self._type: str = name
+    def __init__(self, name: Entities):
+        self._type: Entities = name
 
-    def get_type(self) -> str:
+    @property
+    def type(self) -> Entities:
         return self._type

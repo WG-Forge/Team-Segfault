@@ -1,5 +1,5 @@
-from mab.local_game.local_game import LocalGame
 from mab.driver import Driver
+from mab.local_game.local_game import LocalGame
 
 
 # Takes about 0.2s per game: 2hrs -> 36 000 games

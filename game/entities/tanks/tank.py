@@ -1,13 +1,14 @@
 from abc import abstractmethod, ABC
 
-from entities.entity import Entity
+from entities.entity import Entity, Entities
 
 
 class Tank(Entity, ABC):
     """ Abstract Tank class """
     __damage = 1
 
-    def __init__(self, tank_id: int, tank_info: dict, colour: str, player_index: int, image_path: str):
+    def __init__(self, tank_id: int, tank_info: dict, color: tuple[int, int, int] | str, player_index: int,
+                 image_path: str):
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
@@ -15,7 +16,7 @@ class Tank(Entity, ABC):
         self.__spawn_coord: tuple = (tank_info["spawn_position"]["x"],
                                      tank_info["spawn_position"]["y"],
                                      tank_info["spawn_position"]["z"])
-        self.__tank_colour: str = colour
+        self.__tank_color = color
         self.__player_index: int = player_index
         self.__destroyed: bool = False
         self._coord: tuple = (tank_info["position"]["x"],
@@ -24,7 +25,7 @@ class Tank(Entity, ABC):
 
         self.__image_path: str = image_path
 
-        super().__init__(tank_info["vehicle_type"])
+        super().__init__(Entities(tank_info["vehicle_type"]))
 
     def update_hp(self, hp: int):
         self.__hp = hp
@@ -51,19 +52,26 @@ class Tank(Entity, ABC):
 
     def get_id(self) -> int: return self.__tank_id
 
-    def get_color(self) -> str: return self.__tank_colour
+    @property
+    def color(self) -> str | tuple[int, int, int]: return self.__tank_color
 
-    def get_hp(self) -> int: return self.__hp
+    @property
+    def hp(self) -> int: return self.__hp
 
-    def get_max_hp(self) -> int: return self.__og_hp
+    @property
+    def max_hp(self) -> int: return self.__og_hp
 
+    @property
     def is_destroyed(self) -> bool: return self.__destroyed
 
-    def get_cp(self) -> int: return self.__cp
+    @property
+    def cp(self) -> int: return self.__cp
 
-    def get_spawn_coord(self) -> tuple: return self.__spawn_coord
+    @property
+    def spawn_coord(self) -> tuple: return self.__spawn_coord
 
-    def get_image_path(self) -> str:
+    @property
+    def image_path(self) -> str:
         return self.__image_path
 
     """     SETTERS     """
@@ -71,9 +79,11 @@ class Tank(Entity, ABC):
     def set_coord(self, new_coord: tuple) -> None:
         self._coord = new_coord
 
-    def set_hp(self, hp: int): self.__hp = hp
+    @hp.setter
+    def hp(self, hp: int): self.__hp = hp
 
-    def set_cp(self, capture_pts: int): self.__cp = capture_pts
+    @cp.setter
+    def cp(self, capture_pts: int): self.__cp = capture_pts
 
     """     ABSTRACTS       """
 

@@ -16,7 +16,7 @@ class Driver:
     # ResultsTable = {player_index: {tank_name: {action_combo: rewards}}}
     ResultsTable = Type[Dict[int, Dict[str, Dict[str, List[int]]]]]
 
-    def __init__(self, num_turns: int,  restart=False, num_players: int = 3):
+    def __init__(self, num_turns: int, restart=False, num_players: int = 3):
         # Player index corresponds to who starts first, so Players[0] plays turn 1
         group_size = Driver.calc_action_group_size(num_turns)
         print('group_size', group_size)
@@ -62,8 +62,6 @@ class Driver:
         while action_num ** (num_turns / size) > max_combos:
             size += 1
         return size - 1
-
-
 
     @staticmethod
     def calc_explore_prob(num_games: int) -> float:

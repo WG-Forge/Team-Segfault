@@ -16,7 +16,7 @@ together.
 ### Running
 
 Set the project workspace to the folder which contains main.py, call wanted tests inside of the main function and run
-the module.
+the module. Python 3.10<= is required
 
 ### Project structure
 

@@ -1,21 +1,24 @@
-from entities.entity import Entity
+from entities.entity import Entity, Entities
 from game_map.hex import Hex
 
 
 class Feature(Entity):
     """ Abstract feature class """
 
-    def __init__(self, name: str, coord: tuple, color):
+    def __init__(self, name: Entities, coord: tuple, color):
         self.__corners: tuple = Hex.make_corners(coord)
         self.__center: tuple = Hex.make_center(coord)
         self.__color = color
         super().__init__(name)
 
-    def get_corners(self) -> tuple:
+    @property
+    def corners(self) -> tuple:
         return self.__corners
 
-    def get_center(self) -> tuple:
+    @property
+    def center(self) -> tuple:
         return self.__center
 
-    def get_color(self) -> tuple:
+    @property
+    def color(self) -> tuple:
         return self.__color
