@@ -2,7 +2,8 @@ import pygame
 from pygame import Surface
 from pygame.sprite import Sprite
 
-from constants import SCREEN_WIDTH, HEX_RADIUS_X, HEX_RADIUS_Y, GAME_BACKGROUND
+from constants import SCREEN_WIDTH, HEX_RADIUS_X, HEX_RADIUS_Y, GAME_BACKGROUND, \
+    HARD_REPAIR_IMAGE_PATH, LIGHT_REPAIR_IMAGE_PATH, CATAPULT_IMAGE_PATH
 from entities.map_features.base import Base
 from entities.map_features.empty import Empty
 from entities.map_features.obstacle import Obstacle
@@ -25,7 +26,6 @@ class MapDrawer:
 
         Explosion.set_image_scale()
         self.__scoreboard = Scoreboard(players)
-        # self.__scoreboard.update_image_size(HEX_RADIUS_X[0] * 2, HEX_RADIUS_Y[0] * 2)
         self.__font_size = round(1.2 * min(HEX_RADIUS_X[0], HEX_RADIUS_Y[0]))
         self.__font = None
         self.__explosion_group = pygame.sprite.Group()
@@ -48,6 +48,8 @@ class MapDrawer:
             if tank is not None:
                 self.__tanks.add(TankDrawer(tank))
 
+        self.__load_images()
+
     def draw(self, screen: Surface):
         if self.__font is None:
             self.__font = pygame.font.SysFont('georgia', self.__font_size, bold=True)
@@ -58,7 +60,7 @@ class MapDrawer:
         # display tanks and features
         for coord, entities in self.__map.items():
             feature, tank = entities['feature'], entities['tank']
-            self.draw_feature(screen, feature)
+            self.__draw_feature(screen, feature)
 
         # draw tanks
         self.__tanks.draw(screen)
@@ -83,24 +85,33 @@ class MapDrawer:
             screen.blit(text, text_rect)
 
         # draw map legend
-        self.draw_legend(screen)
+        self.__draw_legend(screen)
 
         pygame.display.flip()
 
-    @staticmethod
-    def draw_feature(screen, feature):
+    def __load_images(self) -> None:
+        """Loads all necessary feature images"""
+        scale_size = (HEX_RADIUS_X[0] * 1.5, HEX_RADIUS_Y[0] * 1.5)
+        self.__hard_repair_image = pygame.transform.scale(pygame.image.load(HARD_REPAIR_IMAGE_PATH), scale_size)
+        self.__light_repair_image = pygame.transform.scale(pygame.image.load(LIGHT_REPAIR_IMAGE_PATH), scale_size)
+        self.__catapult_image = pygame.transform.scale(pygame.image.load(CATAPULT_IMAGE_PATH), scale_size)
+
+    def __draw_feature(self, screen, feature, image=None) -> None:
         """Renders the hexagon on the screen and draw a white border around the hexagon"""
         pygame.draw.polygon(screen, feature.color, feature.corners)
         pygame.draw.aalines(screen, (255, 255, 255), closed=True, points=feature.corners)
 
-    def draw_legend(self, screen: Surface):
+        if image is not None:
+            screen.blit(image, feature.center)
+
+    def __draw_legend(self, screen: Surface):
         y = 0
         for feature in self.__map_legend_items:
             text = self.__font.render(' ' + str(feature.type), True, 'grey')
             text_rect = text.get_rect(midleft=(feature.center[0] + HEX_RADIUS_X[0], feature.center[1]))
             screen.blit(text, text_rect)
             y += 2 * HEX_RADIUS_Y[0]
-            self.draw_feature(screen, feature)
+            self.__draw_feature(screen, feature)
 
     """Adding sprites to their group"""
 
