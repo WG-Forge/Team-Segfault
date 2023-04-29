@@ -8,19 +8,26 @@ Team members:
 
 ### Game description
 
-The game can have human, bot players, and observers. It is played on a hexagonal map with a certain number of turns. The
-game class manages the game state, initializes the players and client connections, runs the game in a loop.
-The game currently supports one (for a single-player game), or more (for a multiplayer game) trivial bots playing
-together.
+The game can have bot players, remote players, and observers. 
+It is a turn-based strategy game played on a hexagonal map, with each player being assigned five different tanks. 
+Each game is uniquely identified by its name, and the same goes for each player joining that game.
+When starting the game you will be greeted by a menu screen where you can change the game configuration as you wish.
+After starting the game and waiting for all the players to join, a simulation will play out in which the different players will battle each other, until the game ends in a draw or a winner is determined.
 
 ### Running
 
 Set the project workspace to the folder which contains main.py, call wanted tests inside of the main function and run
-the module. Python 3.10<= is required
+the module.
+For testing remote games run the remote_game_test and remote_game_join modules separately, with the same project configurations as for the previously
+named.
+Python 3.11 <= is required.
 
 ### Project structure
 
-TODO
+A simplified version of the project structure can be seen here:
+![slika](https://user-images.githubusercontent.com/81580576/235316656-47e671de-1d40-48da-beac-eed6c6c007d7.png)
+
+The DisplayManager is the top-level entry point of the program, but the Game class can be run and configured itself without it, in which case no window will be rendered, and only console output can be seen.
 
 ### Assets
 
