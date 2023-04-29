@@ -25,7 +25,7 @@ Python 3.11 <= is required.
 ### Project structure
 
 A simplified version of the project structure can be seen here:
-![slika](https://user-images.githubusercontent.com/81580576/235316656-47e671de-1d40-48da-beac-eed6c6c007d7.png)
+![VLLDZZ~1](https://user-images.githubusercontent.com/81580576/235317295-928da99f-785b-4219-a8fc-f8f0fe809311.PNG)
 
 The DisplayManager is the top-level entry point of the program, but the Game class can be run and configured itself without it, in which case no window will be rendered, and only console output can be seen.
 
