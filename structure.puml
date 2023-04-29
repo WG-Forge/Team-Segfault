@@ -1,0 +1,124 @@
+@startuml
+hide empty members
+
+class DisplayManager {
+    +getUserInput()
+    +startGame()
+    +drawScene()
+}
+
+class Game {
+    +start()
+    -updateState()
+    -PlayerManager
+}
+
+class Scene {
+    +draw()
+    +updateState()
+    -SceneDrawer
+    -TankDrawer
+}
+
+class GameClient{
+    +sendToServer()
+    -ServerConnection
+}
+
+abstract class Player {
+    +makeTurnPlays()
+}
+
+class RemotePlayer {
+}
+
+class BotPlayer {
+}
+
+class Observer {
+}
+
+abstract class Entity {
+}
+
+abstract class Tank {
+}
+
+class Artillery {
+}
+
+class Destroyer {
+}
+
+class Heavy {
+}
+
+class Light {
+}
+
+class Medium {
+}
+
+abstract class Feature {
+}
+
+class Base {
+}
+
+class Empty {
+}
+
+class Obstacle {
+}
+
+class Spawn {
+}
+
+abstract class Repair {
+}
+
+class LightRepair {
+}
+
+class HardRepair {
+}
+
+class Catapult {
+}
+
+class PlayerManager {
+    +addPlayer()
+}
+
+Game "1" *-down-> "1" Scene: updates
+Game "1" *-down-> "1" GameClient: gets state
+Game "1" *-down-> "1" PlayerManager: contains
+PlayerManager "1" *-down-> "X" Player: synchronizes
+Scene "1" *-down-> "X" Entity: contains
+Scene "1" *-down-> "X" Player: contains
+Player <|-down- RemotePlayer
+Player <|-down- BotPlayer
+Player <|-down- Observer
+Player "1" *-down-> "5" Tank: contains
+Player "1" *-down-> "1" GameClient: sends actions
+RemotePlayer --> GameClient: gets actions
+Tank <|-down- Artillery
+Tank <|-down- Destroyer
+Tank <|-down- Heavy
+Tank <|-down- Light
+Tank <|-down- Medium
+Entity <|-down- Feature
+Entity <|-down- Repair
+Entity <|-down- Catapult
+Entity <|-down- Tank
+Feature <|-down- Base
+Feature <|-down- Empty
+Feature <|-down- Obstacle
+Feature <|-down- Spawn
+DisplayManager "1" *-down-> "1" Game: starts
+DisplayManager "1" *-down-> "1" Scene: draws
+DisplayManager *-down-> Menu: gets input
+Player "1" *-up-> "1" Scene: updates
+Repair <|-down- LightRepair
+Repair <|-down- HardRepair
+@enduml
