@@ -12,8 +12,8 @@ SCREEN_WIDTH = SCREEN_RATIO[0] * SCREEN_SIZE
 SCREEN_HEIGHT = SCREEN_RATIO[1] * SCREEN_SIZE
 
 # this is reduced when on game start
-HEX_RADIUS_X = [SCREEN_WIDTH]
-HEX_RADIUS_Y = [SCREEN_HEIGHT]
+HEX_RADIUS_X = [-1]
+HEX_RADIUS_Y = [-1]
 
 # colors
 BLACK = (0, 0, 0)
@@ -27,19 +27,22 @@ BASE_COLOR = (39, 161, 72)
 EMPTY_COLOR = (87, 81, 81)
 OBSTACLE_COLOR = (51, 46, 46)
 DEFAULT_SPAWN_COLOR = (135, 126, 126)
-MENU_TEXT_COLOR = (231, 252, 3)
-MENU_SELECTED_TEXT_COLOR = (252, 186, 3)
-MENU_FONT = 'game/assets/menu/8-BIT WONDER.TTF'
+
+MENU_TEXT_COLOR = (159, 255, 25)
+MENU_SELECTED_TEXT_COLOR = (242, 51, 54)
 
 # player names
 PLAYER_NAMES = ['Playa', 'Bot 1', 'Bot 2', 'Bot 3']
 
 # sound options
-SOUND_VOLUME = [1.0]
+SOUND_VOLUME = [0.1]
 
 # sound paths
 EXPLOSION_SOUND = 'game/assets/sounds/explosion.mp3'
 BULLET_SOUND = 'game/assets/sounds/shot.mp3'
+
+# font paths
+MENU_FONT = 'game/assets/menu/8-BIT WONDER.TTF'
 
 # image paths
 TANK_ICON_PATH = 'game/assets/tank_icon.png'

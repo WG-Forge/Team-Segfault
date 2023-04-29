@@ -1,7 +1,9 @@
-from tests.multiplayer_game import multiplayer_game
+from gui.display_manager import DisplayManager
 
 if __name__ == '__main__':
-    multiplayer_game()
+    display_manager = DisplayManager()
+    display_manager.run()
+    # multiplayer_game()
     # single_player_game()
 
     # If you're going to change the number of turns set restart to True for the first training session

@@ -2,7 +2,7 @@ from typing import List, Union, Callable, Dict
 
 from pygame import Surface
 
-from constants import HEX_RADIUS_X, HEX_RADIUS_Y
+from constants import HEX_RADIUS_X, HEX_RADIUS_Y, SCREEN_HEIGHT, SCREEN_WIDTH
 from entities.map_features.base import Base
 from entities.map_features.empty import Empty
 from entities.map_features.obstacle import Obstacle
@@ -15,8 +15,8 @@ from gui.map_utils.map_drawer import MapDrawer
 
 class Map:
     def __init__(self, client_map: Dict, game_state: Dict, active_players: Dict, current_turn: list[1]):
-        HEX_RADIUS_X[0] //= (client_map['size'] - 1) * 2 * 2
-        HEX_RADIUS_Y[0] //= (client_map['size'] - 1) * 2 * 2
+        HEX_RADIUS_X[0] = SCREEN_WIDTH // ((client_map['size'] - 1) * 2 * 2)
+        HEX_RADIUS_Y[0] = SCREEN_HEIGHT // ((client_map['size'] - 1) * 2 * 2)
 
         self.__players: Dict = Map.__add_players(active_players)
         self.__tanks: Dict[int, Tank] = {}
