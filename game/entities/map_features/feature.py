@@ -1,10 +1,8 @@
-from abc import ABC
-
 from entities.entity import Entity, Entities
 from game_map.hex import Hex
 
 
-class Feature(Entity, ABC):
+class Feature(Entity):
     """ Abstract feature class """
 
     def __init__(self, name: Entities, coord: tuple, color):

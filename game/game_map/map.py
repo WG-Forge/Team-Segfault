@@ -3,17 +3,23 @@ from typing import List, Union, Callable, Dict
 from pygame import Surface
 
 from constants import HEX_RADIUS_X, HEX_RADIUS_Y
-from entities.map_features.base import Base
-from entities.map_features.empty import Empty
-from entities.map_features.obstacle import Obstacle
+from entities.entity_enum import Entities
+from entities.map_features.bonuses.catapult import Catapult
+from entities.map_features.bonuses.hard_repair import HardRepair
+from entities.map_features.bonuses.light_repair import LightRepair
+from entities.map_features.physical.base import Base
+from entities.map_features.physical.empty import Empty
+from entities.map_features.physical.obstacle import Obstacle
 from entities.tanks.tank import Tank
 from entities.tanks.tank_factory import TankFactory
 from game_map import _a_star
+from entities.map_features.feature_factory import FeatureFactory
 from game_map.hex import Hex
 from gui.map_utils.map_drawer import MapDrawer
 
 
 class Map:
+
     def __init__(self, client_map: Dict, game_state: Dict, active_players: Dict, current_turn: list[1]):
         HEX_RADIUS_X[0] //= (client_map['size'] - 1) * 2 * 2
         HEX_RADIUS_Y[0] //= (client_map['size'] - 1) * 2 * 2
@@ -44,6 +50,10 @@ class Map:
         # save_server_map(client_map)
         # save_game_state(game_state)
 
+        print(client_map)
+        print()
+        print(game_state)
+
         # put tanks in tanks & map & put spawns in map
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             player = active_players[vehicle_info["player_id"]]
@@ -55,14 +65,11 @@ class Map:
             self.__tanks[int(vehicle_id)] = tank
             player.add_tank(tank)
 
-        # Put entities in map
-        for entity, info in client_map["content"].items():
-            if entity == "base":
-                self.__make_bases(info)
-            elif entity == 'obstacle':
-                self.__make_obstacles(info)
-            else:
-                print(f"Support for {entity} needed")
+        # Make features, put them in map
+        feature_factory = FeatureFactory(client_map["content"], self.__map)
+        self.__base_coords = feature_factory.get_base_coords()
+        self.__base_adjacent_coords = feature_factory.get_base_adjacents()
+        del feature_factory
 
     @staticmethod
     def __add_players(active_players: Dict) -> Dict:
@@ -71,22 +78,6 @@ class Map:
             if not player.is_observer:
                 players[player.index] = player
         return players
-
-    def __make_bases(self, coords: Dict) -> None:
-        self.__base_coords = tuple([tuple(coord.values()) for coord in coords])
-        for coord in self.__base_coords:
-            self.__map[coord]['feature'] = Base(coord)
-        self.__make_base_adjacents()
-
-    def __make_base_adjacents(self):
-        adjacent_deltas = Hex.make_ring(1)
-        self.__base_adjacent_coords = list({Hex.coord_sum(delta, base_coord) for base_coord in self.__base_coords
-                                            for delta in adjacent_deltas} - set(self.__base_coords))
-
-    def __make_obstacles(self, obstacles: []) -> None:
-        for d in obstacles:
-            coord = (d['x'], d['y'], d['z'])
-            self.__map[coord]['feature'] = Obstacle(coord)
 
     """     DRAWING     """
 

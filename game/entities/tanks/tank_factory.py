@@ -1,5 +1,5 @@
 from entities.entity_enum import Entities
-from entities.map_features.spawn import Spawn
+from entities.map_features.physical.spawn import Spawn
 from entities.tanks.types.artillery import Artillery
 from entities.tanks.types.destroyer import TankDestroyer
 from entities.tanks.types.heavy import HeavyTank

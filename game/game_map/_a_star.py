@@ -1,8 +1,8 @@
 import heapq
 from typing import Union
 
-from entities.map_features.obstacle import Obstacle
-from entities.map_features.spawn import Spawn
+from entities.map_features.physical.obstacle import Obstacle
+from entities.map_features.physical.spawn import Spawn
 from entities.tanks.tank import Tank
 from game_map.hex import Hex
 
