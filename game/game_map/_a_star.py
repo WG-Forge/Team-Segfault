@@ -1,8 +1,8 @@
 import heapq
-from typing import Union
+from typing import Union, List, Dict
 
-from entities.map_features.Landmarks.obstacle import Obstacle
-from entities.map_features.Landmarks.spawn import Spawn
+from entities.map_features.landmarks.obstacle import Obstacle
+from entities.map_features.landmarks.spawn import Spawn
 from entities.tanks.tank import Tank
 from game_map.hex import Hex
 
@@ -13,9 +13,9 @@ def a_star(game_map: dict, tank: Tank, finish: tuple) -> Union[tuple, None]:
     cnt = 0
 
     while cnt < 25:
-        frontier = []
+        frontier: List[tuple] = []
         heapq.heappush(frontier, (0, start))
-        came_from = {}
+        came_from: Dict[tuple, tuple | None] = {}
         cost_so_far = {start: 0}
         came_from[start] = None
         while frontier:
@@ -50,6 +50,8 @@ def a_star(game_map: dict, tank: Tank, finish: tuple) -> Union[tuple, None]:
             continue
         else:
             return next_best
+
+    return None
 
 
 # Protected member of module starts with underscore

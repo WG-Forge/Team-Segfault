@@ -1,5 +1,5 @@
 from threading import Thread, Event
-from typing import Dict
+from typing import List
 
 from game_map.map import Map
 from players.player import Player
@@ -8,34 +8,34 @@ from remote.game_client import GameClient
 
 
 class Game(Thread):
-    def __init__(self, game_name: str = None, num_turns: int = None,
+    def __init__(self, game_name: str | None = None, num_turns: int | None = None,
                  max_players: int = 1) -> None:
         super().__init__()
 
-        self.game_map = None
-        self.__game_name: str = game_name
+        self.game_map: Map | None = None
+        self.__game_name: str | None = game_name
 
         # create an active event
         self.over: Event = Event()
 
-        self.__num_turns: int = num_turns
+        self.__num_turns: int | None = num_turns
         self.__max_players: int = max_players
         self.__winner = None
-        self.__winner_index = None
+        self.__winner_index: int | None = None
         self.__started: bool = False
 
-        self.__current_turn: [] = [-1]
-        self.__current_player = None
+        self.__current_turn: List[int] = [-1]
+        self.__current_player: Player | None = None
 
         # Observer connection that is used for collecting data
         self.__shadow_client = GameClient()
         self.__active_players: dict[int, Player] = {}
-        self.__current_player_idx: list[1] = [-1]
+        self.__current_player_idx: List[int] = [-1]
         self.__player_manager: PlayerManager = PlayerManager(self, self.__shadow_client)
 
-    def __str__(self):
+    def __str__(self) -> str:
         out: str = ""
-        out += str.format(f'Game name: {self.__game_name}, '
+        out += str.format(f'Game player_name: {self.__game_name}, '
                           f'number of players: {self.__max_players}, '
                           f'number of turns: {self.__num_turns}.')
 
@@ -59,11 +59,11 @@ class Game(Thread):
         return self.__started
 
     @property
-    def game_name(self) -> str:
+    def game_name(self) -> str | None:
         return self.__game_name
 
     @property
-    def num_turns(self) -> int:
+    def num_turns(self) -> int | None:
         return self.__num_turns
 
     @property
@@ -88,13 +88,10 @@ class Game(Thread):
 
         self.__end_game()
 
-    def add_local_player(self, name: str, password: str = None, is_observer: bool = None) -> None:
+    def add_local_player(self, name: str, password: str | None = None, is_observer: bool | None = None) -> None:
         self.__player_manager.add_local_player(name, password, is_observer)
 
-    def set_game_actions(self, game_actions: Dict[int, Dict[str, str]]) -> None:
-        self.__player_manager.set_game_actions(game_actions)
-
-    def get_winner_index(self) -> int:
+    def get_winner_index(self) -> int | None:
         # wait for game end event
         self.over.wait()
         return self.__winner_index
@@ -123,7 +120,7 @@ class Game(Thread):
         # Add the queued local players to the game
         self.__player_manager.connect_queued_players()
 
-        game_state: dict = self.__wait_for_full_lobby()
+        game_state: dict | None = self.__wait_for_full_lobby()
 
         if not game_state:
             # the game was interrupted
@@ -160,9 +157,10 @@ class Game(Thread):
         self.__current_player.register_turn()
 
         print(f"Current turn: {self.__current_turn[0]}, "
-              f"current player: {self.__current_player.name}")
+              f"current player: {self.__current_player.player_name}")
 
-        self.game_map.update_turn(game_state)
+        if self.game_map:
+            self.game_map.update_turn(game_state)
 
         if game_state["winner"] or self.__current_turn[0] == self.__num_turns:
             self.__winner = game_state["winner"]
@@ -172,7 +170,7 @@ class Game(Thread):
         if self.__winner:
             winner = self.__active_players[self.__winner]
             self.__winner_index = winner.index
-            print(f'The winner is: {winner.name}.')
+            print(f'The winner is: {winner.player_name}.')
         else:
             print('The game is a draw.')
 

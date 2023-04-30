@@ -4,8 +4,8 @@ from game.game import Game
 from gui.display_manager import DisplayManager
 
 
-def multiplayer_game():
-    # Multiplayer game with a random name and three bot players
+def multiplayer_game() -> None:
+    # Multiplayer game with a random player_name and three bot players
     print("*** Multiplayer game test ***")
     name: str = "Test game 1: "
     name += str(random.randint(0, 10000))

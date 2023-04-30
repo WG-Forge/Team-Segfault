@@ -39,7 +39,7 @@ class Projectile(pygame.sprite.Sprite):
         if self.__sound_played is False:
             self.__sound.play()
             self.__sound_played = True
-        self.counter += self.step
+        self.counter += int(self.step)
 
         if self.counter >= 1:
             self.kill()

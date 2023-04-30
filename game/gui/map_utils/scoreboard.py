@@ -20,7 +20,7 @@ class Scoreboard:
         # length of 4 whole hexes
         self.__max_rect_length = 4 * (2 * HEX_RADIUS_X[0])
 
-        self.__players: () = players
+        self.__players: dict = players
         self.__n_players = len(self.__players) + 1
 
     """Capture scoreboards"""

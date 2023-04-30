@@ -1,5 +1,5 @@
 from threading import Semaphore, Event
-from typing import List
+from typing import List, Literal, Union
 
 from entities.entity_enum import Entities
 from entities.tanks.tank import Tank
@@ -8,7 +8,7 @@ from players.player import Player
 
 class BotPlayer(Player):
     def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
-                 current_player: list[1], player_index: int, over: Event):
+                 current_player: Literal[1], player_index: int, over: Event):
         super().__init__(name=name,
                          password=password,
                          is_observer=is_observer,
@@ -22,7 +22,7 @@ class BotPlayer(Player):
     def _make_turn_plays(self) -> None:
         try:
             # play your move if you are the current player
-            if self._current_player[0] == self.idx:
+            if self._current_player == self.idx:
                 # time.sleep(1)  # comment/uncomment this for a turn delay effect
                 self.__place_actions()
         finally:
@@ -84,12 +84,15 @@ class BotPlayer(Player):
         # Get the enemy in the fire corridor with the largest number of enemies and least friends
         tanks_by_corridor = [[tank for tank in tanks if tank.coord in c] for c in td.fire_corridors()]
 
-        best_score, best_corridor = 0, None
+        best_score: Union[float, Literal[0]] = 0
+        best_corridor = None
         for corridor in tanks_by_corridor:
-            score = sum([1 if self._map.is_enemy(td, tank) else -10
-            if self._map.is_neutral(td, tank) else -1.1 for tank in corridor])
+            score = sum(
+                [1 if self._map.is_enemy(td, tank) else -10 if self._map.is_neutral(td, tank) else -1.1 for tank in
+                 corridor])
             if score > best_score:
-                best_score, best_corridor = score, corridor
+                best_score = score
+                best_corridor = corridor
 
         if best_corridor and best_score > 0:
             self.__update_maps_with_shot(td, best_corridor[0], is_td=True)

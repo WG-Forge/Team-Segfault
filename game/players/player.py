@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
-from typing import Union
+from typing import Union, Literal, List
 
 from constants import PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR
 from entities.tanks.tank import Tank
@@ -16,14 +16,14 @@ class Player(Thread, ABC):
     __possible_colours = (PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR)
 
     def __init__(self,
-                 turn_played_sem: Semaphore, current_player: list[1], player_index: int, over: Event,
-                 name: str = None, password: str = None, is_observer: bool = None):
+                 turn_played_sem: Semaphore, current_player: Literal[1], player_index: int, over: Event,
+                 name: str | None = None, password: str | None = None, is_observer: bool | None = None):
         super().__init__()
 
         self.idx: int = -1
-        self.name = name
-        self.password = password
-        self.is_observer: bool = is_observer
+        self.player_name: str | None = name
+        self.password: str | None = password
+        self.is_observer: bool | None = is_observer
 
         self.next_turn_sem = Semaphore(0)
         self._current_player = current_player
@@ -39,7 +39,7 @@ class Player(Thread, ABC):
         self._tank_map: dict[int, Tank] = {}
         self._player_index = player_index
         self.__player_colour = Player.__possible_colours[player_index]
-        self.__has_shot = []  # Holds a list of enemies this player has shot last turn
+        self.__has_shot: List[int] = []  # Holds a list of enemies this player has shot last turn
 
         self._game_actions: Union[dict, None] = None
 
@@ -49,19 +49,19 @@ class Player(Thread, ABC):
         return super.__hash__(self)
 
     def __str__(self):
-        out = str.format(f'Player {self.idx}: {self.name}')
+        out = str.format(f'Player {self.idx}: {self.player_name}')
         if self.is_observer:
             out += ', observer'
 
         return out
 
     def add_to_game(self, player_info: dict, game_client: GameClient):
-        self.name: str = player_info["name"]
-        self.idx: int = player_info["idx"]
-        self.is_observer: bool = player_info["is_observer"]
-        self._damage_points: int = 0
-        self._capture_points: int = 0
-        self._game_client: GameClient = game_client
+        self.player_name = player_info["name"]
+        self.idx = player_info["idx"]
+        self.is_observer = player_info["is_observer"]
+        self._damage_points = 0
+        self._capture_points = 0
+        self._game_client = game_client
 
     def add_tank(self, new_tank: Tank) -> None:
         # Adds the tank in order of who gets priority movement
@@ -88,7 +88,9 @@ class Player(Thread, ABC):
 
                 self._make_turn_plays()
 
-            except ConnectionError or TimeoutError as err:
+            except ConnectionError as err:
+                print(err)
+            except TimeoutError as err:
                 print(err)
             finally:
                 # notify condition
@@ -97,7 +99,7 @@ class Player(Thread, ABC):
         # finalization
         self._finalize()
 
-    """     GETTERS     """
+    """     GETTERS AND SETTERS    """
 
     @property
     def color(self) -> str:
@@ -122,8 +124,6 @@ class Player(Thread, ABC):
     @property
     def turn_actions(self) -> Union[dict, None]:
         return self._turn_actions
-
-    """     SETTERS     """
 
     @turn_actions.setter
     def turn_actions(self, actions: dict) -> None:

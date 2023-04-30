@@ -1,7 +1,7 @@
 from typing import Dict, Tuple
 
 from entities.entity_enum import Entities
-from entities.map_features.Landmarks.spawn import Spawn
+from entities.map_features.landmarks.spawn import Spawn
 from entities.tanks.types.artillery import Artillery
 from entities.tanks.types.destroyer import TankDestroyer
 from entities.tanks.types.heavy import HeavyTank
@@ -22,7 +22,8 @@ class TankFactory:
     def __init__(self, vehicles: Dict, active_players: Dict, game_map: Dict, catapult_coords: Tuple):
         self.__tanks: Dict[int, Tank] = self.__make_tanks(vehicles, active_players, game_map, catapult_coords)
 
-    def __make_tanks(self, vehicles: Dict, active_players: Dict,
+    @staticmethod
+    def __make_tanks(vehicles: Dict, active_players: Dict,
                      game_map: Dict, catapult_coords: Tuple) -> Dict[int, Tank]:
         tanks: Dict[int, Tank] = {}
         for vehicle_id, vehicle_info in vehicles.items():

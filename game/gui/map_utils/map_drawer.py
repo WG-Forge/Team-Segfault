@@ -1,11 +1,14 @@
+from typing import List
+
 import pygame
 from pygame import Surface
-from pygame.sprite import Sprite
+from pygame.font import Font
+from pygame.sprite import Sprite, Group
 
 from constants import SCREEN_WIDTH, HEX_RADIUS_X, HEX_RADIUS_Y, GAME_BACKGROUND
-from entities.map_features.Landmarks.base import Base
-from entities.map_features.Landmarks.empty import Empty
-from entities.map_features.Landmarks.obstacle import Obstacle
+from entities.map_features.landmarks.base import Base
+from entities.map_features.landmarks.empty import Empty
+from entities.map_features.landmarks.obstacle import Obstacle
 from entities.tanks.tank import Tank
 from game_map.hex import Hex
 from gui.map_utils.explosion import Explosion
@@ -15,10 +18,10 @@ from gui.map_utils.tank_drawer import TankDrawer
 
 
 class MapDrawer:
-    def __init__(self, map_size: int, players: dict, game_map: dict, current_turn: list[1]):
+    def __init__(self, map_size: int, players: dict, game_map: dict, current_turn: List[int]):
 
         self.__map_size = map_size
-        self.__turn: list[1] = current_turn
+        self.__turn: List[int] = current_turn
         self.__max_damage_points: int = 0
         self.__players = players
         self.__map = game_map
@@ -27,9 +30,9 @@ class MapDrawer:
         self.__scoreboard = Scoreboard(players)
         # self.__scoreboard.update_image_size(HEX_RADIUS_X[0] * 2, HEX_RADIUS_Y[0] * 2)
         self.__font_size = round(1.2 * min(HEX_RADIUS_X[0], HEX_RADIUS_Y[0]))
-        self.__font = None
-        self.__explosion_group = pygame.sprite.Group()
-        self.__projectile_group = pygame.sprite.Group()
+        self.__font: Font | None = None
+        self.__explosion_group: Group = Group()
+        self.__projectile_group: Group = Group()
         # note: this could be moved somewhere else
         self.__explosion_delay = Projectile.get_travel_time()
 
@@ -42,7 +45,7 @@ class MapDrawer:
             self.__map_legend_items.append(feature((x, y - i, z + i)))
 
         # tanks
-        self.__tanks = pygame.sprite.Group()
+        self.__tanks: Group = Group()
         for _, entities in self.__map.items():
             tank = entities['tank']
             if tank is not None:
@@ -96,9 +99,10 @@ class MapDrawer:
     def draw_legend(self, screen: Surface):
         y = 0
         for feature in self.__map_legend_items:
-            text = self.__font.render(' ' + str(feature.type), True, 'grey')
-            text_rect = text.get_rect(midleft=(feature.center[0] + HEX_RADIUS_X[0], feature.center[1]))
-            screen.blit(text, text_rect)
+            if self.__font:
+                text = self.__font.render(' ' + str(feature.type), True, 'grey')
+                text_rect = text.get_rect(midleft=(feature.center[0] + HEX_RADIUS_X[0], feature.center[1]))
+                screen.blit(text, text_rect)
             y += 2 * HEX_RADIUS_Y[0]
             self.draw_feature(screen, feature)
 
@@ -111,6 +115,6 @@ class MapDrawer:
         explosion: Sprite = Explosion(Hex.make_center(target.coord))
         self.__explosion_group.add(explosion)
 
-    def add_shot(self, start_pos: (), end_pos: (), color):
+    def add_shot(self, start_pos: tuple[int, int], end_pos: tuple[int, int], color: tuple[int, int, int]):
         projectile: Sprite = Projectile(start_pos, end_pos, color)
         self.__projectile_group.add(projectile)

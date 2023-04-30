@@ -9,7 +9,7 @@ class Tank:
     __action_num = len(__actions)
 
     def __init__(self, num_turns: int, group_size: int):
-        self.__tank_results_table: Dict[str, List[int]] = {}  # {arm combo name: [list of rewards]}
+        self.__tank_results_table: Dict[str, List[int]] = {}  # {arm combo player_name: [list of rewards]}
         self.__game_action_combo: str = ''  # String representing actions taken in this turn
         self.__num_turns = num_turns
         self.__group_size: int = group_size

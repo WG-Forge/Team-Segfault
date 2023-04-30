@@ -3,20 +3,20 @@ from typing import List, Union, Callable, Dict, Tuple
 from pygame import Surface
 
 from constants import HEX_RADIUS_X, HEX_RADIUS_Y
-from entities.map_features.Landmarks.empty import Empty
-from entities.map_features.Landmarks.obstacle import Obstacle
 from entities.map_features.bonuses.catapult import Catapult
+from entities.map_features.feature_factory import FeatureFactory
+from entities.map_features.landmarks.empty import Empty
+from entities.map_features.landmarks.obstacle import Obstacle
 from entities.tanks.tank import Tank
 from entities.tanks.tank_factory import TankFactory
 from game_map import _a_star
-from entities.map_features.feature_factory import FeatureFactory
 from game_map.hex import Hex
 from gui.map_utils.map_drawer import MapDrawer
 
 
 class Map:
 
-    def __init__(self, client_map: Dict, game_state: Dict, active_players: Dict, current_turn: list[1]):
+    def __init__(self, client_map: Dict, game_state: Dict, active_players: Dict, current_turn: List[int]):
         HEX_RADIUS_X[0] //= (client_map['size'] - 1) * 2 * 2
         HEX_RADIUS_Y[0] //= (client_map['size'] - 1) * 2 * 2
 
@@ -160,10 +160,14 @@ class Map:
         if free_base_coords:
             return sorted(free_base_coords, key=lambda coord: Hex.manhattan_dist(to, coord))
 
+        return None
+
     def closest_free_base_adjacents(self, to: Tuple) -> Union[List[Tuple], None]:
         free_base_adjacents = [c for c in self.__base_adjacent_coords if self.__map[c]['tank'] is None or c == to]
         if free_base_adjacents:
             return sorted(free_base_adjacents, key=lambda coord: Hex.manhattan_dist(to, coord))
+
+        return None
 
     def closest_enemies(self, tank: Tank) -> List[Tank]:
         # Returns a sorted list by distance of enemy tanks

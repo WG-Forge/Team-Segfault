@@ -40,10 +40,14 @@ class Tank(Entity, ABC):
         self.__destroyed = False
         self.__hp = self.__og_hp
 
-    """     GETTERS     """
+    """     GETTERS AND SETTERS     """
 
     @property
     def coord(self) -> tuple: return self._coord
+
+    @coord.setter
+    def coord(self, new_coord: tuple) -> None:
+        self._coord = new_coord
 
     @property
     def player_index(self) -> int: return self.__player_index
@@ -57,6 +61,9 @@ class Tank(Entity, ABC):
     @property
     def hp(self) -> int: return self.__hp
 
+    @hp.setter
+    def hp(self, hp: int): self.__hp = hp
+
     @property
     def max_hp(self) -> int: return self.__og_hp
 
@@ -66,24 +73,15 @@ class Tank(Entity, ABC):
     @property
     def cp(self) -> int: return self.__cp
 
+    @cp.setter
+    def cp(self, capture_pts: int): self.__cp = capture_pts
+
     @property
     def spawn_coord(self) -> tuple: return self.__spawn_coord
 
     @property
     def image_path(self) -> str:
         return self.__image_path
-
-    """     SETTERS     """
-
-    @coord.setter
-    def coord(self, new_coord: tuple) -> None:
-        self._coord = new_coord
-
-    @hp.setter
-    def hp(self, hp: int): self.__hp = hp
-
-    @cp.setter
-    def cp(self, capture_pts: int): self.__cp = capture_pts
 
     """     ABSTRACTS       """
 

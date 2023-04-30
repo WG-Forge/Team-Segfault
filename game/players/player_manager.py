@@ -1,6 +1,6 @@
 import random
 from threading import Semaphore
-from typing import Dict
+from typing import List
 
 from players.player import Player
 from players.player_factory import PlayerFactory, PlayerTypes
@@ -21,11 +21,7 @@ class PlayerManager:
 
         self.__turn_played_sem: Semaphore = Semaphore(0)
 
-        self.__players_queue: [Player] = []
-
-    def set_game_actions(self, game_actions: Dict[int, Dict[str, str]]) -> None:
-        for player in self.__players_queue:
-            player.set_turn_actions(game_actions[player.get_index()])
+        self.__players_queue: List[Player] = []
 
     def notify_all_players(self) -> None:
         # release all players using their private semaphores
@@ -52,7 +48,7 @@ class PlayerManager:
         for player in self.__players_queue:
             self.__connect_local_player(player)
 
-    def add_local_player(self, name: str, password: str = None, is_observer: bool = None) -> None:
+    def add_local_player(self, name: str, password: str | None = None, is_observer: bool | None = None) -> None:
         """
         Will connect the player if game has started.
         If the game is full, player will be connected as an observer.
@@ -114,7 +110,7 @@ class PlayerManager:
 
     def __connect_local_player(self, player: Player) -> None:
         game_client: GameClient = GameClient()
-        user_info: dict = game_client.login(player.name, player.password,
+        user_info: dict = game_client.login(player.player_name, player.password,
                                             self.__game.game_name, self.__game.num_turns,
                                             self.__game.max_players, player.is_observer)
 

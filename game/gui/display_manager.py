@@ -1,7 +1,9 @@
 import os
 
+import pygame
+
 from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE, MENU_FONT
-from gui.menu import *
+from gui.menu import MainMenu, OptionsMenu, CreditsMenu
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
@@ -40,23 +42,26 @@ class DisplayManager:
 
     def check_events(self):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                # interrupt the game
-                self.game.over.set()
+            match event.type:
+                case pygame.QUIT:
+                    # interrupt the game
+                    self.game.over.set()
 
-                # set everything else to ended
-                self.playing = False
-                self.running = False
-                self.curr_menu.run_display = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    self.START_KEY = True
-                if event.key == pygame.K_BACKSPACE:
-                    self.BACK_KEY = True
-                if event.key == pygame.K_DOWN:
-                    self.DOWN_KEY = True
-                if event.key == pygame.K_UP:
-                    self.UP_KEY = True
+                    # set everything else to ended
+                    self.playing = False
+                    self.running = False
+                    self.curr_menu.run_display = False
+
+                case pygame.KEYDOWN:
+                    match event.key:
+                        case pygame.K_RETURN:
+                            self.START_KEY = True
+                        case pygame.K_BACKSPACE:
+                            self.BACK_KEY = True
+                        case pygame.K_DOWN:
+                            self.DOWN_KEY = True
+                        case pygame.K_UP:
+                            self.UP_KEY = True
 
     def reset_keys(self):
         self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False

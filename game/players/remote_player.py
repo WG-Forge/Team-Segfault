@@ -1,5 +1,5 @@
 from threading import Event, Semaphore
-from typing import Callable
+from typing import Callable, Literal
 
 from entities.entity_enum import Entities
 from game_map.hex import Hex
@@ -10,7 +10,7 @@ from remote.server_enum import Action
 
 class RemotePlayer(Player):
     def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
-                 current_player: list[1], player_index: int, over: Event):
+                 current_player: Literal[1], player_index: int, over: Event):
         super().__init__(name=name,
                          password=password,
                          is_observer=is_observer,

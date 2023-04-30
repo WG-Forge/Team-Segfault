@@ -1,12 +1,12 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 
 from entities.entity_enum import Entities
 from entities.map_features.bonuses.catapult import Catapult
 from entities.map_features.bonuses.hard_repair import HardRepair
 from entities.map_features.bonuses.light_repair import LightRepair
-from entities.map_features.Landmarks.base import Base
-from entities.map_features.Landmarks.empty import Empty
-from entities.map_features.Landmarks.obstacle import Obstacle
+from entities.map_features.landmarks.base import Base
+from entities.map_features.landmarks.empty import Empty
+from entities.map_features.landmarks.obstacle import Obstacle
 from game_map.hex import Hex
 
 
@@ -51,10 +51,13 @@ class FeatureFactory:
                                       } - set(self.__base_coords)
 
     @property
-    def catapult_coords(self) -> Tuple[Tuple]: return tuple(self.__catapult_coords)
+    def catapult_coords(self) -> Tuple[Tuple[Any, ...], ...]:
+        return tuple(self.__catapult_coords)
 
     @property
-    def base_coords(self) -> Tuple[Tuple]: return tuple(self.__base_coords)
+    def base_coords(self) -> Tuple[Tuple[Any, ...], ...]:
+        return tuple(self.__base_coords)
 
     @property
-    def base_adjacents(self) -> Tuple[Tuple]: return tuple(self.__base_adjacent_coords)
+    def base_adjacents(self) -> Tuple[Tuple[Any, ...], ...]:
+        return tuple(self.__base_adjacent_coords)

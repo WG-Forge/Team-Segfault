@@ -1,7 +1,7 @@
 import time
 
 
-def time_test(func, *args):
+def time_test(func, *args) -> None:
     start_time = time.time()
     func(args)
     end_time = time.time()

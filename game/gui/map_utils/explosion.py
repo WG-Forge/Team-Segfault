@@ -15,7 +15,7 @@ class Explosion(pygame.sprite.Sprite):
         self.counter = 0
         self.image = Explosion.__IMAGES[self.index]
         self.rect = self.image.get_rect()
-        self.rect.center = [coord[0], coord[1]]
+        self.rect.center = (coord[0], coord[1])
 
         # used for delaying explosion if the bullet is too slow; should not be delayed when turns are fast
         # self.delay = explosion_delay
