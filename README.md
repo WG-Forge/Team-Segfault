@@ -18,7 +18,7 @@ After starting the game and waiting for all the players to join, a simulation wi
 
 Set the project workspace to the folder which contains main.py, call wanted tests inside of the main function and run
 the module.
-For testing remote games run the remote_game_test and remote_game_join modules separately, with the same project configurations as for the previously
+For testing remote games run the remote_game_create and remote_game_join modules separately, with the same project configurations as for the previously
 named.
 Python 3.11 <= is required.
 
