@@ -1,4 +1,4 @@
-from typing import List, Union, Callable, Dict, Tuple
+from typing import List, Callable, Dict, Tuple
 
 from pygame import Surface
 
@@ -63,7 +63,7 @@ class Map:
 
     """     DRAWING     """
 
-    def draw(self, screen: Surface):
+    def draw(self, screen: Surface) -> None:
         self.__map_drawer.draw(screen)
 
     """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
@@ -110,7 +110,7 @@ class Map:
 
         self.__players[tank.player_index].register_shot(target.player_index)
 
-    def local_shoot_tuple(self, tank: Tank, coord: tuple):
+    def local_shoot_tuple(self, tank: Tank, coord: tuple) -> None:
         entities = self.__map.get(coord)
         if entities and not isinstance(entities['feature'], Obstacle):
             enemy = self.__map[coord]['tank']
@@ -155,14 +155,14 @@ class Map:
             if self.is_enemy(tank, enemy)
         ]
 
-    def closest_free_bases(self, to: Tuple) -> Union[List[Tuple], None]:
+    def closest_free_bases(self, to: Tuple) -> List[Tuple] | None:
         free_base_coords = tuple(c for c in self.__base_coords if self.__map[c]['tank'] is None or c == to)
         if free_base_coords:
             return sorted(free_base_coords, key=lambda coord: Hex.manhattan_dist(to, coord))
 
         return None
 
-    def closest_free_base_adjacents(self, to: Tuple) -> Union[List[Tuple], None]:
+    def closest_free_base_adjacents(self, to: Tuple) -> List[Tuple] | None:
         free_base_adjacents = [c for c in self.__base_adjacent_coords if self.__map[c]['tank'] is None or c == to]
         if free_base_adjacents:
             return sorted(free_base_adjacents, key=lambda coord: Hex.manhattan_dist(to, coord))
@@ -176,5 +176,5 @@ class Map:
         return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.tanks),
                       key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.coord, tank_coord))
 
-    def next_best_available_hex_in_path_to(self, tank: Tank, finish: Tuple) -> Union[Tuple, None]:
+    def next_best_available_hex_in_path_to(self, tank: Tank, finish: Tuple) -> Tuple | None:
         return self.__path_finding_algorithm(self.__map, tank, finish)

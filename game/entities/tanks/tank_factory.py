@@ -38,7 +38,7 @@ class TankFactory:
 
     @staticmethod
     def make_tank_and_spawn(tank_id: int, tank_info: Dict, tank_color: Tuple,
-                            player_index: int, catapult_coords: Tuple) -> Tuple:
+                            player_index: int, catapult_coords: Tuple) -> Tuple[TANK_TYPES, Spawn]:
         tank_class = TankFactory.TANK_TYPES[tank_info["vehicle_type"]]
         tank = tank_class(tank_id, tank_info, tank_color, player_index, catapult_coords)
         spawn = Spawn(tank.spawn_coord, tank_id, tank_color)

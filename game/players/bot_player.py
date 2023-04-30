@@ -8,7 +8,7 @@ from players.player import Player
 
 class BotPlayer(Player):
     def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
-                 current_player: Literal[1], player_index: int, over: Event):
+                 current_player: list[int], player_index: int, over: Event):
         super().__init__(name=name,
                          password=password,
                          is_observer=is_observer,
@@ -29,7 +29,7 @@ class BotPlayer(Player):
             # end your turn
             self._game_client.force_turn()
 
-    def _finalize(self):
+    def _finalize(self) -> None:
         # manage your own connection
         self._game_client.logout()
         self._game_client.disconnect()
@@ -123,7 +123,7 @@ class BotPlayer(Player):
         self._map.local_move(tank, action_coord)
         self._game_client.server_move({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
 
-    def __update_maps_with_shot(self, tank: Tank, enemy: Tank, is_td=False):
+    def __update_maps_with_shot(self, tank: Tank, enemy: Tank, is_td=False) -> None:
         if is_td:
             td_shooting_coord = tank.td_shooting_coord(enemy.coord)
             x, y, z = td_shooting_coord

@@ -49,7 +49,7 @@ class Hex:
         return tuple(-x for x in dir_vec)
 
     @staticmethod
-    def fire_deltas(min_range: int, max_range: int):
+    def fire_deltas(min_range: int, max_range: int) -> tuple:
         fire_deltas = []
         for i in range(min_range, max_range + 1):
             for coord in Hex.__rings[i]:
@@ -57,7 +57,7 @@ class Hex:
         return tuple(fire_deltas)
 
     @staticmethod
-    def make_rings(max_range: int = 4):  # Change max_range if maximum range of any tank is > 4 hexes
+    def make_rings(max_range: int = 4) -> None:  # Change max_range if maximum range of any tank is > 4 hexes
         Hex.__rings = [Hex.make_ring(i) for i in range(0, max_range + 1)]
 
     @staticmethod
@@ -89,7 +89,7 @@ class Hex:
         return tuple(x * m for x in coord)
 
     @staticmethod
-    def make_center(coord: tuple):
+    def make_center(coord: tuple) -> Tuple[int, int]:
         """Returns the center of a given hex in cartesian co-ordinates for current screen"""
         x, y, z = coord
         x, y = (1 * x - 0.5 * y - 0.5 * z), (Hex.__sqrt3 / 2 * y - Hex.__sqrt3 / 2 * z)

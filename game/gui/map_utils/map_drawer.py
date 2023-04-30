@@ -51,7 +51,7 @@ class MapDrawer:
             if tank is not None:
                 self.__tanks.add(TankDrawer(tank))
 
-    def draw(self, screen: Surface):
+    def draw(self, screen: Surface) -> None:
         if self.__font is None:
             self.__font = pygame.font.SysFont('georgia', self.__font_size, bold=True)
 
@@ -91,12 +91,12 @@ class MapDrawer:
         pygame.display.flip()
 
     @staticmethod
-    def draw_feature(screen, feature):
+    def draw_feature(screen, feature) -> None:
         """Renders the hexagon on the screen and draw a white border around the hexagon"""
         pygame.draw.polygon(screen, feature.color, feature.corners)
         pygame.draw.aalines(screen, (255, 255, 255), closed=True, points=feature.corners)
 
-    def draw_legend(self, screen: Surface):
+    def draw_legend(self, screen: Surface) -> None:
         y = 0
         for feature in self.__map_legend_items:
             if self.__font:
@@ -115,6 +115,6 @@ class MapDrawer:
         explosion: Sprite = Explosion(Hex.make_center(target.coord))
         self.__explosion_group.add(explosion)
 
-    def add_shot(self, start_pos: tuple[int, int], end_pos: tuple[int, int], color: tuple[int, int, int]):
+    def add_shot(self, start_pos: tuple[int, int], end_pos: tuple[int, int], color: tuple[int, int, int]) -> None:
         projectile: Sprite = Projectile(start_pos, end_pos, color)
         self.__projectile_group.add(projectile)

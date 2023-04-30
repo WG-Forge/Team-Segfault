@@ -56,7 +56,7 @@ class Tank(Entity, ABC):
     def tank_id(self) -> int: return self.__tank_id
 
     @property
-    def color(self) -> str | tuple[int, int, int]: return self.__tank_color
+    def color(self) -> str | Tuple[int, int, int]: return self.__tank_color
 
     @property
     def hp(self) -> int: return self.__hp
@@ -96,7 +96,7 @@ class Tank(Entity, ABC):
     def coords_in_range(self, is_on_catapult: bool) -> Tuple: pass
 
     @abstractmethod
-    def td_shooting_coord(self, target: tuple) -> tuple: return ()
+    def td_shooting_coord(self, target: tuple) -> tuple: pass
 
     @abstractmethod
-    def fire_corridors(self) -> tuple: return ()
+    def fire_corridors(self) -> tuple: pass

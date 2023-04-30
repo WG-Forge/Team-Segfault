@@ -40,7 +40,7 @@ class DisplayManager:
 
         self.__clock = pygame.time.Clock()
 
-    def check_events(self):
+    def check_events(self) -> None:
         for event in pygame.event.get():
             match event.type:
                 case pygame.QUIT:
@@ -63,10 +63,10 @@ class DisplayManager:
                         case pygame.K_UP:
                             self.UP_KEY = True
 
-    def reset_keys(self):
+    def reset_keys(self) -> None:
         self.UP_KEY, self.DOWN_KEY, self.START_KEY, self.BACK_KEY = False, False, False, False
 
-    def draw_text(self, text, size, x, y):
+    def draw_text(self, text, size, x, y) -> None:
         font = pygame.font.Font(self.font_name, size)
         text_surface = font.render(text, True, WHITE)
         text_rect = text_surface.get_rect()
@@ -81,7 +81,7 @@ class DisplayManager:
             self.game.over.set()
             pygame.quit()
 
-    def __run(self):
+    def __run(self) -> None:
         while self.running:
             self.curr_menu.display_menu()
 

@@ -3,14 +3,13 @@ import os
 import pygame
 
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, HEX_RADIUS_Y, HEX_RADIUS_X
-from game_map.hex import Hex
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
 
 class EndScreen:
     @staticmethod
-    def draw_podium(screen, players):
+    def draw_podium(screen, players) -> None:
         screen.fill('blue')
         width = HEX_RADIUS_X[0] * 4
         third_height = HEX_RADIUS_Y[0] * 2

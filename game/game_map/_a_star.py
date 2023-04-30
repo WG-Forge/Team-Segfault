@@ -1,5 +1,5 @@
 import heapq
-from typing import Union, List, Dict
+from typing import List, Dict
 
 from entities.map_features.landmarks.obstacle import Obstacle
 from entities.map_features.landmarks.spawn import Spawn
@@ -7,7 +7,7 @@ from entities.tanks.tank import Tank
 from game_map.hex import Hex
 
 
-def a_star(game_map: dict, tank: Tank, finish: tuple) -> Union[tuple, None]:
+def a_star(game_map: dict, tank: Tank, finish: tuple) -> tuple | None:
     start, tank_id, speed = tank.coord, tank.tank_id, tank.speed
     passable_obstacles = []
     cnt = 0

@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
-from typing import Union, Literal, List
+from typing import Union, List, Dict
 
 from constants import PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR
 from entities.tanks.tank import Tank
@@ -16,7 +16,7 @@ class Player(Thread, ABC):
     __possible_colours = (PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR)
 
     def __init__(self,
-                 turn_played_sem: Semaphore, current_player: Literal[1], player_index: int, over: Event,
+                 turn_played_sem: Semaphore, current_player: List[int], player_index: int, over: Event,
                  name: str | None = None, password: str | None = None, is_observer: bool | None = None):
         super().__init__()
 
@@ -35,8 +35,8 @@ class Player(Thread, ABC):
 
         self._damage_points = 0
         self._capture_points = 0
-        self._tanks: list[Tank] = []
-        self._tank_map: dict[int, Tank] = {}
+        self._tanks: List[Tank] = []
+        self._tank_map: Dict[int, Tank] = {}
         self._player_index = player_index
         self.__player_colour = Player.__possible_colours[player_index]
         self.__has_shot: List[int] = []  # Holds a list of enemies this player has shot last turn
@@ -55,7 +55,7 @@ class Player(Thread, ABC):
 
         return out
 
-    def add_to_game(self, player_info: dict, game_client: GameClient):
+    def add_to_game(self, player_info: dict, game_client: GameClient) -> None:
         self.player_name = player_info["name"]
         self.idx = player_info["idx"]
         self.is_observer = player_info["is_observer"]
@@ -73,7 +73,7 @@ class Player(Thread, ABC):
                 return
         self._tanks.append(new_tank)
 
-    def add_map(self, game_map: Map):
+    def add_map(self, game_map: Map) -> None:
         self._map = game_map
 
     def run(self) -> None:
@@ -106,11 +106,11 @@ class Player(Thread, ABC):
         return self.__player_colour
 
     @property
-    def index(self):
+    def index(self) -> int:
         return self._player_index
 
     @property
-    def tanks(self):
+    def tanks(self) -> List[Tank]:
         return self._tanks
 
     @property
@@ -150,5 +150,5 @@ class Player(Thread, ABC):
         pass
 
     @abstractmethod
-    def _finalize(self):
+    def _finalize(self) -> None:
         pass

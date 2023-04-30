@@ -9,7 +9,7 @@ from remote.server_enum import Result
 
 
 class GameClient:
-    def __init__(self) -> None:
+    def __init__(self):
         self.__server_connection = ServerConnection()
         self.__server_connection.connect(HOST_NAME, HOST_PORT)
 
@@ -99,7 +99,7 @@ class GameClient:
         else:
             return True
 
-    def chat(self, msg):
+    def chat(self, msg) -> None:
         """
         Chat, just for fun and testing
         :param msg: message sent

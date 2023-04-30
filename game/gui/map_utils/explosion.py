@@ -24,7 +24,7 @@ class Explosion(pygame.sprite.Sprite):
         self.__sound.set_volume(SOUND_VOLUME[0])
         self.__sound_played = False
 
-    def update(self):
+    def update(self) -> None:
         # if self.delay >= 0:
         #     self.delay -= 1
         #     return
@@ -45,7 +45,7 @@ class Explosion(pygame.sprite.Sprite):
             self.kill()
 
     @staticmethod
-    def set_image_scale():
+    def set_image_scale() -> None:
         for i in range(len(Explosion.__IMAGES)):
             Explosion.__IMAGES[i] = pygame.transform.scale(Explosion.__IMAGES[i],
                                                            (HEX_RADIUS_X[0] * 2, HEX_RADIUS_Y[0] * 2))
