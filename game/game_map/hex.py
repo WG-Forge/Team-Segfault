@@ -56,8 +56,7 @@ class Hex:
         return tuple(fire_deltas)
 
     @staticmethod
-    def make_rings():
-        max_range = 3  # Change if maximum range of any tank is > 3 hexes
+    def make_rings(max_range: int = 4):  # Change max_range if maximum range of any tank is > 4 hexes
         Hex.__rings = [Hex.make_ring(i) for i in range(0, max_range + 1)]
 
     @staticmethod

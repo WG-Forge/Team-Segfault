@@ -1,12 +1,12 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from entities.entity_enum import Entities
 from entities.map_features.bonuses.catapult import Catapult
 from entities.map_features.bonuses.hard_repair import HardRepair
 from entities.map_features.bonuses.light_repair import LightRepair
-from entities.map_features.physical.base import Base
-from entities.map_features.physical.empty import Empty
-from entities.map_features.physical.obstacle import Obstacle
+from entities.map_features.Landmarks.base import Base
+from entities.map_features.Landmarks.empty import Empty
+from entities.map_features.Landmarks.obstacle import Obstacle
 from game_map.hex import Hex
 
 
@@ -21,34 +21,40 @@ class FeatureFactory:
     }
 
     def __init__(self, features: Dict, game_map: Dict):
-        self.__map = game_map
-        self.__base_coords = []
-        self.__base_adjacent_coords = []
-        self.__make_features(features)
+        self.__base_coords: List[Tuple] = []
+        self.__base_adjacent_coords: List[Tuple] = []
+        self.__catapult_coords: List[Tuple] = []
+        self.__make_features(features, game_map)
 
-    def __make_features(self, features: Dict):
+    def __make_features(self, features: Dict, game_map: Dict):
         for name, coords in features.items():
             features_class = self.FEATURE_TYPES.get(name)
             if not features_class:
                 print(f"Support for {name} needed")
                 continue
             for d in coords:
-                coord = (d['x'], d['y'], d['z'])
-                self.__map[coord]['feature'] = features_class(coord)
+                coord: Tuple = (d['x'], d['y'], d['z'])
+                game_map[coord]['feature'] = features_class(coord)
                 if name == Entities.BASE:
                     self.__base_coords.append(coord)
+                elif name == Entities.CATAPULT:
+                    self.__catapult_coords.append(coord)
             if name == Entities.BASE:
                 self.__make_base_adjacents()
 
     def __make_base_adjacents(self):
         adjacent_deltas = Hex.make_ring(1)
-        self.__base_adjacent_coords = {Hex.coord_sum(delta, base_coord) for base_coord in self.__base_coords
-                                       for delta in adjacent_deltas} - set(self.__base_coords)
+        self.__base_adjacent_coords = {
+                                          Hex.coord_sum(delta, base_coord)
+                                          for base_coord in self.__base_coords
+                                          for delta in adjacent_deltas
+                                      } - set(self.__base_coords)
 
-    def get_base_coords(self):
-        return tuple(self.__base_coords)
+    @property
+    def catapult_coords(self) -> Tuple[Tuple]: return tuple(self.__catapult_coords)
 
-    def get_base_adjacents(self):
-        return tuple(self.__base_adjacent_coords)
+    @property
+    def base_coords(self) -> Tuple[Tuple]: return tuple(self.__base_coords)
 
-# end
+    @property
+    def base_adjacents(self) -> Tuple[Tuple]: return tuple(self.__base_adjacent_coords)

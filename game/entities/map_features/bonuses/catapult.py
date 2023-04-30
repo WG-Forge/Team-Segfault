@@ -3,7 +3,7 @@ from entities.entity import Entities
 
 
 class Catapult(Feature):
-    __bonus_range = 1  # Manhattan distance by which this bonus increases range
+    bonus_range = 1  # Manhattan distance by which this bonus increases range
 
     def __init__(self, coord):
         super().__init__(Entities.CATAPULT, coord, color='red')
@@ -17,3 +17,7 @@ class Catapult(Feature):
 
     def was_used(self) -> None:
         self.__remaining_uses -= 1
+
+
+def get_catapult_bonus_range() -> int:
+    return Catapult.bonus_range

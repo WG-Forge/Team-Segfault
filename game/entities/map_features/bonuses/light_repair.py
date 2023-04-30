@@ -13,4 +13,3 @@ class LightRepair(Feature):
             return True
         else:
             return False
-

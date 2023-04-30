@@ -1,15 +1,11 @@
-from typing import List, Union, Callable, Dict
+from typing import List, Union, Callable, Dict, Tuple
 
 from pygame import Surface
 
 from constants import HEX_RADIUS_X, HEX_RADIUS_Y
-from entities.entity_enum import Entities
+from entities.map_features.Landmarks.empty import Empty
+from entities.map_features.Landmarks.obstacle import Obstacle
 from entities.map_features.bonuses.catapult import Catapult
-from entities.map_features.bonuses.hard_repair import HardRepair
-from entities.map_features.bonuses.light_repair import LightRepair
-from entities.map_features.physical.base import Base
-from entities.map_features.physical.empty import Empty
-from entities.map_features.physical.obstacle import Obstacle
 from entities.tanks.tank import Tank
 from entities.tanks.tank_factory import TankFactory
 from game_map import _a_star
@@ -24,7 +20,7 @@ class Map:
         HEX_RADIUS_X[0] //= (client_map['size'] - 1) * 2 * 2
         HEX_RADIUS_Y[0] //= (client_map['size'] - 1) * 2 * 2
 
-        self.__players: Dict = Map.__add_players(active_players)
+        self.__players: Dict = self.__add_players(active_players)
         self.__tanks: Dict[int, Tank] = {}
 
         self.__map: Dict = {}
@@ -50,34 +46,20 @@ class Map:
         # save_server_map(client_map)
         # save_game_state(game_state)
 
-        print(client_map)
-        print()
-        print(game_state)
-
-        # put tanks in tanks & map & put spawns in map
-        for vehicle_id, vehicle_info in game_state["vehicles"].items():
-            player = active_players[vehicle_info["player_id"]]
-            tank, spawn = TankFactory.create_tank_and_spawn(int(vehicle_id), vehicle_info, player.color,
-                                                            player.index)
-            tank_coord = tank.coord
-            self.__map[tank_coord]['tank'] = tank
-            self.__map[tank.spawn_coord]['feature'] = spawn
-            self.__tanks[int(vehicle_id)] = tank
-            player.add_tank(tank)
-
         # Make features, put them in map
         feature_factory = FeatureFactory(client_map["content"], self.__map)
-        self.__base_coords = feature_factory.get_base_coords()
-        self.__base_adjacent_coords = feature_factory.get_base_adjacents()
-        del feature_factory
+        self.__base_coords = feature_factory.base_coords
+        self.__base_adjacent_coords = feature_factory.base_adjacents
+
+        # Make tanks & spawns, put them in map
+        tank_factory = TankFactory(game_state["vehicles"], active_players, self.__map, feature_factory.catapult_coords)
+        self.__tanks = tank_factory.tanks
+
+        del feature_factory, tank_factory
 
     @staticmethod
     def __add_players(active_players: Dict) -> Dict:
-        players = {}
-        for player_id, player in active_players.items():
-            if not player.is_observer:
-                players[player.index] = player
-        return players
+        return {player.index: player for player in active_players.values() if not player.is_observer}
 
     """     DRAWING     """
 
@@ -161,18 +143,24 @@ class Map:
     """     NAVIGATION    """
 
     def tanks_in_range(self, tank: Tank) -> List[Tank]:
-        return [tank for coord in tank.coords_in_range() if
-                (tank := self.__map.get(coord, {}).get('tank')) is not None and not tank.is_destroyed]
+        is_on_catapult = isinstance(self.__map[tank.coord]['feature'], Catapult)
+        return [
+            tank for coord in tank.coords_in_range(is_on_catapult)
+            if (tank := self.__map.get(coord, {}).get('tank')) is not None and not tank.is_destroyed
+        ]
 
     def enemies_in_range(self, tank: Tank) -> List[Tank]:
-        return [enemy for enemy in self.tanks_in_range(tank) if self.is_enemy(tank, enemy)]
+        return [
+            enemy for enemy in self.tanks_in_range(tank)
+            if self.is_enemy(tank, enemy)
+        ]
 
-    def closest_free_bases(self, to: tuple) -> Union[List[tuple], None]:
+    def closest_free_bases(self, to: Tuple) -> Union[List[Tuple], None]:
         free_base_coords = tuple(c for c in self.__base_coords if self.__map[c]['tank'] is None or c == to)
         if free_base_coords:
             return sorted(free_base_coords, key=lambda coord: Hex.manhattan_dist(to, coord))
 
-    def closest_free_base_adjacents(self, to: tuple) -> Union[List[tuple], None]:
+    def closest_free_base_adjacents(self, to: Tuple) -> Union[List[Tuple], None]:
         free_base_adjacents = [c for c in self.__base_adjacent_coords if self.__map[c]['tank'] is None or c == to]
         if free_base_adjacents:
             return sorted(free_base_adjacents, key=lambda coord: Hex.manhattan_dist(to, coord))
@@ -184,5 +172,5 @@ class Map:
         return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.tanks),
                       key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.coord, tank_coord))
 
-    def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> Union[tuple, None]:
+    def next_best_available_hex_in_path_to(self, tank: Tank, finish: Tuple) -> Union[Tuple, None]:
         return self.__path_finding_algorithm(self.__map, tank, finish)

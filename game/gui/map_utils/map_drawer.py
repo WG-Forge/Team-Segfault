@@ -3,9 +3,9 @@ from pygame import Surface
 from pygame.sprite import Sprite
 
 from constants import SCREEN_WIDTH, HEX_RADIUS_X, HEX_RADIUS_Y, GAME_BACKGROUND
-from entities.map_features.physical.base import Base
-from entities.map_features.physical.empty import Empty
-from entities.map_features.physical.obstacle import Obstacle
+from entities.map_features.Landmarks.base import Base
+from entities.map_features.Landmarks.empty import Empty
+from entities.map_features.Landmarks.obstacle import Obstacle
 from entities.tanks.tank import Tank
 from game_map.hex import Hex
 from gui.map_utils.explosion import Explosion

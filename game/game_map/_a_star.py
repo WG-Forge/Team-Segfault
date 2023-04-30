@@ -1,14 +1,14 @@
 import heapq
 from typing import Union
 
-from entities.map_features.physical.obstacle import Obstacle
-from entities.map_features.physical.spawn import Spawn
+from entities.map_features.Landmarks.obstacle import Obstacle
+from entities.map_features.Landmarks.spawn import Spawn
 from entities.tanks.tank import Tank
 from game_map.hex import Hex
 
 
 def a_star(game_map: dict, tank: Tank, finish: tuple) -> Union[tuple, None]:
-    start, tank_id, speed = tank.coord, tank.tank_id, tank.get_speed()
+    start, tank_id, speed = tank.coord, tank.tank_id, tank.speed
     passable_obstacles = []
     cnt = 0
 
