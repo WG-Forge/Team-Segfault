@@ -1,6 +1,5 @@
 import json
 import struct
-from typing import Tuple
 
 from constants import HOST_PORT, HOST_NAME
 from remote.server_connection import ServerConnection
@@ -122,7 +121,7 @@ class GameClient:
         self.__receive_response()
 
     @staticmethod
-    def __unpack(data: bytes) -> Tuple[Result, bytes]:
+    def __unpack(data: bytes) -> tuple[Result, bytes]:
         (resp_code, msg_len), data = struct.unpack("ii", data[:8]), data[8:]
         msg = data[:msg_len]
         return resp_code, msg

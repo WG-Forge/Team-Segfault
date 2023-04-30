@@ -1,5 +1,4 @@
 import random as rnd
-from typing import Dict, List
 
 from mab.tank import Tank
 
@@ -14,7 +13,7 @@ class Player:
         for bandit in self.__tanks.values():
             bandit.register_reward(reward)
 
-    def get_game_actions(self, explore_prob: float) -> Dict[str, str]:
+    def get_game_actions(self, explore_prob: float) -> dict[str, str]:
         exploring = rnd.random() < explore_prob
         actions = {
             name: (bandit.get_explore_actions() if exploring else bandit.get_exploit_actions())
@@ -22,9 +21,9 @@ class Player:
         }
         return actions
 
-    def set_results_table(self, player_results_table: Dict[str, List[int]]) -> None:
+    def set_results_table(self, player_results_table: dict[str, list[int]]) -> None:
         for tank_name, tank_results_table in player_results_table.items():
             self.__tanks[tank_name].set_results_table(tank_results_table)
 
-    def get_results_table(self) -> Dict[str, List[int]]:
+    def get_results_table(self) -> dict[str, list[int]]:
         return {name: tank.get_results_table() for name, tank in self.__tanks.items()}

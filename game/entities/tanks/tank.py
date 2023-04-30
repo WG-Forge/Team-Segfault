@@ -1,5 +1,4 @@
 from abc import abstractmethod, ABC
-from typing import Tuple
 
 from entities.entity import Entity, Entities
 
@@ -8,8 +7,8 @@ class Tank(Entity, ABC):
     """ Abstract Tank class """
     __damage = 1
 
-    def __init__(self, tank_id: int, tank_info: dict, color: Tuple[int, int, int] | str, player_index: int,
-                 image_path: str, catapult_coords: Tuple):
+    def __init__(self, tank_id: int, tank_info: dict, color: tuple[int, int, int] | str, player_index: int,
+                 image_path: str, catapult_coords: tuple):
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
@@ -24,7 +23,7 @@ class Tank(Entity, ABC):
                               tank_info["position"]["y"],
                               tank_info["position"]["z"])
 
-        self._catapult_coords: Tuple = catapult_coords
+        self._catapult_coords: tuple = catapult_coords
         self.__image_path: str = image_path
 
         super().__init__(Entities(tank_info["vehicle_type"]))
@@ -56,7 +55,7 @@ class Tank(Entity, ABC):
     def tank_id(self) -> int: return self.__tank_id
 
     @property
-    def color(self) -> str | Tuple[int, int, int]: return self.__tank_color
+    def color(self) -> str | tuple[int, int, int]: return self.__tank_color
 
     @property
     def hp(self) -> int: return self.__hp
@@ -93,7 +92,7 @@ class Tank(Entity, ABC):
     def speed(self) -> int: pass
 
     @abstractmethod
-    def coords_in_range(self, is_on_catapult: bool) -> Tuple: pass
+    def coords_in_range(self, is_on_catapult: bool) -> tuple: pass
 
     @abstractmethod
     def td_shooting_coord(self, target: tuple) -> tuple: pass

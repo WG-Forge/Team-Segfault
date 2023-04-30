@@ -1,5 +1,4 @@
 from abc import ABC
-from typing import Dict, Tuple
 
 from constants import TD_IMAGE_PATH
 from entities.map_features.bonuses.catapult import get_catapult_bonus_range
@@ -20,12 +19,12 @@ class TankDestroyer(Tank, ABC):
 
     __fire_corridor_deltas: tuple = Hex.td_fire_corridor_deltas(__max_range)
     __catapult_corridor_deltas: tuple = Hex.td_fire_corridor_deltas(__catapult_range)
-    __all_deltas: Tuple = __fire_deltas + __catapult_deltas
+    __all_deltas: tuple = __fire_deltas + __catapult_deltas
 
-    def __init__(self, tank_id: int, tank_info: Dict, colour: Tuple, player_index: int, catapult_coords: Tuple):
+    def __init__(self, tank_id: int, tank_info: dict, colour: tuple, player_index: int, catapult_coords: tuple):
         super().__init__(tank_id, tank_info, colour, player_index, TD_IMAGE_PATH, catapult_coords)
 
-    def coords_in_range(self, is_on_catapult: bool) -> Tuple:
+    def coords_in_range(self, is_on_catapult: bool) -> tuple:
         if is_on_catapult:
             deltas = self.__all_deltas
         else:
@@ -53,4 +52,5 @@ class TankDestroyer(Tank, ABC):
         return Hex.coord_sum(target, Hex.coord_mult(Hex.dir_vec(target, self._coord), distance - 1))
 
     @property
-    def speed(self) -> int: return self.__sp
+    def speed(self) -> int:
+        return self.__sp

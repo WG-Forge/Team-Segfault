@@ -1,6 +1,5 @@
 import random
 from threading import Semaphore
-from typing import List
 
 from players.player import Player
 from players.player_factory import PlayerFactory, PlayerTypes
@@ -21,7 +20,7 @@ class PlayerManager:
 
         self.__turn_played_sem: Semaphore = Semaphore(0)
 
-        self.__players_queue: List[Player] = []
+        self.__players_queue: list[Player] = []
 
     def notify_all_players(self) -> None:
         # release all players using their private semaphores

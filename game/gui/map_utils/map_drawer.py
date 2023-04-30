@@ -1,5 +1,3 @@
-from typing import List
-
 import pygame
 from pygame import Surface
 from pygame.font import Font
@@ -18,10 +16,10 @@ from gui.map_utils.tank_drawer import TankDrawer
 
 
 class MapDrawer:
-    def __init__(self, map_size: int, players: dict, game_map: dict, current_turn: List[int]):
+    def __init__(self, map_size: int, players: dict, game_map: dict, current_turn: list[int]):
 
         self.__map_size = map_size
-        self.__turn: List[int] = current_turn
+        self.__turn: list[int] = current_turn
         self.__max_damage_points: int = 0
         self.__players = players
         self.__map = game_map

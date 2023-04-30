@@ -1,7 +1,6 @@
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
-from typing import Union, List, Dict
 
 from constants import PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR
 from entities.tanks.tank import Tank
@@ -16,7 +15,7 @@ class Player(Thread, ABC):
     __possible_colours = (PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR)
 
     def __init__(self,
-                 turn_played_sem: Semaphore, current_player: List[int], player_index: int, over: Event,
+                 turn_played_sem: Semaphore, current_player: list[int], player_index: int, over: Event,
                  name: str | None = None, password: str | None = None, is_observer: bool | None = None):
         super().__init__()
 
@@ -35,15 +34,15 @@ class Player(Thread, ABC):
 
         self._damage_points = 0
         self._capture_points = 0
-        self._tanks: List[Tank] = []
-        self._tank_map: Dict[int, Tank] = {}
+        self._tanks: list[Tank] = []
+        self._tank_map: dict[int, Tank] = {}
         self._player_index = player_index
         self.__player_colour = Player.__possible_colours[player_index]
-        self.__has_shot: List[int] = []  # Holds a list of enemies this player has shot last turn
+        self.__has_shot: list[int] = []  # Holds a list of enemies this player has shot last turn
 
-        self._game_actions: Union[dict, None] = None
+        self._game_actions: dict | None = None
 
-        self._turn_actions: Union[dict, None] = None
+        self._turn_actions: dict | None = None
 
     def __hash__(self):
         return super.__hash__(self)
@@ -110,7 +109,7 @@ class Player(Thread, ABC):
         return self._player_index
 
     @property
-    def tanks(self) -> List[Tank]:
+    def tanks(self) -> list[Tank]:
         return self._tanks
 
     @property
@@ -122,7 +121,7 @@ class Player(Thread, ABC):
         return self._damage_points
 
     @property
-    def turn_actions(self) -> Union[dict, None]:
+    def turn_actions(self) -> dict | None:
         return self._turn_actions
 
     @turn_actions.setter

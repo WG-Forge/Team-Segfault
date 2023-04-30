@@ -1,5 +1,3 @@
-from typing import Dict, List, Tuple
-
 from entities.entity_enum import Entities
 from entities.map_features.bonuses.catapult import Catapult
 from entities.map_features.bonuses.hard_repair import HardRepair
@@ -20,20 +18,20 @@ class FeatureFactory:
         Entities.CATAPULT: Catapult,
     }
 
-    def __init__(self, features: Dict, game_map: Dict):
-        self.__base_coords: List[Tuple] = []
-        self.__base_adjacent_coords: List[Tuple] = []
-        self.__catapult_coords: List[Tuple] = []
+    def __init__(self, features: dict, game_map: dict):
+        self.__base_coords: list[tuple] = []
+        self.__base_adjacent_coords: list[tuple] = []
+        self.__catapult_coords: list[tuple] = []
         self.__make_features(features, game_map)
 
-    def __make_features(self, features: Dict, game_map: Dict) -> None:
+    def __make_features(self, features: dict, game_map: dict) -> None:
         for name, coords in features.items():
             features_class = self.FEATURE_TYPES.get(name)
             if not features_class:
                 print(f"Support for {name} needed")
                 continue
             for d in coords:
-                coord: Tuple = (d['x'], d['y'], d['z'])
+                coord: tuple = (d['x'], d['y'], d['z'])
                 game_map[coord]['feature'] = features_class(coord)
                 if name == Entities.BASE:
                     self.__base_coords.append(coord)
@@ -51,13 +49,13 @@ class FeatureFactory:
                                       } - set(self.__base_coords)
 
     @property
-    def catapult_coords(self) -> Tuple[Tuple, ...]:
+    def catapult_coords(self) -> tuple[tuple, ...]:
         return tuple(self.__catapult_coords)
 
     @property
-    def base_coords(self) -> Tuple[Tuple, ...]:
+    def base_coords(self) -> tuple[tuple, ...]:
         return tuple(self.__base_coords)
 
     @property
-    def base_adjacents(self) -> Tuple[Tuple, ...]:
+    def base_adjacents(self) -> tuple[tuple, ...]:
         return tuple(self.__base_adjacent_coords)

@@ -1,6 +1,5 @@
 from enum import Enum
 from threading import Semaphore, Event
-from typing import List
 
 from players.bot_player import BotPlayer
 from players.observer import Observer
@@ -24,7 +23,7 @@ class PlayerFactory:
     @staticmethod
     def create_player(player_type: PlayerTypes,
                       turn_played_sem: Semaphore,
-                      current_player_idx: List[int],
+                      current_player_idx: list[int],
                       over: Event,
                       player_index: int,
                       name: str | None = None,

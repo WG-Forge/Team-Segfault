@@ -1,5 +1,4 @@
 from threading import Thread, Event
-from typing import List
 
 from game_map.map import Map
 from players.player import Player
@@ -24,13 +23,13 @@ class Game(Thread):
         self.__winner_index: int | None = None
         self.__started: bool = False
 
-        self.__current_turn: List[int] = [-1]
+        self.__current_turn: list[int] = [-1]
         self.__current_player: Player | None = None
 
         # Observer connection that is used for collecting data
         self.__shadow_client = GameClient()
         self.__active_players: dict[int, Player] = {}
-        self.__current_player_idx: List[int] = [-1]
+        self.__current_player_idx: list[int] = [-1]
         self.__player_manager: PlayerManager = PlayerManager(self, self.__shadow_client)
 
     def __str__(self) -> str:

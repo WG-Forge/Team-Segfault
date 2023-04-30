@@ -1,6 +1,5 @@
 import random as rnd
 import statistics
-from typing import Dict, List
 
 
 class Tank:
@@ -9,7 +8,7 @@ class Tank:
     __action_num = len(__actions)
 
     def __init__(self, num_turns: int, group_size: int):
-        self.__tank_results_table: Dict[str, List[int]] = {}  # {arm combo player_name: [list of rewards]}
+        self.__tank_results_table: dict[str, list[int]] = {}  # {arm combo player_name: [list of rewards]}
         self.__game_action_combo: str = ''  # String representing actions taken in this turn
         self.__num_turns = num_turns
         self.__group_size: int = group_size
@@ -44,7 +43,7 @@ class Tank:
         }
         return max(averages, key=averages.get)
 
-    def set_results_table(self, results_table: Dict[str, List[int]]) -> None:
+    def set_results_table(self, results_table: dict[str, list[int]]) -> None:
         self.__tank_results_table = results_table
 
-    def get_results_table(self) -> Dict[str, List[int]]: return self.__tank_results_table
+    def get_results_table(self) -> dict[str, list[int]]: return self.__tank_results_table

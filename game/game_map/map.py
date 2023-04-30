@@ -1,5 +1,3 @@
-from typing import List, Callable, Dict, Tuple
-
 from pygame import Surface
 
 from constants import HEX_RADIUS_X, HEX_RADIUS_Y
@@ -16,28 +14,28 @@ from gui.map_utils.map_drawer import MapDrawer
 
 class Map:
 
-    def __init__(self, client_map: Dict, game_state: Dict, active_players: Dict, current_turn: List[int]):
+    def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[int]):
         HEX_RADIUS_X[0] //= (client_map['size'] - 1) * 2 * 2
         HEX_RADIUS_Y[0] //= (client_map['size'] - 1) * 2 * 2
 
-        self.__players: Dict = self.__add_players(active_players)
-        self.__tanks: Dict[int, Tank] = {}
+        self.__players: dict = self.__add_players(active_players)
+        self.__tanks: dict[int, Tank] = {}
 
-        self.__map: Dict = {}
+        self.__map: dict = {}
         self.__map_size = client_map['size']
         self.__base_coords: tuple = ()
         self.__base_adjacent_coords: tuple = ()
         self.__spawn_coords: tuple = ()
         self.__make_map(client_map, game_state, active_players)
-        self.__destroyed: List[Tank] = []
+        self.__destroyed: list[Tank] = []
 
-        self.__path_finding_algorithm: Callable = _a_star.a_star
+        self.__path_finding_algorithm: callable = _a_star.a_star
 
         self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn)
 
     """     MAP MAKING      """
 
-    def __make_map(self, client_map: Dict, game_state: Dict, active_players: Dict) -> None:
+    def __make_map(self, client_map: dict, game_state: dict, active_players: dict) -> None:
         # Make empty map
         rings = [Hex.make_ring(ring_num) for ring_num in range(client_map["size"])]
         self.__map = {coord: {'feature': Empty(coord), 'tank': None} for ring in rings for coord in ring}
@@ -58,7 +56,7 @@ class Map:
         del feature_factory, tank_factory
 
     @staticmethod
-    def __add_players(active_players: Dict) -> Dict:
+    def __add_players(active_players: dict) -> dict:
         return {player.index: player for player in active_players.values() if not player.is_observer}
 
     """     DRAWING     """
@@ -68,7 +66,7 @@ class Map:
 
     """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
 
-    def update_turn(self, game_state: Dict) -> None:
+    def update_turn(self, game_state: dict) -> None:
         # At the beginning of each turn move the tanks that have been destroyed in the previous turn to their spawn
         self.__respawn_destroyed_tanks()
 
@@ -142,39 +140,39 @@ class Map:
 
     """     NAVIGATION    """
 
-    def tanks_in_range(self, tank: Tank) -> List[Tank]:
+    def tanks_in_range(self, tank: Tank) -> list[Tank]:
         is_on_catapult = isinstance(self.__map[tank.coord]['feature'], Catapult)
         return [
             tank for coord in tank.coords_in_range(is_on_catapult)
             if (tank := self.__map.get(coord, {}).get('tank')) is not None and not tank.is_destroyed
         ]
 
-    def enemies_in_range(self, tank: Tank) -> List[Tank]:
+    def enemies_in_range(self, tank: Tank) -> list[Tank]:
         return [
             enemy for enemy in self.tanks_in_range(tank)
             if self.is_enemy(tank, enemy)
         ]
 
-    def closest_free_bases(self, to: Tuple) -> List[Tuple] | None:
+    def closest_free_bases(self, to: tuple) -> list[tuple] | None:
         free_base_coords = tuple(c for c in self.__base_coords if self.__map[c]['tank'] is None or c == to)
         if free_base_coords:
             return sorted(free_base_coords, key=lambda coord: Hex.manhattan_dist(to, coord))
 
         return None
 
-    def closest_free_base_adjacents(self, to: Tuple) -> List[Tuple] | None:
+    def closest_free_base_adjacents(self, to: tuple) -> list[tuple] | None:
         free_base_adjacents = [c for c in self.__base_adjacent_coords if self.__map[c]['tank'] is None or c == to]
         if free_base_adjacents:
             return sorted(free_base_adjacents, key=lambda coord: Hex.manhattan_dist(to, coord))
 
         return None
 
-    def closest_enemies(self, tank: Tank) -> List[Tank]:
+    def closest_enemies(self, tank: Tank) -> list[Tank]:
         # Returns a sorted list by distance of enemy tanks
         tank_idx, tank_coord = tank.player_index, tank.coord
         enemies = [self.__players[player] for player in self.__players if player != tank_idx]
         return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.tanks),
                       key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.coord, tank_coord))
 
-    def next_best_available_hex_in_path_to(self, tank: Tank, finish: Tuple) -> Tuple | None:
+    def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> tuple | None:
         return self.__path_finding_algorithm(self.__map, tank, finish)

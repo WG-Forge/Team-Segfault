@@ -1,5 +1,4 @@
 from threading import Semaphore, Event
-from typing import List, Literal, Union
 
 from entities.entity_enum import Entities
 from entities.tanks.tank import Tank
@@ -74,17 +73,17 @@ class BotPlayer(Player):
         else:
             self.__move(where, tank)
 
-    def __camp(self, tank: Tank, enemies_in_range: List[Tank]) -> None:
+    def __camp(self, tank: Tank, enemies_in_range: list[Tank]) -> None:
         if tank.type != Entities.TANK_DESTROYER:
             self.__update_maps_with_shot(tank, enemies_in_range[0])
         else:
             self.__td_camp(tank, self._map.tanks_in_range(tank))
 
-    def __td_camp(self, td: Tank, tanks: List[Tank]) -> None:
+    def __td_camp(self, td: Tank, tanks: list[Tank]) -> None:
         # Get the enemy in the fire corridor with the largest number of enemies and least friends
         tanks_by_corridor = [[tank for tank in tanks if tank.coord in c] for c in td.fire_corridors()]
 
-        best_score: Union[float, Literal[0]] = 0
+        best_score: float | int = 0
         best_corridor = None
         for corridor in tanks_by_corridor:
             score = sum(

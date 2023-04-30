@@ -1,5 +1,4 @@
 import heapq
-from typing import List, Dict
 
 from entities.map_features.landmarks.obstacle import Obstacle
 from entities.map_features.landmarks.spawn import Spawn
@@ -13,9 +12,9 @@ def a_star(game_map: dict, tank: Tank, finish: tuple) -> tuple | None:
     cnt = 0
 
     while cnt < 25:
-        frontier: List[tuple] = []
+        frontier: list[tuple] = []
         heapq.heappush(frontier, (0, start))
-        came_from: Dict[tuple, tuple | None] = {}
+        came_from: dict[tuple, tuple | None] = {}
         cost_so_far = {start: 0}
         came_from[start] = None
         while frontier:

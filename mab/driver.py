@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Type, cast
+from typing import Type, cast
 
 from mab.player import Player
 
@@ -12,9 +12,9 @@ class Driver:
     __decay_per_game = 0.0001  # Minimum exploration ratio reached after about 10 000 games
 
     # GameActions = {player_index: {tank_name: action_combo}}
-    GameActions = Type[Dict[int, Dict[str, str]]]
+    GameActions = Type[dict[int, dict[str, str]]]
     # ResultsTable = {player_index: {tank_name: {action_combo: rewards}}}
-    ResultsTable = Type[Dict[int, Dict[str, Dict[str, List[int]]]]]
+    ResultsTable = Type[dict[int, dict[str, dict[str, list[int]]]]]
 
     def __init__(self, num_turns: int, restart=False, num_players: int = 3):
         # Player index corresponds to who starts first, so Players[0] plays turn 1
