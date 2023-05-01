@@ -1,5 +1,7 @@
+import time
 from threading import Semaphore, Event
 
+from constants import GAME_SPEED
 from entities.entity_enum import Entities
 from entities.tanks.tank import Tank
 from players.player import Player
@@ -22,7 +24,9 @@ class BotPlayer(Player):
         try:
             # play your move if you are the current player
             if self._current_player[0] == self.idx:
-                # time.sleep(1)  # comment/uncomment this for a turn delay effect
+                delay = 1.0 - GAME_SPEED[0]
+                if delay > 0:
+                    time.sleep(delay)  # comment/uncomment this for a turn delay effect
                 self.__place_actions()
         finally:
             # end your turn
@@ -103,7 +107,8 @@ class BotPlayer(Player):
         elif where == 'in base':
             go_to = self._map.closest_free_bases(who_coord)
         elif where == 'close enemy':
-            go_to = who.shot_moves(self._map.closest_enemies(who)[0].coord)
+            if self._map.closest_enemies(who):
+                go_to = who.shot_moves(self._map.closest_enemies(who)[0].coord)
         if go_to:  # TODO: Solve this dirty fix, find out why 'go_to' is None in edge cases
             for coord in go_to:
                 if who_coord == coord or self.__move_to_if_possible(who, coord):

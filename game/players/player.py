@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
 
-from constants import PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR
+from constants import PLAYER_COLORS
 from entities.tanks.tank import Tank
 from game_map.map import Map
 from remote.game_client import GameClient
@@ -12,7 +12,7 @@ from remote.game_client import GameClient
 class Player(Thread, ABC):
     """ Abstract base player class """
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
-    __possible_colours = (PLAYER1_COLOR, PLAYER2_COLOR, PLAYER3_COLOR)
+    __possible_colours = PLAYER_COLORS
 
     def __init__(self,
                  turn_played_sem: Semaphore, current_player: list[int], player_index: int, over: Event,

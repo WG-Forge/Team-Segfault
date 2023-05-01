@@ -4,7 +4,7 @@ import pygame
 import pygame_menu
 
 from constants import MENU_POSITION, SOUND_VOLUME, PLAYER_NAMES, GAME_NAME, WHITE, MENU_BACKGROUND_COLOR, \
-    MENU_SELECTED_TEXT_COLOR
+    MENU_SELECTED_TEXT_COLOR, GAME_SPEED, MENU_MIN_WIDTH
 
 
 class GameType(StrEnum):
@@ -38,13 +38,15 @@ class Menu:
 
         self.__main_menu.add.button('Quit', pygame_menu.events.EXIT)
         Menu.set_menu_size(self.__main_menu)
-        menu_scale = 2.5
-        self.__main_menu.resize(self.__main_menu.get_width() * menu_scale, self.__main_menu.get_height())
+        if self.__main_menu.get_width() < MENU_MIN_WIDTH:
+            self.__main_menu.resize(MENU_MIN_WIDTH, self.__main_menu.get_height())
 
     def __create_options_menu(self) -> None:
         self.__options_menu: pygame_menu.Menu = pygame_menu.Menu('Options', self.__menu_width, self.__menu_height,
                                                                  theme=self.__menu_theme, mouse_motion_selection=True)
         self.__options_menu.add.button('Back', pygame_menu.events.BACK)
+        self.__options_menu.add.range_slider('Game speed', default=GAME_SPEED[0], range_values=(0, 1), increment=0.1,
+                                             rangeslider_id='game_speed_slider')
         self.__options_menu.add.range_slider('Volume', default=SOUND_VOLUME[0], range_values=(0, 1),
                                              increment=0.1, rangeslider_id='volume_slider')
 
@@ -111,6 +113,9 @@ class Menu:
 
     def get_game_type(self) -> int:
         return self.__play_menu.get_widget('game_type').get_value()[0][0]
+
+    def get_game_speed(self) -> float:
+        return self.__options_menu.get_widget('game_speed_slider').get_value()
 
     @staticmethod
     def set_menu_size(menu: pygame_menu.Menu) -> None:

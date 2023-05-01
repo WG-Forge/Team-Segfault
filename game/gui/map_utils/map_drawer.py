@@ -41,14 +41,14 @@ class MapDrawer:
         self.__map_legend_items = []
         features = [Empty, Base, Obstacle]
         # non-special hexes will always be on the screen and on top right, while bonuses will be on bottom right
-        x, y, z = self.__map_size + 1, self.__map_size - 2, -self.__map_size - 1
+        x, y, z = self.__map_size, self.__map_size - 1, -self.__map_size - 1
         for i, feature in enumerate(features):
-            self.__map_legend_items.append(feature((x - 1, y - i + 1, z + i)))
+            self.__map_legend_items.append(feature((x, y - i, z + i)))
 
-        x, y, z = self.__map_size + 1, -self.__map_size + 2, self.__map_size + 1
+        x, y, z = self.__map_size + 2, -self.__map_size + 2, self.__map_size
         bonuses = [Catapult, LightRepair, HardRepair]
         for i, bonus in enumerate(bonuses):
-            self.__map_legend_items.append(bonus((x + 1, y + i, z - i - 1)))
+            self.__map_legend_items.append(bonus((x, y + i, z - i)))
 
         # tanks
         self.__tanks: Group = Group()

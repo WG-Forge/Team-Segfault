@@ -49,5 +49,3 @@ without it, in which case no window will be rendered, and only console output ca
 [Tank icon for pygame window](https://www.flaticon.com/free-icon/tank_3111508)
 
 [Tank tracks](https://www.dreamstime.com/tank-tracks-set-track-treads-isolated-white-various-caterpillar-impressed-heavy-vehicles-like-tractors-bulldozers-image198577121)
-
-[Catapult image](https://opengameart.org/content/catapult-1)

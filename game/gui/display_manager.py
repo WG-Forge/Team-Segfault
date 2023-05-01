@@ -1,8 +1,9 @@
 import os
 
-from game.constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, MENU_BACKGROUND_IMAGE, GUI_ICON_PATH, \
-    GAME_BACKGROUND, TRACKS_IMAGE_PATH
-from game.gui.menu import *
+from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, MENU_BACKGROUND_IMAGE, GUI_ICON_PATH, \
+    GAME_BACKGROUND, GUI_CAPTION
+from gui.loading_screen import LoadingScreen
+from gui.menu import *
 from tests.multiplayer_game import multiplayer_game
 from tests.single_player_game import single_player_game
 
@@ -19,7 +20,7 @@ class DisplayManager:
 
         self.__screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-        pygame.display.set_caption("Team Segfault")
+        pygame.display.set_caption(GUI_CAPTION)
 
         self.__running = True
         self.__playing = False
@@ -31,10 +32,11 @@ class DisplayManager:
         # load images
         self.__background_image = pygame.transform.scale(pygame.image.load(MENU_BACKGROUND_IMAGE),
                                                          (SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.__tracks_image = pygame.image.load(TRACKS_IMAGE_PATH)
 
         # create menu
         self.__menu = Menu(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 3, self.__start_the_game)
+
+        self.__loading_screen = LoadingScreen()
 
     def __start_the_game(self) -> None:
         del self.__game
@@ -42,6 +44,7 @@ class DisplayManager:
         SOUND_VOLUME[0] = self.__menu.get_volume()
         PLAYER_NAMES[0] = self.__menu.get_player_name()
         GAME_NAME[0] = self.__menu.get_map_name()
+        GAME_SPEED[0] = self.__menu.get_game_speed()
         game_type = self.__menu.get_game_type()
         match game_type:
             case GameType.SINGLEPLAYER:
@@ -57,7 +60,6 @@ class DisplayManager:
                 self.__menu.enable()
                 return
         self.__playing = True
-        # self.__start_loading_screen()
         self.__game.start()
 
     def __check_events(self) -> list[pygame.event.Event]:
@@ -70,19 +72,6 @@ class DisplayManager:
                 self.__playing = False
                 self.__running = False
         return events
-
-    def __start_loading_screen(self) -> None:
-        pass
-        # rect = self.__tracks_image.get_rect()
-        # start = time.time()
-        # start += 1
-        # while time.time() < start:
-        #     self.__screen.blit(self.__tracks_image, (50, SCREEN_HEIGHT / 2))
-        #     # delay for a constant framerate
-        #     self.__clock.tick(FPS_MAX)
-        #
-        #     # update display
-        #     pygame.display.flip()
 
     def run(self) -> None:
         try:
@@ -102,16 +91,22 @@ class DisplayManager:
                 self.__menu.update(events)
                 self.__menu.draw(self.__screen)
 
-            # draw the map if the game started
-            if self.__playing and not self.__game.over.is_set() and self.__game.game_map:
-                self.__game.game_map.draw(self.__screen)
+            # draw the map or loading screen if the game started
+            if self.__playing and not self.__game.over.is_set():
+                if self.__game.game_map:
+                    self.__game.game_map.draw(self.__screen)
+                else:
+                    self.__loading_screen.draw(self.__screen)
 
             # check if game has ended
             if self.__playing and self.__game.over.is_set():
-                # EndScreen.draw_podium(self.__screen, {})
-                # self.__clock.tick(FPS_MAX)
-                # pygame.display.flip()
+                self.__loading_screen.reset()
+                self.__playing = False
                 self.__menu.enable()
+
+            # draw end screen if
+            # if self.__end_screen.enabled:
+            #     self.__end_screen.draw()
 
             # delay for a constant framerate
             self.__clock.tick(FPS_MAX)
