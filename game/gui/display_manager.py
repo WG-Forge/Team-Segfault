@@ -111,7 +111,6 @@ class DisplayManager:
                 # EndScreen.draw_podium(self.__screen, {})
                 # self.__clock.tick(FPS_MAX)
                 # pygame.display.flip()
-                #
                 self.__menu.enable()
 
             # delay for a constant framerate

@@ -53,9 +53,9 @@ LT_IMAGE_PATH = 'game/assets/tank_classes/lt.png'
 MT_IMAGE_PATH = 'game/assets/tank_classes/mt.png'
 TD_IMAGE_PATH = 'game/assets/tank_classes/td.png'
 
-CATAPULT_IMAGE_PATH = 'game/assets/upgrades/catapult.png'
-LIGHT_REPAIR_IMAGE_PATH = 'game/assets/upgrades/light_repair.png'
-HARD_REPAIR_IMAGE_PATH = 'game/assets/upgrades/hard_repair.png'
+CATAPULT_IMAGE_PATH = 'game/assets/bonuses/catapult.png'
+LIGHT_REPAIR_IMAGE_PATH = 'game/assets/bonuses/light_repair.png'
+HARD_REPAIR_IMAGE_PATH = 'game/assets/bonuses/hard_repair.png'
 
 FLAG_PATH = 'game/assets/flag.png'
 EXPLOSION_IMAGES = [f'game/assets/explosion/{i}.png' for i in range(7)]

@@ -1,5 +1,6 @@
 from entities.entity_enum import Entities
-from entities.map_features.spawn import Spawn
+from entities.map_features.landmarks.spawn import Spawn
+from entities.tanks.tank import Tank
 from entities.tanks.types.artillery import Artillery
 from entities.tanks.types.destroyer import TankDestroyer
 from entities.tanks.types.heavy import HeavyTank
@@ -16,9 +17,30 @@ class TankFactory:
         Entities.ARTILLERY: Artillery
     }
 
+    def __init__(self, vehicles: dict, active_players: dict, game_map: dict, catapult_coords: tuple):
+        self.__tanks: dict[int, Tank] = self.__make_tanks(vehicles, active_players, game_map, catapult_coords)
+
     @staticmethod
-    def create_tank_and_spawn(tank_id: int, tank_info: dict, tank_color, player_index: int) -> tuple:
+    def __make_tanks(vehicles: dict, active_players: dict,
+                     game_map: dict, catapult_coords: tuple) -> dict[int, Tank]:
+        tanks: dict[int, Tank] = {}
+        for vehicle_id, vehicle_info in vehicles.items():
+            player = active_players[vehicle_info["player_id"]]
+            tank, spawn = TankFactory.make_tank_and_spawn(int(vehicle_id), vehicle_info, player.color,
+                                                          player.index, catapult_coords)
+            game_map[tank.coord]['tank'] = tank
+            game_map[tank.spawn_coord]['feature'] = spawn
+            tanks[int(vehicle_id)] = tank
+            player.add_tank(tank)
+        return tanks
+
+    @staticmethod
+    def make_tank_and_spawn(tank_id: int, tank_info: dict, tank_color: tuple,
+                            player_index: int, catapult_coords: tuple) -> tuple[TANK_TYPES, Spawn]:
         tank_class = TankFactory.TANK_TYPES[tank_info["vehicle_type"]]
-        tank = tank_class(tank_id, tank_info, tank_color, player_index)
+        tank = tank_class(tank_id, tank_info, tank_color, player_index, catapult_coords)
         spawn = Spawn(tank.spawn_coord, tank_id, tank_color)
         return tank, spawn
+
+    @property
+    def tanks(self) -> dict[int, Tank]: return self.__tanks

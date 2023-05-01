@@ -1,5 +1,4 @@
 from threading import Semaphore, Event
-from typing import List
 
 from entities.entity_enum import Entities
 from entities.tanks.tank import Tank
@@ -8,7 +7,7 @@ from players.player import Player
 
 class BotPlayer(Player):
     def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
-                 current_player: list[1], player_index: int, over: Event):
+                 current_player: list[int], player_index: int, over: Event):
         super().__init__(name=name,
                          password=password,
                          is_observer=is_observer,
@@ -29,7 +28,7 @@ class BotPlayer(Player):
             # end your turn
             self._game_client.force_turn()
 
-    def _finalize(self):
+    def _finalize(self) -> None:
         # manage your own connection
         self._game_client.logout()
         self._game_client.disconnect()
@@ -74,22 +73,25 @@ class BotPlayer(Player):
         else:
             self.__move(where, tank)
 
-    def __camp(self, tank: Tank, enemies_in_range: List[Tank]) -> None:
+    def __camp(self, tank: Tank, enemies_in_range: list[Tank]) -> None:
         if tank.type != Entities.TANK_DESTROYER:
             self.__update_maps_with_shot(tank, enemies_in_range[0])
         else:
             self.__td_camp(tank, self._map.tanks_in_range(tank))
 
-    def __td_camp(self, td: Tank, tanks: List[Tank]) -> None:
+    def __td_camp(self, td: Tank, tanks: list[Tank]) -> None:
         # Get the enemy in the fire corridor with the largest number of enemies and least friends
         tanks_by_corridor = [[tank for tank in tanks if tank.coord in c] for c in td.fire_corridors()]
 
-        best_score, best_corridor = 0, None
+        best_score: float | int = 0
+        best_corridor = None
         for corridor in tanks_by_corridor:
-            score = sum([1 if self._map.is_enemy(td, tank) else -10
-            if self._map.is_neutral(td, tank) else -1.1 for tank in corridor])
+            score = sum(
+                [1 if self._map.is_enemy(td, tank) else -10 if self._map.is_neutral(td, tank) else -1.1 for tank in
+                 corridor])
             if score > best_score:
-                best_score, best_corridor = score, corridor
+                best_score = score
+                best_corridor = corridor
 
         if best_corridor and best_score > 0:
             self.__update_maps_with_shot(td, best_corridor[0], is_td=True)
@@ -120,7 +122,7 @@ class BotPlayer(Player):
         self._map.local_move(tank, action_coord)
         self._game_client.server_move({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
 
-    def __update_maps_with_shot(self, tank: Tank, enemy: Tank, is_td=False):
+    def __update_maps_with_shot(self, tank: Tank, enemy: Tank, is_td=False) -> None:
         if is_td:
             td_shooting_coord = tank.td_shooting_coord(enemy.coord)
             x, y, z = td_shooting_coord

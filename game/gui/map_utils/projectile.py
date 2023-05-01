@@ -1,11 +1,12 @@
 import pygame
+from pygame import Surface
 
 from constants import BULLET_IMAGE_PATH, BULLET_SOUND, BULLET_VECTOR, SOUND_VOLUME, HEX_RADIUS_X, HEX_RADIUS_Y
 
 
 class Projectile(pygame.sprite.Sprite):
     __bullet_travel_time: int = 5
-    __IMAGE = pygame.image.load(BULLET_IMAGE_PATH)
+    __IMAGE: Surface = pygame.image.load(BULLET_IMAGE_PATH)
 
     def __init__(self, start_pos: tuple[int, int], end_pos: tuple[int, int], color: tuple[int, int, int] | str):
         super().__init__()
@@ -46,7 +47,8 @@ class Projectile(pygame.sprite.Sprite):
             self.kill()
 
         x, y = self.start_pos
-        self.rect.center = (x + self.counter * self.shot_vector[0], y + self.counter * self.shot_vector[1])
+        self.rect.center = (
+        round(x + self.counter * self.shot_vector[0]), round(y + self.counter * self.shot_vector[1]))
 
     @staticmethod
     def get_travel_time() -> int:

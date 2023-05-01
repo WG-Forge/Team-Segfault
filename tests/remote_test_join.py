@@ -4,7 +4,7 @@ from game.game import Game
 from gui.display_manager import DisplayManager
 
 
-def remote_test_join():
+def remote_test_join() -> None:
     # Multiplayer game with a single observer, used to connect to a remote game
     print("*** Remote game test ***")
     name: str = "Test game: Remote Test 645"

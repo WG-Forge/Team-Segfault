@@ -1,6 +1,6 @@
 from constants import BASE_COLOR
-from entities.map_features.feature import Feature
 from entities.entity_enum import Entities
+from entities.map_features.feature import Feature
 
 
 class Base(Feature):

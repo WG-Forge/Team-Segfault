@@ -1,13 +1,13 @@
-import socket
+from socket import socket
 
 
 class ServerConnection:
     def __init__(self) -> None:
         self.__buffer_size = 4096
-        self.__socket: socket = socket.socket()
+        self.__socket: socket = socket()
 
     def __enter__(self):
-        return ServerConnection
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.disconnect()

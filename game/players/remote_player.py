@@ -1,5 +1,4 @@
 from threading import Event, Semaphore
-from typing import Callable
 
 from entities.entity_enum import Entities
 from game_map.hex import Hex
@@ -10,7 +9,7 @@ from remote.server_enum import Action
 
 class RemotePlayer(Player):
     def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
-                 current_player: list[1], player_index: int, over: Event):
+                 current_player: list[int], player_index: int, over: Event):
         super().__init__(name=name,
                          password=password,
                          is_observer=is_observer,
@@ -19,16 +18,16 @@ class RemotePlayer(Player):
                          player_index=player_index,
                          over=over)
 
-        self.__result_vtp: dict[Action, Callable] | None = None
+        self.__result_vtp: dict[Action, callable] | None = None
 
-    def add_map(self, game_map: Map):
+    def add_map(self, game_map: Map) -> None:
         super().add_map(game_map)
 
     def _make_turn_plays(self) -> None:
         if self._current_player[0] == self.idx:
             self.__place_actions()
 
-    def _finalize(self):
+    def _finalize(self) -> None:
         # No need to do anything currently
         pass
 

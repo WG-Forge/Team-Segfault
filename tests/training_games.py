@@ -4,8 +4,8 @@ from game.game import Game
 from mab.driver import Driver
 
 
-def training_games(num_trainings: int, restart: bool = False):
-    # Multiplayer game with a random name and three bot players
+def training_games(num_trainings: int, restart: bool = False) -> None:
+    # Multiplayer game with a random player_name and three bot players
     print("*** Training Bots ***")
     num_turns = 25
     num_players = 3

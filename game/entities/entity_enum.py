@@ -14,10 +14,6 @@ class Entities(StrEnum):
     OBSTACLE = 'obstacle'
     BASE = 'base'
     SPAWN = 'spawn_points'
-
-    # repairs
     LIGHT_REPAIR = 'light_repair'
     HARD_REPAIR = 'hard_repair'
-
-    # support
     CATAPULT = 'catapult'

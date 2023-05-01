@@ -23,12 +23,12 @@ class PlayerFactory:
     @staticmethod
     def create_player(player_type: PlayerTypes,
                       turn_played_sem: Semaphore,
-                      current_player_idx: list[1],
+                      current_player_idx: list[int],
                       over: Event,
                       player_index: int,
-                      name: str = None,
-                      password: str = None,
-                      is_observer: bool = None) -> Player:
+                      name: str | None = None,
+                      password: str | None = None,
+                      is_observer: bool | None = None) -> Player:
         player_class = PlayerFactory.__CLASS_MAPPING[player_type]
         return player_class(name=name,
                             password=password,

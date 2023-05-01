@@ -1,5 +1,7 @@
 from mab.driver import Driver
-from mab.local_game.local_game import LocalGame
+
+
+# from mab.local_game.local_game import LocalGame
 
 
 # Takes about 0.2s per game: 2hrs -> 36 000 games
@@ -7,7 +9,7 @@ from mab.local_game.local_game import LocalGame
 # If 5 groups of 6 actions 5^5 = 3125 combos
 # Action groups are calculated dynamically based on the number of turns
 
-def train(num_trainings: int = 1, num_turns: int = 15, restart: bool = False):
+def train(num_trainings: int = 1, num_turns: int = 15, restart: bool = False) -> None:
     print('*** Training Bots ***')
 
     mab_driver = Driver(num_turns, restart)

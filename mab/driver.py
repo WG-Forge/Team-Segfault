@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Type, cast
+from typing import Type, cast
 
 from mab.player import Player
 
@@ -12,13 +12,13 @@ class Driver:
     __decay_per_game = 0.0001  # Minimum exploration ratio reached after about 10 000 games
 
     # GameActions = {player_index: {tank_name: action_combo}}
-    GameActions = Type[Dict[int, Dict[str, str]]]
+    GameActions = Type[dict[int, dict[str, str]]]
     # ResultsTable = {player_index: {tank_name: {action_combo: rewards}}}
-    ResultsTable = Type[Dict[int, Dict[str, Dict[str, List[int]]]]]
+    ResultsTable = Type[dict[int, dict[str, dict[str, list[int]]]]]
 
     def __init__(self, num_turns: int, restart=False, num_players: int = 3):
         # Player index corresponds to who starts first, so Players[0] plays turn 1
-        group_size = Driver.calc_action_group_size(num_turns)
+        group_size = self.calc_action_group_size(num_turns)
         print('group_size', group_size)
         self.__players = {agent_index: Player(num_turns, group_size) for agent_index in range(num_players)}
         self.__explore_prob: float = 1.0
@@ -29,7 +29,7 @@ class Driver:
         game_actions = {}
         for player_index, player in self.__players.items():
             game_actions[player_index] = player.get_game_actions(self.__explore_prob)
-        return cast(Driver.GameActions, game_actions)
+        return cast(self.GameActions, game_actions)
 
     def register_winner(self, winner_index: int) -> None:
         for player_index, player in self.__players.items():
@@ -40,21 +40,21 @@ class Driver:
         self.__update_exploring()
 
     def __update_exploring(self) -> None:
-        if self.__explore_prob > Driver.__min_explore_prob:
-            self.__explore_prob -= Driver.__decay_per_game
+        if self.__explore_prob > self.__min_explore_prob:
+            self.__explore_prob -= self.__decay_per_game
 
     def __continue_training(self) -> None:
-        results_table = Driver.load_results_table_from_json()
+        results_table = self.load_results_table_from_json()
         for index, player in self.__players.items():
             player.set_results_table(results_table[str(index)])
 
-        num_games = Driver.load_num_games_from_json()
-        self.__explore_prob = Driver.calc_explore_prob(num_games)
+        num_games = self.load_num_games_from_json()
+        self.__explore_prob = self.calc_explore_prob(num_games)
 
     def pause_training(self) -> None:
         results_table = {index: player.get_results_table() for index, player in self.__players.items()}
-        Driver.dump_results_table_to_json(cast(Driver.ResultsTable, results_table))
-        Driver.dump_num_games_to_json(self.__explore_prob)
+        self.dump_results_table_to_json(cast(self.ResultsTable, results_table))
+        self.dump_num_games_to_json(self.__explore_prob)
 
     @staticmethod
     def calc_action_group_size(num_turns: int, action_num: int = 5, max_combos: int = 10000) -> int:

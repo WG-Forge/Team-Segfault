@@ -8,7 +8,7 @@ from remote.server_enum import Result
 
 
 class GameClient:
-    def __init__(self) -> None:
+    def __init__(self):
         self.__server_connection = ServerConnection()
         self.__server_connection.connect(HOST_NAME, HOST_PORT)
 
@@ -21,14 +21,14 @@ class GameClient:
     def disconnect(self) -> None:
         self.__server_connection.disconnect()
 
-    def login(self, name: str, password: str = None, game_name: str = None,
-              num_turns: int = None, num_players: int = None,
-              is_observer: bool = None) -> dict:
+    def login(self, name: str, password: str | None = None, game_name: str | None = None,
+              num_turns: int | None = None, num_players: int | None = None,
+              is_observer: bool | None = None) -> dict:
         """
         User login
         :param name: player username
         :param password: player password
-        :param game_name: define the game name to create or join if it already exists
+        :param game_name: define the game player_name to create or join if it already exists
         :param num_turns: number of game turns (if creating a game)
         :param num_players: number of game players (if creating a game)
         :param is_observer: define if joining as an observer
@@ -98,7 +98,7 @@ class GameClient:
         else:
             return True
 
-    def chat(self, msg):
+    def chat(self, msg) -> None:
         """
         Chat, just for fun and testing
         :param msg: message sent
@@ -121,7 +121,7 @@ class GameClient:
         self.__receive_response()
 
     @staticmethod
-    def __unpack(data: bytes) -> (Result, str):
+    def __unpack(data: bytes) -> tuple[Result, bytes]:
         (resp_code, msg_len), data = struct.unpack("ii", data[:8]), data[8:]
         msg = data[:msg_len]
         return resp_code, msg
@@ -133,11 +133,11 @@ class GameClient:
             msg = bytes(json.dumps(dct), 'utf-8')
         return struct.pack('ii', act, len(msg)) + msg
 
-    def __send_action(self, act: Action, dct=None) -> None:
-        if dct is None:
+    def __send_action(self, act: Action, dct: dict | None = None) -> None:
+        if not dct:
             dct = {}
 
-        out = self.__pack(act, dct)
+        out: bytes = self.__pack(act, dct)
 
         if not self.__server_connection.send_data(out):
             raise ConnectionError(f"Error: Data was not sent correctly.")
@@ -145,14 +145,15 @@ class GameClient:
     def __receive_response(self) -> dict:
         ret: bytes = self.__server_connection.receive_data()
         resp_code, msg = self.__unpack(ret)
+        dct: dict = {}
 
         if resp_code == Result.TIMEOUT:
-            dct: dict = json.loads(msg)
+            dct = json.loads(msg)
             raise TimeoutError(f"Error {resp_code}: {dct['error_message']}")
         elif resp_code != Result.OKEY:
-            dct: dict = json.loads(msg)
+            dct = json.loads(msg)
             raise ConnectionError(f"Error {resp_code}: {dct['error_message']}")
         elif len(msg) > 0:
             return json.loads(msg)
 
-        return {}
+        return dct

@@ -8,7 +8,7 @@ class Tank(Entity, ABC):
     __damage = 1
 
     def __init__(self, tank_id: int, tank_info: dict, color: tuple[int, int, int] | str, player_index: int,
-                 image_path: str):
+                 image_path: str, catapult_coords: tuple):
         self.__tank_id = tank_id
         self.__hp: int = tank_info["health"]
         self.__og_hp: int = self.__hp
@@ -23,6 +23,7 @@ class Tank(Entity, ABC):
                               tank_info["position"]["y"],
                               tank_info["position"]["z"])
 
+        self._catapult_coords: tuple = catapult_coords
         self.__image_path: str = image_path
 
         super().__init__(Entities(tank_info["vehicle_type"]))
@@ -38,10 +39,14 @@ class Tank(Entity, ABC):
         self.__destroyed = False
         self.__hp = self.__og_hp
 
-    """     GETTERS     """
+    """     GETTERS AND SETTERS     """
 
     @property
     def coord(self) -> tuple: return self._coord
+
+    @coord.setter
+    def coord(self, new_coord: tuple) -> None:
+        self._coord = new_coord
 
     @property
     def player_index(self) -> int: return self.__player_index
@@ -55,6 +60,9 @@ class Tank(Entity, ABC):
     @property
     def hp(self) -> int: return self.__hp
 
+    @hp.setter
+    def hp(self, hp: int): self.__hp = hp
+
     @property
     def max_hp(self) -> int: return self.__og_hp
 
@@ -64,6 +72,9 @@ class Tank(Entity, ABC):
     @property
     def cp(self) -> int: return self.__cp
 
+    @cp.setter
+    def cp(self, capture_pts: int): self.__cp = capture_pts
+
     @property
     def spawn_coord(self) -> tuple: return self.__spawn_coord
 
@@ -71,34 +82,17 @@ class Tank(Entity, ABC):
     def image_path(self) -> str:
         return self.__image_path
 
-    """     SETTERS     """
-
-    @coord.setter
-    def coord(self, new_coord: tuple) -> None:
-        self._coord = new_coord
-
-    @hp.setter
-    def hp(self, hp: int): self.__hp = hp
-
-    @cp.setter
-    def cp(self, capture_pts: int): self.__cp = capture_pts
-
     """     ABSTRACTS       """
 
     @abstractmethod
     def shot_moves(self, target: tuple) -> tuple: pass  # sorted coords to where "self" can move to shoot "target"
 
+    @property
     @abstractmethod
-    def get_speed(self) -> int: pass
+    def speed(self) -> int: pass
 
     @abstractmethod
-    def is_too_far(self, target: tuple) -> bool: pass  # True: too far to shoot, Null: just right, False: too close
-
-    @abstractmethod
-    def get_fire_deltas(self) -> tuple: pass
-
-    @abstractmethod
-    def coords_in_range(self) -> tuple: pass
+    def coords_in_range(self, is_on_catapult: bool) -> tuple: pass
 
     @abstractmethod
     def td_shooting_coord(self, target: tuple) -> tuple: pass

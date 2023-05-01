@@ -27,13 +27,13 @@ class Scoreboard:
 
     """Capture scoreboards"""
 
-    def draw_capture_scoreboard(self, screen, font, font_size):
+    def draw_capture_scoreboard(self, screen, font, font_size) -> None:
         screen.blit(font.render(' Capture points: ', True, WHITE), dest=(0, 0))
         self.draw_capture_scoreboard_flags(screen, font_size)
 
         # self.draw_capture_scoreboard_barplot(screen, font, font_size)
 
-    def draw_capture_scoreboard_flags(self, screen, font_size):
+    def draw_capture_scoreboard_flags(self, screen, font_size) -> None:
         i = 0
         for player in self.__players.values():
             if player is not None:
@@ -51,7 +51,7 @@ class Scoreboard:
                     screen.blit(self.__flag,
                                 (HEX_RADIUS_X[0] + (point + 1) * HEX_RADIUS_X[0], i * (font_size + self.__rad_y_third)))
 
-    def draw_capture_scoreboard_barplot(self, screen: Surface, font, font_size):
+    def draw_capture_scoreboard_barplot(self, screen: Surface, font, font_size) -> None:
         i = 0
         for player in self.__players:
             if player is not None:
@@ -70,7 +70,7 @@ class Scoreboard:
             text = font.render(str(i), True, WHITE)
             screen.blit(text, dest=(x - font_size / 2.5, (active_players + 1) * y))
 
-    def draw_capture_scoreboard_text(self, screen, font, font_size):
+    def draw_capture_scoreboard_text(self, screen, font, font_size) -> None:
         i = 0
         for player in self.__players:
             if player is not None:
@@ -81,14 +81,14 @@ class Scoreboard:
 
     """Damage scoreboards"""
 
-    def draw_damage_scoreboard(self, screen, font, font_size, max_damage):
+    def draw_damage_scoreboard(self, screen, font, font_size, max_damage) -> None:
         screen.blit(font.render(' Damage points: ', True, WHITE),
                     dest=(0, screen.get_height() - (self.__n_players + 1) * (font_size + self.__rad_y_third)))
         self.draw_damage_scoreboard_barplot(screen, font, font_size, max_damage)
 
         # self.draw_damage_scoreboard_text(screen, font, font_size)
 
-    def draw_damage_scoreboard_barplot(self, screen, font, font_size, max_damage):
+    def draw_damage_scoreboard_barplot(self, screen, font, font_size, max_damage) -> None:
         i = 0
         # image width + 0.5 of x_radius for offset
         x_pos = HEX_RADIUS_X[0] * 2.5
@@ -115,7 +115,7 @@ class Scoreboard:
                     text = font.render(str(player.damage_points), True, 'black')
                     screen.blit(text, dest=(x_pos, y_pos))
 
-    def draw_damage_scoreboard_text(self, screen, font, font_size):
+    def draw_damage_scoreboard_text(self, screen, font, font_size) -> None:
         i = 0
         for player in self.__players:
             if player is not None:
@@ -126,6 +126,6 @@ class Scoreboard:
 
     """Update functions"""
 
-    def update_image_size(self, scale_x, scale_y):
+    def update_image_size(self, scale_x, scale_y) -> None:
         self.__tank_image = pygame.transform.scale(self.__tank_image, (scale_x, scale_y))
         self.__flag = pygame.transform.scale(self.__flag, (scale_x, scale_y))
