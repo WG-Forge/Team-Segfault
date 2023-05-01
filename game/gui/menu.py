@@ -4,7 +4,7 @@ import pygame
 import pygame_menu
 
 from constants import MENU_POSITION, SOUND_VOLUME, PLAYER_NAMES, GAME_NAME, WHITE, MENU_BACKGROUND_COLOR, \
-    MENU_SELECTED_TEXT_COLOR, GAME_SPEED, MENU_MIN_WIDTH
+    MENU_SELECTED_TEXT_COLOR, GAME_SPEED, MENU_MIN_WIDTH, MENU_FONT
 
 
 class GameType(StrEnum):
@@ -84,7 +84,7 @@ class Menu:
         self.__menu_theme.selection_color = MENU_SELECTED_TEXT_COLOR
         self.__menu_theme.widget_font_color = WHITE
         self.__menu_theme.widget_alignment = pygame_menu.locals.ALIGN_LEFT
-        # self.__menu_theme.widget_font = pygame.font.Font(MENU_FONT)
+        self.__menu_theme.widget_font = MENU_FONT
 
     def disable(self) -> None:
         self.__main_menu.disable()

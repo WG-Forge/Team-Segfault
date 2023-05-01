@@ -4,7 +4,7 @@ from pygame.font import Font
 from pygame.sprite import Sprite, Group
 
 from constants import SCREEN_WIDTH, HEX_RADIUS_X, HEX_RADIUS_Y, HARD_REPAIR_IMAGE_PATH, LIGHT_REPAIR_IMAGE_PATH, \
-    CATAPULT_IMAGE_PATH, WHITE
+    CATAPULT_IMAGE_PATH, WHITE, MENU_FONT
 from entities.map_features.bonuses.catapult import Catapult
 from entities.map_features.bonuses.hard_repair import HardRepair
 from entities.map_features.bonuses.light_repair import LightRepair
@@ -16,6 +16,7 @@ from game_map.hex import Hex
 from gui.map_utils.explosion import Explosion
 from gui.map_utils.projectile import Projectile
 from gui.map_utils.scoreboard import Scoreboard
+from gui.map_utils.shot_tank import ShotTank
 from gui.map_utils.tank_drawer import TankDrawer
 
 
@@ -34,6 +35,8 @@ class MapDrawer:
         self.__font: Font | None = None
         self.__explosion_group: Group = Group()
         self.__projectile_group: Group = Group()
+        # tanks that are shot, but not destroyed
+        self.__shot_tanks_group: Group = Group()
         # note: this could be moved somewhere else
         self.__explosion_delay: int = Projectile.get_travel_time()
 
@@ -61,7 +64,7 @@ class MapDrawer:
 
     def draw(self, screen: Surface) -> None:
         if self.__font is None:
-            self.__font = pygame.font.SysFont('georgia', self.__font_size, bold=True)
+            self.__font = pygame.font.Font(MENU_FONT, self.__font_size)
 
         # fill with background color
         # screen.fill(GAME_BACKGROUND)
@@ -70,6 +73,10 @@ class MapDrawer:
         for coord, entities in self.__map.items():
             feature, tank = entities['feature'], entities['tank']
             self.__draw_feature(screen, feature, tank is not None)
+
+        # draw tanks shadows
+        self.__shot_tanks_group.draw(screen)
+        self.__shot_tanks_group.update()
 
         # draw tanks
         self.__tanks.draw(screen)
@@ -144,3 +151,7 @@ class MapDrawer:
     def add_shot(self, start_pos: tuple[int, int], end_pos: tuple[int, int], color: tuple[int, int, int]) -> None:
         projectile: Sprite = Projectile(start_pos, end_pos, color)
         self.__projectile_group.add(projectile)
+
+    def add_hitreg(self, coords: tuple[int, int], image_path: str, color: str | tuple[int, int, int]):
+        tank: Sprite = ShotTank(coords, image_path, color)
+        self.__shot_tanks_group.add(tank)

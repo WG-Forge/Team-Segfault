@@ -50,7 +50,7 @@ EXPLOSION_SOUND = 'game/assets/sounds/explosion.mp3'
 BULLET_SOUND = 'game/assets/sounds/shot.mp3'
 
 # font paths
-MENU_FONT = 'game/assets/menu/8-BIT WONDER.TTF'
+MENU_FONT = 'game/assets/menu/BrunoAceSC-Regular.ttf'
 
 # image paths
 TANK_ICON_PATH = 'game/assets/tank_icon.png'

@@ -19,9 +19,9 @@ class Tank(Entity, ABC):
         self.__tank_color = color
         self.__player_index: int = player_index
         self.__destroyed: bool = False
-        self._coord: tuple = (tank_info["position"]["x"],
-                              tank_info["position"]["y"],
-                              tank_info["position"]["z"])
+        self._coord: tuple[int, int, int] = (tank_info["position"]["x"],
+                                             tank_info["position"]["y"],
+                                             tank_info["position"]["z"])
 
         self._catapult_coords: tuple = catapult_coords
         self.__image_path: str = image_path
@@ -42,7 +42,7 @@ class Tank(Entity, ABC):
     """     GETTERS AND SETTERS     """
 
     @property
-    def coord(self) -> tuple: return self._coord
+    def coord(self) -> tuple[int, int, int]: return self._coord
 
     @coord.setter
     def coord(self, new_coord: tuple) -> None:
