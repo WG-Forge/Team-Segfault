@@ -2,8 +2,8 @@ import pygame
 from pygame import Surface
 from pygame.sprite import Sprite
 
-from constants import SCREEN_WIDTH, HEX_RADIUS_X, HEX_RADIUS_Y, GAME_BACKGROUND, \
-    HARD_REPAIR_IMAGE_PATH, LIGHT_REPAIR_IMAGE_PATH, CATAPULT_IMAGE_PATH
+from constants import SCREEN_WIDTH, HEX_RADIUS_X, HEX_RADIUS_Y, HARD_REPAIR_IMAGE_PATH, LIGHT_REPAIR_IMAGE_PATH, \
+    CATAPULT_IMAGE_PATH, WHITE
 from entities.map_features.base import Base
 from entities.map_features.empty import Empty
 from entities.map_features.obstacle import Obstacle
@@ -27,11 +27,11 @@ class MapDrawer:
         Explosion.set_image_scale()
         self.__scoreboard = Scoreboard(players)
         self.__font_size = round(1.2 * min(HEX_RADIUS_X[0], HEX_RADIUS_Y[0]))
-        self.__font = None
-        self.__explosion_group = pygame.sprite.Group()
-        self.__projectile_group = pygame.sprite.Group()
+        self.__font: pygame.font.Font | None = None
+        self.__explosion_group: pygame.sprite.Group = pygame.sprite.Group()
+        self.__projectile_group: pygame.sprite.Group = pygame.sprite.Group()
         # note: this could be moved somewhere else
-        self.__explosion_delay = Projectile.get_travel_time()
+        self.__explosion_delay: int = Projectile.get_travel_time()
 
         # map legend
         self.__map_legend_items = []
@@ -42,7 +42,7 @@ class MapDrawer:
             self.__map_legend_items.append(feature((x, y - i, z + i)))
 
         # tanks
-        self.__tanks = pygame.sprite.Group()
+        self.__tanks: pygame.sprite.Group = pygame.sprite.Group()
         for _, entities in self.__map.items():
             tank = entities['tank']
             if tank is not None:
@@ -55,7 +55,7 @@ class MapDrawer:
             self.__font = pygame.font.SysFont('georgia', self.__font_size, bold=True)
 
         # fill with background color
-        screen.fill(GAME_BACKGROUND)
+        # screen.fill(GAME_BACKGROUND)
 
         # display tanks and features
         for coord, entities in self.__map.items():
@@ -80,14 +80,12 @@ class MapDrawer:
 
         # display turn
         if self.__turn is not None:
-            text = self.__font.render('Turn: ' + str(self.__turn[0]), True, 'grey')
+            text = self.__font.render('Turn: ' + str(self.__turn[0]), True, WHITE)
             text_rect = text.get_rect(midtop=(SCREEN_WIDTH // 2, 0))
             screen.blit(text, text_rect)
 
         # draw map legend
         self.__draw_legend(screen)
-
-        pygame.display.flip()
 
     def __load_images(self) -> None:
         """Loads all necessary feature images"""
@@ -107,7 +105,7 @@ class MapDrawer:
     def __draw_legend(self, screen: Surface):
         y = 0
         for feature in self.__map_legend_items:
-            text = self.__font.render(' ' + str(feature.type), True, 'grey')
+            text = self.__font.render(' ' + str(feature.type), True, WHITE)
             text_rect = text.get_rect(midleft=(feature.center[0] + HEX_RADIUS_X[0], feature.center[1]))
             screen.blit(text, text_rect)
             y += 2 * HEX_RADIUS_Y[0]
@@ -122,6 +120,6 @@ class MapDrawer:
         explosion: Sprite = Explosion(Hex.make_center(target.coord))
         self.__explosion_group.add(explosion)
 
-    def add_shot(self, start_pos: (), end_pos: (), color):
+    def add_shot(self, start_pos: tuple[int, int], end_pos: tuple[int, int], color: str | tuple[int, int, int]):
         projectile: Sprite = Projectile(start_pos, end_pos, color)
         self.__projectile_group.add(projectile)

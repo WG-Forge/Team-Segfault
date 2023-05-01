@@ -35,3 +35,7 @@ TODO
 [Gunshot sound](https://pixabay.com/sound-effects/shotgun-firing-3-14483/)
 
 [Projectile](https://www.freepnglogos.com/images/bullet-8545.html)
+
+[Pygame tank icon](https://www.flaticon.com/free-icon/tank_3111508)
+
+[Tank tracks](https://www.dreamstime.com/tank-tracks-set-track-treads-isolated-white-various-caterpillar-impressed-heavy-vehicles-like-tractors-bulldozers-image198577121)

@@ -1,7 +1,7 @@
 import pygame
 from pygame import Surface
 
-from constants import FLAG_PATH, TANK_ICON_PATH, HEX_RADIUS_X, HEX_RADIUS_Y
+from constants import FLAG_PATH, TANK_ICON_PATH, HEX_RADIUS_X, HEX_RADIUS_Y, WHITE
 
 
 class Scoreboard:
@@ -15,18 +15,20 @@ class Scoreboard:
 
         # used for coloring tank icons
         self.__color_image = pygame.Surface(self.__tank_image.get_size())
-        self.__rad_x_third = HEX_RADIUS_X[0] / 3
-        self.__rad_y_third = HEX_RADIUS_Y[0] / 3
-        # length of 4 whole hexes
+
+        # 4 hexes wide
         self.__max_rect_length = 4 * (2 * HEX_RADIUS_X[0])
 
-        self.__players: () = players
-        self.__n_players = len(self.__players) + 1
+        self.__rad_x_third: float = HEX_RADIUS_X[0] / 3
+        self.__rad_y_third: float = HEX_RADIUS_Y[0] / 3
+
+        self.__players: dict = players
+        self.__n_players: int = len(self.__players) + 1
 
     """Capture scoreboards"""
 
     def draw_capture_scoreboard(self, screen, font, font_size):
-        screen.blit(font.render(' Capture points: ', True, 'grey'), dest=(0, 0))
+        screen.blit(font.render(' Capture points: ', True, WHITE), dest=(0, 0))
         self.draw_capture_scoreboard_flags(screen, font_size)
 
         # self.draw_capture_scoreboard_barplot(screen, font, font_size)
@@ -64,8 +66,8 @@ class Scoreboard:
         for i in range(capture_points_to_win + 1):
             x = self.__rad_x_third + HEX_RADIUS_X[0] * i
             y = font_size + self.__rad_y_third
-            pygame.draw.line(screen, 'white', (x, y), (x, (active_players + 1) * y), 2)
-            text = font.render(str(i), True, 'white')
+            pygame.draw.line(screen, WHITE, (x, y), (x, (active_players + 1) * y), 2)
+            text = font.render(str(i), True, WHITE)
             screen.blit(text, dest=(x - font_size / 2.5, (active_players + 1) * y))
 
     def draw_capture_scoreboard_text(self, screen, font, font_size):
@@ -80,7 +82,7 @@ class Scoreboard:
     """Damage scoreboards"""
 
     def draw_damage_scoreboard(self, screen, font, font_size, max_damage):
-        screen.blit(font.render(' Damage points: ', True, 'grey'),
+        screen.blit(font.render(' Damage points: ', True, WHITE),
                     dest=(0, screen.get_height() - (self.__n_players + 1) * (font_size + self.__rad_y_third)))
         self.draw_damage_scoreboard_barplot(screen, font, font_size, max_damage)
 

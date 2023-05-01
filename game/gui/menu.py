@@ -1,136 +1,122 @@
-import pygame
+from enum import StrEnum
 
-from constants import BLACK
+import pygame
+import pygame_menu
+
+from constants import MENU_POSITION, SOUND_VOLUME, PLAYER_NAMES, GAME_NAME, WHITE, MENU_BACKGROUND_COLOR, \
+    MENU_SELECTED_TEXT_COLOR
+
+
+class GameType(StrEnum):
+    LOCAL_MULTIPLAYER = 'Multiplayer'
+    SINGLEPLAYER = 'Local'
+    PVP_MULTIPLAYER = 'PvP'
+    SPECTATE = 'Spectate'
 
 
 class Menu:
-    def __init__(self, display_manager):
-        self.display_manager = display_manager
-        self.mid_w, self.mid_h = self.display_manager.DISPLAY_W / 2, self.display_manager.DISPLAY_H / 2
-        self.run_display = True
-        self.cursor_rect = pygame.Rect(0, 0, 20, 20)
-        self.offset = - 100
+    def __init__(self, menu_width: int, menu_height: int, start_game_function):
+        self.__menu_width = menu_width
+        self.__menu_height = menu_height
 
-    def draw_cursor(self):
-        self.display_manager.draw_text('*', 15, self.cursor_rect.x, self.cursor_rect.y)
+        self.__create_menu_theme()
+        # submenus need to be created before main menu
+        self.__create_options_menu()
+        self.__create_play_menu(start_game_function)
+        self.__create_credits_menu()
+        self.__create_main_menu()
 
-    def blit_screen(self):
-        pygame.display.flip()
-        self.display_manager.reset_keys()
+        self.__is_enabled = self.__main_menu.is_enabled()
 
+    def __create_main_menu(self) -> None:
+        self.__main_menu: pygame_menu.Menu = pygame_menu.Menu('Main menu', self.__menu_width, self.__menu_height,
+                                                              theme=self.__menu_theme, position=MENU_POSITION,
+                                                              mouse_motion_selection=True)
+        self.__main_menu.add.button('Play', self.__play_menu)
+        self.__main_menu.add.button('Options', self.__options_menu)
+        self.__main_menu.add.button('Credits', self.__credits)
 
-class MainMenu(Menu):
-    def __init__(self, game):
-        Menu.__init__(self, game)
-        self.state = "Start"
+        self.__main_menu.add.button('Quit', pygame_menu.events.EXIT)
+        Menu.set_menu_size(self.__main_menu)
+        menu_scale = 2.5
+        self.__main_menu.resize(self.__main_menu.get_width() * menu_scale, self.__main_menu.get_height())
 
-        # todo: remove magic numbers with font scaling or screen size
-        self.states = ("Start", "Options", "Help", "Credits", "Exit")
-        self.state_sz = len(self.states)
-        self.state_ind = 0
-        self.statex = tuple([self.mid_w for _ in range(self.state_sz)])
-        self.statey = tuple([self.mid_h + 30 + 20 * i for i in range(self.state_sz)])
-        self.cursor_rect.midtop = (self.statex[self.state_ind] + self.offset, self.statey[self.state_ind])
+    def __create_options_menu(self) -> None:
+        self.__options_menu: pygame_menu.Menu = pygame_menu.Menu('Options', self.__menu_width, self.__menu_height,
+                                                                 theme=self.__menu_theme, mouse_motion_selection=True)
+        self.__options_menu.add.button('Back', pygame_menu.events.BACK)
+        self.__options_menu.add.range_slider('Volume', default=SOUND_VOLUME[0], range_values=(0, 1),
+                                             increment=0.1, rangeslider_id='volume_slider')
 
-    def display_menu(self):
-        self.run_display = True
-        while self.run_display:
-            self.display_manager.check_events()
-            self.check_input()
-            self.display_manager.screen.fill(BLACK)
-            self.display_manager.draw_text('Main Menu', 20, self.display_manager.DISPLAY_W / 2,
-                                           self.display_manager.DISPLAY_H / 2 - 20)
-            for i in range(self.state_sz):
-                self.display_manager.draw_text(self.states[i], 20, self.statex[i], self.statey[i])
-            self.draw_cursor()
-            self.blit_screen()
+        Menu.set_menu_size(self.__options_menu)
 
-    def move_cursor(self):
-        # scrolling up and down - keyboard controls
-        if self.display_manager.DOWN_KEY:
-            self.state_ind = (self.state_ind + 1) % self.state_sz
-            self.state = self.states[self.state_ind]
-            self.cursor_rect.midtop = (self.statex[self.state_ind] + self.offset, self.statey[self.state_ind])
-        elif self.display_manager.UP_KEY:
-            self.state_ind = (self.state_ind - 1) % self.state_sz
-            self.state = self.states[self.state_ind]
-            self.cursor_rect.midtop = (self.statex[self.state_ind] + self.offset, self.statey[self.state_ind])
+    def __create_play_menu(self, start_game) -> None:
+        self.__play_menu: pygame_menu.Menu = pygame_menu.Menu('Play', self.__menu_width, self.__menu_height,
+                                                              theme=self.__menu_theme, onclose=pygame_menu.events.BACK
+                                                              , mouse_motion_selection=True)
+        # print([(game_type.value, 0) for game_type in GameType])
+        self.__play_menu.add.button('Battle!', start_game)
+        # (title, number of players(game instances) needed or 0 if it's a local game)
+        self.__play_menu.add.selector('Game type', [(game_type.value, 0) for game_type in GameType],
+                                      selector_id='game_type', style='fancy', style_fancy_bgcolor=(0, 0, 0, 0))
+        self.__play_menu.add.text_input('Nickname: ', default=PLAYER_NAMES[0], textinput_id='nickname', maxchar=10)
+        self.__play_menu.add.text_input('Game name: ', default=GAME_NAME[0], textinput_id='game_name', maxchar=10)
+        self.__play_menu.add.button('Back', pygame_menu.events.BACK)
 
-    def check_input(self):
-        # are some of the menues selected?
-        self.move_cursor()
-        if self.display_manager.START_KEY:
-            if self.state == 'Start':
-                self.display_manager.playing = True
-                # start the game thread
-                self.display_manager.game.start()
+        Menu.set_menu_size(self.__play_menu)
 
-            elif self.state == 'Options':
-                self.display_manager.curr_menu = self.display_manager.options
-            elif self.state == 'Credits':
-                self.display_manager.curr_menu = self.display_manager.credits
-            else:
-                # exit
-                self.display_manager.running = False
+    def __create_credits_menu(self) -> None:
+        self.__credits: pygame_menu.Menu = pygame_menu.Menu('Credits', self.__menu_width, self.__menu_height,
+                                                            theme=self.__menu_theme)
+        self.__credits.add.label('Vuk Djordjevic')
+        self.__credits.add.label('Ricardo Suarez del Valle')
+        self.__credits.add.label('Jovan Milanovic')
+        self.__credits.add.button('Back', pygame_menu.events.BACK)
+        Menu.set_menu_size(self.__credits)
 
-            self.run_display = False
+    def __create_menu_theme(self) -> None:
+        self.__menu_theme = pygame_menu.themes.THEME_DARK.copy()
+        self.__menu_theme.title = False
+        self.__menu_theme.background_color = MENU_BACKGROUND_COLOR
+        self.__menu_theme.widget_font = pygame_menu.font.FONT_NEVIS
+        self.__menu_theme.selection_color = MENU_SELECTED_TEXT_COLOR
+        self.__menu_theme.widget_font_color = WHITE
+        self.__menu_theme.widget_alignment = pygame_menu.locals.ALIGN_LEFT
+        # self.__menu_theme.widget_font = pygame.font.Font(MENU_FONT)
 
+    def disable(self) -> None:
+        self.__main_menu.disable()
 
-class OptionsMenu(Menu):
-    def __init__(self, display_manager):
-        Menu.__init__(self, display_manager)
-        self.state = 'Volume'
-        self.volx, self.voly = self.mid_w, self.mid_h + 20
-        self.controlsx, self.controlsy = self.mid_w, self.mid_h + 40
-        self.cursor_rect.midtop = (self.volx + self.offset, self.voly)
+    def enable(self) -> None:
+        self.__main_menu.enable()
 
-    def display_menu(self):
-        self.run_display = True
-        while self.run_display:
-            self.display_manager.check_events()
-            self.check_input()
-            self.display_manager.screen.fill(BLACK)
-            self.display_manager.draw_text('Options', 20, self.display_manager.DISPLAY_W / 2,
-                                           self.display_manager.DISPLAY_H / 2 - 30)
-            self.display_manager.draw_text("Volume", 15, self.volx, self.voly)
-            self.display_manager.draw_text("Controls", 15, self.controlsx, self.controlsy)
-            self.draw_cursor()
-            self.blit_screen()
+    def draw(self, screen) -> None:
+        if self.__main_menu.is_enabled():
+            self.__main_menu.draw(screen)
 
-    def check_input(self):
-        if self.display_manager.BACK_KEY:
-            self.display_manager.curr_menu = self.display_manager.main_menu
-            self.run_display = False
-        elif self.display_manager.UP_KEY or self.display_manager.DOWN_KEY:
-            if self.state == 'Volume':
-                self.state = 'Controls'
-                self.cursor_rect.midtop = (self.controlsx + self.offset, self.controlsy)
-            elif self.state == 'Controls':
-                self.state = 'Volume'
-                self.cursor_rect.midtop = (self.volx + self.offset, self.voly)
-        elif self.display_manager.START_KEY:
-            # TODO
-            pass
+    def update(self, events: list[pygame.event.Event]) -> None:
+        self.__main_menu.update(events)
 
+    def is_enabled(self) -> bool:
+        return self.__main_menu.is_enabled()
 
-class CreditsMenu(Menu):
-    def __init__(self, display_manager):
-        Menu.__init__(self, display_manager)
+    def get_volume(self) -> float:
+        return self.__options_menu.get_widget('volume_slider').get_value()
 
-    def display_menu(self):
-        self.run_display = True
-        while self.run_display:
-            self.display_manager.check_events()
-            if self.display_manager.START_KEY or self.display_manager.BACK_KEY:
-                self.display_manager.curr_menu = self.display_manager.main_menu
-                self.run_display = False
-            self.display_manager.screen.fill(BLACK)
-            self.display_manager.draw_text('Credits', 20, self.display_manager.DISPLAY_W / 2,
-                                           self.display_manager.DISPLAY_H / 2 - 20)
-            self.display_manager.draw_text('Jovan Milanovic', 15, self.display_manager.DISPLAY_W / 2,
-                                           self.display_manager.DISPLAY_H / 2 + 10)
-            self.display_manager.draw_text('Ricardo Suarez del Valle', 15, self.display_manager.DISPLAY_W / 2,
-                                           self.display_manager.DISPLAY_H / 2 + 30)
-            self.display_manager.draw_text('Vuk Djordjevic', 15, self.display_manager.DISPLAY_W / 2,
-                                           self.display_manager.DISPLAY_H / 2 + 50)
-            self.blit_screen()
+    def get_map_name(self) -> str:
+        return self.__play_menu.get_widget('game_name').get_value()
+
+    def get_player_name(self) -> str:
+        return self.__play_menu.get_widget('nickname').get_value()
+
+    def get_game_type(self) -> int:
+        return self.__play_menu.get_widget('game_type').get_value()[0][0]
+
+    @staticmethod
+    def set_menu_size(menu: pygame_menu.Menu) -> None:
+        max_width, height = 1, 1
+        for widget in menu.get_widgets():
+            max_width = max(max_width, widget.get_width())
+            height += widget.get_height()
+
+        menu.resize(max_width, height, position=MENU_POSITION)

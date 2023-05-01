@@ -5,10 +5,10 @@ from game_map.hex import Hex
 class Feature(Entity):
     """ Abstract feature class """
 
-    def __init__(self, name: Entities, coord: tuple, color):
+    def __init__(self, name: Entities, coord: tuple, color: tuple[int, int, int] | str):
         self.__corners: tuple = Hex.make_corners(coord)
         self.__center: tuple = Hex.make_center(coord)
-        self.__color = color
+        self.__color: tuple[int, int, int] | str = color
         super().__init__(name)
 
     @property
