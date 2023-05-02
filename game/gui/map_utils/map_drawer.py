@@ -4,7 +4,7 @@ from pygame.font import Font
 from pygame.sprite import Sprite, Group
 
 from constants import SCREEN_WIDTH, HEX_RADIUS_X, HEX_RADIUS_Y, HARD_REPAIR_IMAGE_PATH, LIGHT_REPAIR_IMAGE_PATH, \
-    CATAPULT_IMAGE_PATH, WHITE, MENU_FONT
+    CATAPULT_IMAGE_PATH, WHITE, MENU_FONT, IMAGE_TO_HEX_RAD_RATIO, MAP_FONT_SIZE_MULTIPLIER
 from entities.map_features.bonuses.catapult import Catapult
 from entities.map_features.bonuses.hard_repair import HardRepair
 from entities.map_features.bonuses.light_repair import LightRepair
@@ -31,7 +31,7 @@ class MapDrawer:
 
         Explosion.set_image_scale()
         self.__scoreboard = Scoreboard(players)
-        self.__font_size = round(1.2 * min(HEX_RADIUS_X[0], HEX_RADIUS_Y[0]))
+        self.__font_size = round(MAP_FONT_SIZE_MULTIPLIER * min(HEX_RADIUS_X[0], HEX_RADIUS_Y[0]))
         self.__font: Font | None = None
         self.__explosion_group: Group = Group()
         self.__projectile_group: Group = Group()
@@ -43,7 +43,7 @@ class MapDrawer:
         # map legend
         self.__map_legend_items = []
         features = [Empty, Base, Obstacle]
-        # non-special hexes will always be on the screen and on top right, while bonuses will be on bottom right
+        # regular hexes will always be on the screen and on top right, while bonuses will be on bottom right
         x, y, z = self.__map_size, self.__map_size - 1, -self.__map_size - 1
         for i, feature in enumerate(features):
             self.__map_legend_items.append(feature((x, y - i, z + i)))
@@ -105,7 +105,7 @@ class MapDrawer:
 
     def __load_images(self) -> None:
         """Loads all necessary feature images"""
-        scale_size = (HEX_RADIUS_X[0] * 1.5, HEX_RADIUS_Y[0] * 1.5)
+        scale_size = (HEX_RADIUS_X[0] * IMAGE_TO_HEX_RAD_RATIO, HEX_RADIUS_Y[0] * IMAGE_TO_HEX_RAD_RATIO)
         self.__hard_repair_image = pygame.transform.scale(pygame.image.load(HARD_REPAIR_IMAGE_PATH), scale_size)
         self.__light_repair_image = pygame.transform.scale(pygame.image.load(LIGHT_REPAIR_IMAGE_PATH), scale_size)
         self.__catapult_image = pygame.transform.scale(pygame.image.load(CATAPULT_IMAGE_PATH), scale_size)
@@ -113,7 +113,7 @@ class MapDrawer:
     def __draw_feature(self, screen, feature, is_tank_there) -> None:
         """Renders the hexagon on the screen and draw a white border around the hexagon"""
         pygame.draw.polygon(screen, feature.color, feature.corners)
-        pygame.draw.aalines(screen, (255, 255, 255), closed=True, points=feature.corners)
+        pygame.draw.aalines(screen, WHITE, closed=True, points=feature.corners)
 
         # todo: store images in features; make images smaller when tank is on that position
         image: Surface | None = None

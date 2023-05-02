@@ -1,17 +1,9 @@
-from enum import StrEnum
-
 import pygame
 import pygame_menu
 
 from constants import MENU_POSITION, SOUND_VOLUME, PLAYER_NAMES, GAME_NAME, WHITE, MENU_BACKGROUND_COLOR, \
     MENU_SELECTED_TEXT_COLOR, GAME_SPEED, MENU_MIN_WIDTH, MENU_FONT
-
-
-class GameType(StrEnum):
-    LOCAL_MULTIPLAYER = 'Multiplayer'
-    SINGLE_PLAYER = 'Local'
-    PVP_MULTIPLAYER = 'PvP'
-    SPECTATE = 'Spectate'
+from game_presets.game_type_enum import GameType
 
 
 class Menu:
@@ -44,12 +36,13 @@ class Menu:
     def __create_options_menu(self) -> None:
         self.__options_menu: pygame_menu.Menu = pygame_menu.Menu('Options', self.__menu_width, self.__menu_height,
                                                                  theme=self.__menu_theme, mouse_motion_selection=True)
-        self.__options_menu.add.button('Back', pygame_menu.events.BACK)
+        # TODO: add functionality to this toggle; minimum graphics include: not drawing any animations (for now)
+        self.__options_menu.add.toggle_switch('Minimum graphics: ', default=0, toggleswitch_id='graphics')
         self.__options_menu.add.range_slider('Game speed', default=GAME_SPEED[0], range_values=(0, 1), increment=0.1,
                                              rangeslider_id='game_speed_slider')
         self.__options_menu.add.range_slider('Volume', default=SOUND_VOLUME[0], range_values=(0, 1),
                                              increment=0.1, rangeslider_id='volume_slider')
-
+        self.__options_menu.add.button('Back', pygame_menu.events.BACK)
         Menu.set_menu_size(self.__options_menu)
 
     def __create_play_menu(self, start_game) -> None:

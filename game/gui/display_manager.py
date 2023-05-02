@@ -4,8 +4,8 @@ from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, MENU_BACKGROUND_IMAG
     GAME_BACKGROUND, GUI_CAPTION
 from game_presets.local_multiplayer import local_multiplayer_game
 from game_presets.single_player import single_player_game
-from gui.loading_screen import LoadingScreen
-from gui.menu import *
+from gui.menus_and_screens.loading_screen import LoadingScreen
+from gui.menus_and_screens.menu import *
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 

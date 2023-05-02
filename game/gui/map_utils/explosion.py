@@ -17,7 +17,7 @@ class Explosion(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (coord[0], coord[1])
 
-        # used for delaying explosion if the bullet is too slow; should not be delayed when turns are fast
+        # used for delaying explosion_images if the bullet is too slow; should not be delayed when turns are fast
         # self.delay = explosion_delay
 
         self.__sound = pygame.mixer.Sound(EXPLOSION_SOUND)

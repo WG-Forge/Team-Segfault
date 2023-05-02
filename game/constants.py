@@ -13,6 +13,13 @@ SCREEN_WIDTH = SCREEN_RATIO[0] * SCREEN_SIZE
 SCREEN_HEIGHT = SCREEN_RATIO[1] * SCREEN_SIZE
 HEX_RADIUS_X = [-1]
 HEX_RADIUS_Y = [-1]
+IMAGE_TO_HEX_RAD_RATIO = 1.5
+# tank icon for registering non-fatal shot
+TANK_SHADOW_ALPHA = 64
+TANK_PULSE_FULL_DURATION = 20
+TANK_SHADOW_MAX_SCALE = 2.5
+
+MAP_FONT_SIZE_MULTIPLIER = 1.2
 
 # position of menus in %, relative to the window size
 MENU_POSITION = (0, 100)
@@ -65,7 +72,7 @@ LIGHT_REPAIR_IMAGE_PATH = 'game/assets/bonuses/light_repair.png'
 HARD_REPAIR_IMAGE_PATH = 'game/assets/bonuses/hard_repair.png'
 
 FLAG_PATH = 'game/assets/flag.png'
-EXPLOSION_IMAGES = [f'game/assets/explosion/{i}.png' for i in range(7)]
+EXPLOSION_IMAGES = [f'game/assets/explosion_images/{i}.png' for i in range(7)]
 BULLET_IMAGE_PATH = 'game/assets/white_bullet.png'
 
 MENU_BACKGROUND_IMAGE = 'game/assets/menu/background.jpg'
