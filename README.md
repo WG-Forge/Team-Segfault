@@ -17,17 +17,21 @@ players will battle each other, until the game ends in a draw or a winner is det
 
 ### Running
 
-Set the project workspace to the folder which contains main.py, call wanted tests inside of the main function and run
-the module.
-For testing remote games run the remote_game_create and remote_game_join modules separately, with the same project
-configurations as for the previously
-named.
+Set the project workspace to the folder which contains main.py, start the Python virtual environment, and follow the on-screen instructions!
+
 Python 3.11 <= is required.
+
+### Running without the menu/debugging
+
+For testing remote games run the remote_game_create and remote_game_join modules separately, with the same project
+workspace as for the previously named.
+For other tests configure the parameters and run the wanted modules separately.
 
 ### Project structure
 
 A simplified version of the project structure can be seen here:
-![VLLDZZ~1](https://user-images.githubusercontent.com/81580576/235317295-928da99f-785b-4219-a8fc-f8f0fe809311.PNG)
+![VLNBZjim3BpxAuIS-a0EFVGI5CMsoVO1D6YnIO5U6Oj8XBLbGw8sS1__tbYCL2iqcfk6mo5jpJXtdi1HQ9lgP3GgR7iQL8lj0Pslghe1xzN6-Bw1OGiMZkZKhqfTVY-FIDyzki-s3_JiEMDHx2Eqc03juBohqOx0dwGt4bY5ErBxClGQ27S4X0dwTXcCxZhwdqJKP0qUaWREI4Jkvi91ny0Ux2EVovtMZK5BQJ6qUj_jq3sXIqfyMdVMOas](https://user-images.githubusercontent.com/81580576/235599494-7ad24e7b-8dc7-41f0-ac29-f94e90c7aa61.png)
+
 
 The DisplayManager is the top-level entry point of the program, but the Game class can be run and configured itself
 without it, in which case no window will be rendered, and only console output can be seen.
