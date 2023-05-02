@@ -125,8 +125,9 @@ class Game(Thread):
             # the game was interrupted
             return
 
-        # add all remote players
+        # add all remote players and observers
         self.__player_manager.add_remote_players(game_state["players"])
+        self.__player_manager.add_remote_players(game_state["observers"])
 
         # start all player instances
         self.__player_manager.start_players()
