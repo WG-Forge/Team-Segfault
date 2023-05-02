@@ -10,9 +10,9 @@ class Tank(Entity, ABC):
     def __init__(self, tank_id: int, tank_info: dict, color: tuple[int, int, int] | str, player_index: int,
                  image_path: str, catapult_coords: tuple):
         self.__tank_id = tank_id
-        self.__hp: int = tank_info["health"]
-        self.__og_hp: int = self.__hp
-        self.__cp: int = tank_info["capture_points"]
+        self.__health_points: int = tank_info["health"]
+        self.__max_health_points: int = self.__health_points
+        self.__capture_points: int = tank_info["capture_points"]
         self.__spawn_coord: tuple = (tank_info["spawn_position"]["x"],
                                      tank_info["spawn_position"]["y"],
                                      tank_info["spawn_position"]["z"])
@@ -29,15 +29,15 @@ class Tank(Entity, ABC):
         super().__init__(Entities(tank_info["vehicle_type"]))
 
     def register_hit_return_destroyed(self) -> bool:
-        self.__hp -= Tank.__damage  # All tanks do 1 damage
-        if self.__hp < 1:
+        self.__health_points -= Tank.__damage  # All tanks do 1 damage
+        if self.__health_points < 1:
             self.__destroyed = True
 
         return self.__destroyed
 
     def respawn(self) -> None:
         self.__destroyed = False
-        self.__hp = self.__og_hp
+        self.__health_points = self.__max_health_points
 
     """     GETTERS AND SETTERS     """
 
@@ -58,22 +58,22 @@ class Tank(Entity, ABC):
     def color(self) -> str | tuple[int, int, int]: return self.__tank_color
 
     @property
-    def hp(self) -> int: return self.__hp
+    def health_points(self) -> int: return self.__health_points
 
-    @hp.setter
-    def hp(self, hp: int): self.__hp = hp
+    @health_points.setter
+    def health_points(self, hp: int): self.__health_points = hp
 
     @property
-    def max_hp(self) -> int: return self.__og_hp
+    def max_health_points(self) -> int: return self.__max_health_points
 
     @property
     def is_destroyed(self) -> bool: return self.__destroyed
 
     @property
-    def cp(self) -> int: return self.__cp
+    def capture_points(self) -> int: return self.__capture_points
 
-    @cp.setter
-    def cp(self, capture_pts: int): self.__cp = capture_pts
+    @capture_points.setter
+    def capture_points(self, capture_pts: int): self.__capture_points = capture_pts
 
     @property
     def spawn_coord(self) -> tuple: return self.__spawn_coord

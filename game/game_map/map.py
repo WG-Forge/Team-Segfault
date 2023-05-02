@@ -20,17 +20,19 @@ class Map:
 
         self.__players: dict = self.__add_players(active_players)
         self.__tanks: dict[int, Tank] = {}
-
-        self.__map: dict = {}
-        self.__map_size = client_map['size']
+        self.__destroyed: list[Tank] = []
         self.__base_coords: tuple = ()
         self.__base_adjacent_coords: tuple = ()
         self.__spawn_coords: tuple = ()
+        self.__catapult_coords: tuple = ()
+        self.__light_repair_coords: tuple = ()
+        self.__hard_repair_coords: tuple = ()
+
+        self.__map: dict = {}
+        self.__map_size = client_map['size']
         self.__make_map(client_map, game_state, active_players)
-        self.__destroyed: list[Tank] = []
 
         self.__path_finding_algorithm: callable = _a_star.a_star
-
         self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn)
 
     """     MAP MAKING      """
@@ -48,9 +50,12 @@ class Map:
         feature_factory = FeatureFactory(client_map["content"], self.__map)
         self.__base_coords = feature_factory.base_coords
         self.__base_adjacent_coords = feature_factory.base_adjacents
+        self.__catapult_coords = feature_factory.catapult_coords
+        self.__light_repair_coords = feature_factory.light_repair_coords
+        self.__hard_repair_coords = feature_factory.hard_repair_coords
 
         # Make tanks & spawns, put them in map
-        tank_factory = TankFactory(game_state["vehicles"], active_players, self.__map, feature_factory.catapult_coords)
+        tank_factory = TankFactory(game_state["vehicles"], active_players, self.__map, self.__catapult_coords)
         self.__tanks = tank_factory.tanks
 
         del feature_factory, tank_factory
@@ -76,8 +81,8 @@ class Map:
 
             tank = self.__tanks[int(vehicle_id)]
             self.local_move(tank, server_coord) if server_coord != tank.coord else None
-            tank.hp = server_hp if server_hp != tank.hp else tank.hp
-            tank.cp = server_cp if server_cp != tank.cp else tank.cp
+            tank.health_points = server_hp if server_hp != tank.health_points else tank.health_points
+            tank.capture_points = server_cp if server_cp != tank.capture_points else tank.capture_points
 
     def __respawn_destroyed_tanks(self) -> None:
         while self.__destroyed:
@@ -140,6 +145,27 @@ class Map:
                               self.is_neutral(friend, enemy) or enemy.is_destroyed)
 
     """     NAVIGATION    """
+
+    def __is_usable(self, bonus_coord: tuple, tank_type: str) -> bool:
+        coord_dict = self.__map[bonus_coord]
+        bonus, tank = coord_dict['feature'], coord_dict['tank']
+        return not tank and bonus.is_usable(tank_type)
+
+    @staticmethod
+    def __features_by_dist(tank: Tank, feature_coords: tuple[tuple[int, int, int], ...]) -> list[tuple[int, int, int]]:
+        return sorted(feature_coords, key=lambda coord: Hex.manhattan_dist(coord, tank.coord))
+
+    def closest_usable_repair(self, tank: Tank) -> list[tuple[int, int, int]] | None:
+        feature_coords = self.__hard_repair_coords
+        if tank.type == 'medium_tank':
+            feature_coords = self.__light_repair_coords
+        closest_repair = self.__features_by_dist(tank, feature_coords)[0]
+        if self.__is_usable(closest_repair, tank.type):
+            return [closest_repair]
+
+    def two_closest_catapults_if_usable(self, tank: Tank) -> list[tuple[int, int, int]]:
+        two_closest = [coord for coord in self.__features_by_dist(tank, self.__catapult_coords)][:2]
+        return [coord for coord in two_closest if self.__is_usable(coord, tank.type)]
 
     def tanks_in_range(self, tank: Tank) -> list[Tank]:
         is_on_catapult = isinstance(self.__map[tank.coord]['feature'], Catapult)

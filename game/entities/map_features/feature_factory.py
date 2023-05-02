@@ -22,23 +22,32 @@ class FeatureFactory:
         self.__base_coords: list[tuple] = []
         self.__base_adjacent_coords: list[tuple] = []
         self.__catapult_coords: list[tuple] = []
+        self.__hard_repair_coords: list[tuple] = []
+        self.__light_repair_coords: list[tuple] = []
         self.__make_features(features, game_map)
 
     def __make_features(self, features: dict, game_map: dict) -> None:
+        feature_coords = {Entities.BASE: [], Entities.CATAPULT: [], Entities.LIGHT_REPAIR: [], Entities.HARD_REPAIR: []}
+
         for name, coords in features.items():
-            features_class = self.FEATURE_TYPES.get(name)
-            if not features_class:
+            feature_class = self.FEATURE_TYPES.get(name)
+            if not feature_class:
                 print(f"Support for {name} needed")
                 continue
+
+            coord_list = feature_coords.get(name)
             for d in coords:
-                coord: tuple = (d['x'], d['y'], d['z'])
-                game_map[coord]['feature'] = features_class(coord)
-                if name == Entities.BASE:
-                    self.__base_coords.append(coord)
-                elif name == Entities.CATAPULT:
-                    self.__catapult_coords.append(coord)
-            if name == Entities.BASE:
-                self.__make_base_adjacents()
+                coord = (d['x'], d['y'], d['z'])
+                game_map[coord]['feature'] = feature_class(coord)
+                if coord_list:
+                    coord_list.append(coord)
+
+        self.__base_coords = feature_coords[Entities.BASE]
+        self.__catapult_coords = feature_coords[Entities.CATAPULT]
+        self.__light_repair_coords = feature_coords[Entities.LIGHT_REPAIR]
+        self.__hard_repair_coords = feature_coords[Entities.HARD_REPAIR]
+
+        self.__make_base_adjacents()
 
     def __make_base_adjacents(self) -> None:
         adjacent_deltas = Hex.make_ring(1)
@@ -47,6 +56,14 @@ class FeatureFactory:
                                           for base_coord in self.__base_coords
                                           for delta in adjacent_deltas
                                       } - set(self.__base_coords)
+
+    @property
+    def light_repair_coords(self) -> tuple[tuple, ...]:
+        return tuple(self.__light_repair_coords)
+
+    @property
+    def hard_repair_coords(self) -> tuple[tuple, ...]:
+        return tuple(self.__hard_repair_coords)
 
     @property
     def catapult_coords(self) -> tuple[tuple, ...]:

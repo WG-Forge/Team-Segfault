@@ -110,7 +110,7 @@ class Player(Thread, ABC):
 
     @property
     def capture_points(self) -> int:
-        return sum(tank.cp for tank in self._tanks)
+        return sum(tank.capture_points for tank in self._tanks)
 
     @property
     def damage_points(self) -> int:
@@ -143,7 +143,7 @@ class Player(Thread, ABC):
         self.__has_shot = []
 
     def register_destroyed_vehicle(self, tank: Tank) -> None:
-        self._damage_points += tank.max_hp
+        self._damage_points += tank.max_health_points
 
     def has_shot(self, player_index: int) -> bool:
         return player_index in self.__has_shot
