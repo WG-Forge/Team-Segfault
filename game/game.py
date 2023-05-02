@@ -19,9 +19,11 @@ class Game(Thread):
 
         self.__num_turns: int | None = num_turns
         self.__max_players: int = max_players
-        self.__winner = None
+        self.__winner: int | None = None
         self.__winner_index: int | None = None
         self.__started: bool = False
+        self.__game_is_draw: bool = False
+
         self.__connection_error: ConnectionError | None = None
 
         self.__current_turn: list[int] = [-1]
@@ -77,6 +79,10 @@ class Game(Thread):
     @property
     def connection_error(self) -> ConnectionError:
         return self.__connection_error
+
+    @property
+    def game_is_draw(self) -> bool:
+        return self.__game_is_draw
 
     """     GAME LOGIC      """
 
@@ -179,16 +185,21 @@ class Game(Thread):
 
         if game_state["winner"] or self.__current_turn[0] == self.__num_turns:
             self.__winner = game_state["winner"]
+            if self.__winner is None:
+                self.__game_is_draw = True
             self.over.set()
 
     def __end_game(self) -> None:
         if self.__connection_error:
+            # TODO just print it in the console for now
             print(self.__connection_error)
-        elif self.__winner:
-            winner = self.__active_players[self.__winner]
-            self.__winner_index = winner.index
-            print(f'The winner is: {winner.player_name}.')
-        else:
-            print('Game could not start')
+        elif self.__winner or self.__game_is_draw:
+            if self.__game_is_draw:
+                # TODO just print it in the console for now
+                print('The game is a draw')
+            else:
+                winner = self.__active_players[self.__winner]
+                self.__winner_index = winner.index
+                print(f'The winner is: {winner.player_name}.')
 
         self.__player_manager.logout()
