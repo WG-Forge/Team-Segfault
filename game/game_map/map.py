@@ -144,12 +144,18 @@ class Map:
         return enemy and not (friend.player_index == enemy.player_index or
                               self.is_neutral(friend, enemy) or enemy.is_destroyed)
 
-    """     NAVIGATION    """
-
     def __is_usable(self, bonus_coord: tuple, tank_type: str) -> bool:
         coord_dict = self.__map[bonus_coord]
         bonus, tank = coord_dict['feature'], coord_dict['tank']
         return not tank and bonus.is_usable(tank_type)
+
+    def is_catapult_and_usable(self, coord: tuple) -> bool:
+        catapult = self.__map[coord]['feature']
+        if isinstance(catapult, Catapult) and catapult.is_usable():
+            return True
+        return False
+
+    """     NAVIGATION    """
 
     @staticmethod
     def __features_by_dist(tank: Tank, feature_coords: tuple[tuple[int, int, int], ...]) -> list[tuple[int, int, int]]:
@@ -185,14 +191,10 @@ class Map:
         if free_base_coords:
             return sorted(free_base_coords, key=lambda coord: Hex.manhattan_dist(to, coord))
 
-        return None
-
     def closest_free_base_adjacents(self, to: tuple) -> list[tuple] | None:
         free_base_adjacents = [c for c in self.__base_adjacent_coords if self.__map[c]['tank'] is None or c == to]
         if free_base_adjacents:
             return sorted(free_base_adjacents, key=lambda coord: Hex.manhattan_dist(to, coord))
-
-        return None
 
     def closest_enemies(self, tank: Tank) -> list[Tank]:
         # Returns a sorted list by distance of enemy tanks

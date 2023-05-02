@@ -3,7 +3,6 @@ from threading import Semaphore, Event
 
 from constants import GAME_SPEED
 from entities.entity_enum import Entities
-from entities.map_features.bonuses.catapult import Catapult
 from entities.tanks.tank import Tank
 from players.player import Player
 
@@ -31,7 +30,7 @@ class BotPlayer(Player):
                     time.sleep(delay)  # comment/uncomment this for a turn delay effect
                 self.__place_actions()
         except Exception as e:
-            print('this except', e)
+            print(e)
         finally:
             # end your turn
             self._game_client.force_turn()
@@ -52,15 +51,16 @@ class BotPlayer(Player):
 
         # testing new actions
         for tank in self._tanks:
-            if tank.type == 'spg':
+            ttype = tank.type
+            if ttype == 'spg':
                 self.__do('C', tank)
-            elif tank.type == 'light_tank':
+            elif ttype == 'light_tank':
                 self.__do('D', tank)
-            elif tank.type == 'heavy_tank':
+            elif ttype == 'heavy_tank':
                 self.__do('G', tank)
-            elif tank.type == 'medium_tank':
+            elif ttype == 'medium_tank':
                 self.__do('G', tank)
-            elif tank.type == 'at_spg':
+            elif ttype == 'at_spg':
                 self.__do('F', tank)
 
         self.__turn += 1
@@ -103,8 +103,7 @@ class BotPlayer(Player):
             self.__camp(tank, enemies_in_range)
         else:
             if not self.__move_return_has_moved('catapult', tank):
-                feature = self._map[tank.coord]['feature']
-                if isinstance(feature, Catapult) and feature.is_usable():
+                if self._map.is_catapult_and_usable(tank.coord):
                     return
                 cats = self._map.two_closest_catapults_if_usable(tank)
                 if len(cats) == 0:
@@ -124,14 +123,13 @@ class BotPlayer(Player):
         elif where == 'catapult':
             go_to = self._map.two_closest_catapults_if_usable(who)
 
-        has_moved = False
-        if go_to:  # TODO: Solve this fix, find out why 'go_to' is None in edge cases
+        if go_to:  # TODO: Find out why 'go_to' is None in edge cases
             for coord in go_to:
                 if who_coord == coord:
-                    break
-                elif self.__move_to_if_possible(who, coord):
-                    has_moved = True
-        return has_moved
+                    return False
+                if self.__move_to_if_possible(who, coord):
+                    return True
+        return False
 
     def __move_and_camp(self, tank: Tank, where: str) -> None:
         if not self.__move_return_has_moved(where, tank):
@@ -175,6 +173,7 @@ class BotPlayer(Player):
 
     def __move_to_if_possible(self, tank: Tank, where: tuple) -> bool:
         next_best = self._map.next_best_available_hex_in_path_to(tank, where)
+
         if next_best is not None:
             self.__update_maps_with_move(tank, next_best)
             return True

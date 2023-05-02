@@ -35,12 +35,13 @@ class FeatureFactory:
                 print(f"Support for {name} needed")
                 continue
 
-            coord_list = feature_coords.get(name)
+            coords_list = []
             for d in coords:
                 coord = (d['x'], d['y'], d['z'])
                 game_map[coord]['feature'] = feature_class(coord)
-                if coord_list:
-                    coord_list.append(coord)
+                coords_list.append(coord)
+            if name in feature_coords:
+                feature_coords[name] = coords_list
 
         self.__base_coords = feature_coords[Entities.BASE]
         self.__catapult_coords = feature_coords[Entities.CATAPULT]
