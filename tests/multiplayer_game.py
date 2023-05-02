@@ -10,7 +10,6 @@ def multiplayer_game() -> None:
     name: str = "Test game 1: "
     name += str(random.randint(0, 10000))
     game = Game(game_name=name, max_players=3, num_turns=45)
-    displayManager = DisplayManager(game)
 
     game.add_local_player(name="Vuk", is_observer=False)
     game.add_local_player(name="Egor", is_observer=True)
@@ -19,6 +18,9 @@ def multiplayer_game() -> None:
     game.add_local_player(name="Igor", is_observer=False)
     game.add_local_player(name="John Doe", is_observer=False)
 
+    # Make sure to only add the game to the display manager after setting everything up
+    # since the display manager starts the game thread immediately
+    displayManager = DisplayManager(game)
     displayManager.run()
 
     print()

@@ -15,7 +15,7 @@ class Player(Thread, ABC):
     __possible_colours = PLAYER_COLORS
 
     def __init__(self,
-                 turn_played_sem: Semaphore, current_player: list[int], player_index: int, over: Event,
+                 turn_played_sem: Semaphore, current_player: list[int], over: Event,
                  name: str | None = None, password: str | None = None, is_observer: bool | None = None):
         super().__init__()
 
@@ -36,8 +36,8 @@ class Player(Thread, ABC):
         self._capture_points = 0
         self._tanks: list[Tank] = []
         self._tank_map: dict[int, Tank] = {}
-        self._player_index = player_index
-        self.__player_colour = Player.__possible_colours[player_index]
+        self._player_index: int | None = None
+        self.__player_colour: tuple | None = None
         self.__has_shot: list[int] = []  # Holds a list of enemies this player has shot last turn
 
         self._game_actions: dict | None = None
@@ -101,12 +101,8 @@ class Player(Thread, ABC):
     """     GETTERS AND SETTERS    """
 
     @property
-    def color(self) -> str:
+    def color(self) -> tuple:
         return self.__player_colour
-
-    @property
-    def index(self) -> int:
-        return self._player_index
 
     @property
     def tanks(self) -> list[Tank]:
@@ -127,6 +123,16 @@ class Player(Thread, ABC):
     @turn_actions.setter
     def turn_actions(self, actions: dict) -> None:
         self._turn_actions = actions
+
+    @property
+    def index(self) -> int | None:
+        return self._player_index
+
+    @index.setter
+    def index(self, player_index: int) -> None:
+        # set and update player index if player is not an observer
+        self._player_index = player_index
+        self.__player_colour = Player.__possible_colours[player_index]
 
     """     MISC        """
 

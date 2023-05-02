@@ -38,9 +38,19 @@ class PlayerManager:
         for _ in range(self.__num_players):
             self.__turn_played_sem.acquire()
 
-    def connect_remote_players(self, players: dict) -> None:
+    def start_players(self) -> None:
+        # add players in order sorted by their idx
+        ind: int = 0
+        for idx, player in sorted(self.__game.active_players.items(), key=lambda x: x[0]):
+            if not player.is_observer:
+                player.index = ind
+                ind += 1
+
+            player.start()
+
+    def add_remote_players(self, players: dict) -> None:
         for player in players:
-            if player["idx"] not in self.__game.active_players and not player["is_observer"]:
+            if player["idx"] not in self.__game.active_players:
                 self.__add_remote_player(player)
 
     def connect_queued_players(self) -> None:
@@ -73,7 +83,6 @@ class PlayerManager:
                                              is_observer=is_observer,
                                              turn_played_sem=self.__turn_played_sem,
                                              current_player_idx=self.__game.current_player_idx,
-                                             player_index=self.__lobby_players - 1,
                                              over=self.__game.over)
 
         if self.__game.started:
@@ -102,10 +111,11 @@ class PlayerManager:
         player: Player = PlayerFactory.create_player(player_type=PlayerTypes.Remote,
                                                      turn_played_sem=self.__turn_played_sem,
                                                      current_player_idx=self.__game.current_player_idx,
-                                                     player_index=self.__lobby_players - 1,
                                                      over=self.__game.over)
 
-        self.__connect_remote_player(player, user_info)
+        player.add_to_game(user_info, self.__shadow_client)
+
+        self.__game.active_players[player.idx] = player
 
     def __connect_local_player(self, player: Player) -> None:
         game_client: GameClient = GameClient()
@@ -114,12 +124,5 @@ class PlayerManager:
                                             self.__game.max_players, player.is_observer)
 
         player.add_to_game(user_info, game_client)
-        player.start()
-
-        self.__game.active_players[player.idx] = player
-
-    def __connect_remote_player(self, player: Player, user_info: dict) -> None:
-        player.add_to_game(user_info, self.__shadow_client)
-        player.start()
 
         self.__game.active_players[player.idx] = player

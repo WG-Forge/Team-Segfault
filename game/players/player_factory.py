@@ -25,7 +25,6 @@ class PlayerFactory:
                       turn_played_sem: Semaphore,
                       current_player_idx: list[int],
                       over: Event,
-                      player_index: int,
                       name: str | None = None,
                       password: str | None = None,
                       is_observer: bool | None = None) -> Player:
@@ -35,5 +34,4 @@ class PlayerFactory:
                             is_observer=is_observer,
                             turn_played_sem=turn_played_sem,
                             current_player=current_player_idx,
-                            player_index=player_index,
                             over=over)

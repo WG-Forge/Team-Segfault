@@ -125,10 +125,13 @@ class Game(Thread):
             # the game was interrupted
             return
 
-        client_map: dict = self.__shadow_client.get_map()
-
         # add all remote players
-        self.__player_manager.connect_remote_players(game_state["players"])
+        self.__player_manager.add_remote_players(game_state["players"])
+
+        # start all player instances
+        self.__player_manager.start_players()
+
+        client_map: dict = self.__shadow_client.get_map()
 
         # initialize the game map (now adds tanks to players & game_map too)
         self.game_map = Map(client_map, game_state, self.__active_players, self.__current_turn)

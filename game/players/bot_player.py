@@ -9,13 +9,12 @@ from players.player import Player
 
 class BotPlayer(Player):
     def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
-                 current_player: list[int], player_index: int, over: Event):
+                 current_player: list[int], over: Event):
         super().__init__(name=name,
                          password=password,
                          is_observer=is_observer,
                          turn_played_sem=turn_played_sem,
                          current_player=current_player,
-                         player_index=player_index,
                          over=over)
 
         self.__turn: int = 0
