@@ -1,7 +1,7 @@
 import pygame
 
 from constants import TRACKS_SCALE, TRACKS_IMAGE_PATH, LOADING_ANIMATION_LIMIT, SCREEN_WIDTH, SCREEN_HEIGHT, \
-    LOADING_BAR_COLOR, TANK_ICON_PATH
+    LOADING_BAR_BACKGROUND_COLOR, TANK_ICON_PATH
 
 
 class LoadingScreen:
@@ -19,10 +19,9 @@ class LoadingScreen:
             (TRACKS_SCALE[1], TRACKS_SCALE[1]))
 
     def draw(self, screen) -> None:
-        # calculating top left coordinates because image is centered
         screen.blit(self.__tracks_image, (self.__x, self.__y))
         new_x = self.__x + self.__step * (LOADING_ANIMATION_LIMIT - self.__loading_counter)
-        pygame.draw.rect(screen, LOADING_BAR_COLOR,
+        pygame.draw.rect(screen, LOADING_BAR_BACKGROUND_COLOR,
                          (new_x, self.__y, self.__max_width - new_x + self.__x, self.__height))
         screen.blit(self.__tank_image, (new_x, self.__y))
 

@@ -1,9 +1,10 @@
 import os
 
-from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, MENU_BACKGROUND_IMAGE, GUI_ICON_PATH, \
+from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, BACKGROUND_IMAGE_PATH, GUI_ICON_PATH, \
     GAME_BACKGROUND, GUI_CAPTION
 from game_presets.local_multiplayer import local_multiplayer_game
 from game_presets.single_player import single_player_game
+from game_presets.spectator import spectator_game
 from gui.menus_and_screens.loading_screen import LoadingScreen
 from gui.menus_and_screens.menu import *
 
@@ -30,7 +31,7 @@ class DisplayManager:
         self.__clock = pygame.time.Clock()
 
         # load images
-        self.__background_image = pygame.transform.scale(pygame.image.load(MENU_BACKGROUND_IMAGE),
+        self.__background_image = pygame.transform.scale(pygame.image.load(BACKGROUND_IMAGE_PATH),
                                                          (SCREEN_WIDTH, SCREEN_HEIGHT))
 
         # create menu
@@ -47,11 +48,13 @@ class DisplayManager:
     def __start_the_game(self) -> None:
         del self.__game
         self.__menu.disable()
-        SOUND_VOLUME[0] = self.__menu.get_volume()
-        PLAYER_NAMES[0] = self.__menu.get_player_name()
-        GAME_NAME[0] = self.__menu.get_map_name()
-        GAME_SPEED[0] = self.__menu.get_game_speed()
-        game_type = self.__menu.get_game_type()
+        SOUND_VOLUME[0] = self.__menu.volume
+        PLAYER_NAMES[0] = self.__menu.player_name
+        GAME_NAME[0] = self.__menu.map_name
+        GAME_SPEED[0] = self.__menu.game_speed
+        ADVANCED_GRAPHICS[0] = self.__menu.advanced_graphics
+        print(ADVANCED_GRAPHICS[0])
+        game_type = self.__menu.game_type
         match game_type:
             case GameType.SINGLE_PLAYER:
                 self.__game = single_player_game(GAME_NAME[0], PLAYER_NAMES[0])
@@ -59,9 +62,8 @@ class DisplayManager:
             #     self.__name = pvp_game()
             case GameType.LOCAL_MULTIPLAYER:
                 self.__game = local_multiplayer_game(GAME_NAME[0], PLAYER_NAMES[0], PLAYER_NAMES[1], PLAYER_NAMES[2])
-            # case GameType.SPECTATE:
-            #     _ = remote_game_create()
-            #     self.__game = remote_game_join()
+            case GameType.SPECTATE:
+                self.__game = spectator_game(GAME_NAME[0], PLAYER_NAMES[1])
             case _:
                 self.__menu.enable()
                 return

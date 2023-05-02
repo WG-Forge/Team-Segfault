@@ -1,6 +1,7 @@
 import pygame
 
-from constants import SOUND_VOLUME, EXPLOSION_IMAGES, EXPLOSION_SOUND, HEX_RADIUS_X, HEX_RADIUS_Y
+from constants import SOUND_VOLUME, EXPLOSION_IMAGES, EXPLOSION_SOUND, HEX_RADIUS_X, HEX_RADIUS_Y, \
+    EXPLOSION_IMAGE_SCALE
 
 
 class Explosion(pygame.sprite.Sprite):
@@ -48,4 +49,6 @@ class Explosion(pygame.sprite.Sprite):
     def set_image_scale() -> None:
         for i in range(len(Explosion.__IMAGES)):
             Explosion.__IMAGES[i] = pygame.transform.scale(Explosion.__IMAGES[i],
-                                                           (HEX_RADIUS_X[0] * 2, HEX_RADIUS_Y[0] * 2))
+                                                           (HEX_RADIUS_X[0] * EXPLOSION_IMAGE_SCALE,
+                                                            HEX_RADIUS_Y[0] * EXPLOSION_IMAGE_SCALE)
+                                                           )

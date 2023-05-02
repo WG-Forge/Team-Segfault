@@ -2,7 +2,7 @@ import pygame
 import pygame_menu
 
 from constants import MENU_POSITION, SOUND_VOLUME, PLAYER_NAMES, GAME_NAME, WHITE, MENU_BACKGROUND_COLOR, \
-    MENU_SELECTED_TEXT_COLOR, GAME_SPEED, MENU_MIN_WIDTH, MENU_FONT
+    MENU_SELECTED_TEXT_COLOR, GAME_SPEED, MENU_MIN_WIDTH, MENU_FONT, ADVANCED_GRAPHICS
 from game_presets.game_type_enum import GameType
 
 
@@ -37,7 +37,10 @@ class Menu:
         self.__options_menu: pygame_menu.Menu = pygame_menu.Menu('Options', self.__menu_width, self.__menu_height,
                                                                  theme=self.__menu_theme, mouse_motion_selection=True)
         # TODO: add functionality to this toggle; minimum graphics include: not drawing any animations (for now)
-        self.__options_menu.add.toggle_switch('Minimum graphics: ', default=0, toggleswitch_id='graphics')
+        self.__options_menu.add.toggle_switch('Advanced graphics: ', default=ADVANCED_GRAPHICS[0],
+                                              toggleswitch_id='graphics')
+        self.__options_menu.add.selector('Game map ', [('Forest', 0), ('Desert', 1)])
+
         self.__options_menu.add.range_slider('Game speed', default=GAME_SPEED[0], range_values=(0, 1), increment=0.1,
                                              rangeslider_id='game_speed_slider')
         self.__options_menu.add.range_slider('Volume', default=SOUND_VOLUME[0], range_values=(0, 1),
@@ -49,13 +52,12 @@ class Menu:
         self.__play_menu: pygame_menu.Menu = pygame_menu.Menu('Play', self.__menu_width, self.__menu_height,
                                                               theme=self.__menu_theme, onclose=pygame_menu.events.BACK
                                                               , mouse_motion_selection=True)
-        # print([(game_type.value, 0) for game_type in GameType])
         self.__play_menu.add.button('Battle!', start_game)
         # (title, number of players(game instances) needed or 0 if it's a local game)
         self.__play_menu.add.selector('Game type', [(game_type.value, 0) for game_type in GameType],
                                       selector_id='game_type', style='fancy', style_fancy_bgcolor=(0, 0, 0, 0))
-        self.__play_menu.add.text_input('Nickname: ', default=PLAYER_NAMES[0], textinput_id='nickname', maxchar=10)
-        self.__play_menu.add.text_input('Game name: ', default=GAME_NAME[0], textinput_id='game_name', maxchar=10)
+        self.__play_menu.add.text_input('Nickname: ', default=PLAYER_NAMES[0], textinput_id='nickname', maxwidth=10)
+        self.__play_menu.add.text_input('Game name: ', default=GAME_NAME[0], textinput_id='game_name', maxwidth=10)
         self.__play_menu.add.button('Back', pygame_menu.events.BACK)
 
         Menu.set_menu_size(self.__play_menu)
@@ -95,20 +97,29 @@ class Menu:
     def is_enabled(self) -> bool:
         return self.__main_menu.is_enabled()
 
-    def get_volume(self) -> float:
+    @property
+    def volume(self) -> float:
         return self.__options_menu.get_widget('volume_slider').get_value()
 
-    def get_map_name(self) -> str:
+    @property
+    def map_name(self) -> str:
         return self.__play_menu.get_widget('game_name').get_value()
 
-    def get_player_name(self) -> str:
+    @property
+    def player_name(self) -> str:
         return self.__play_menu.get_widget('nickname').get_value()
 
-    def get_game_type(self) -> int:
+    @property
+    def game_type(self) -> int:
         return self.__play_menu.get_widget('game_type').get_value()[0][0]
 
-    def get_game_speed(self) -> float:
+    @property
+    def game_speed(self) -> float:
         return self.__options_menu.get_widget('game_speed_slider').get_value()
+
+    @property
+    def advanced_graphics(self) -> bool:
+        return self.__options_menu.get_widget('graphics').get_value()
 
     @staticmethod
     def set_menu_size(menu: pygame_menu.Menu) -> None:

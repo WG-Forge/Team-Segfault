@@ -4,11 +4,12 @@ from pygame.font import Font
 from pygame.sprite import Sprite, Group
 
 from constants import SCREEN_WIDTH, HEX_RADIUS_X, HEX_RADIUS_Y, HARD_REPAIR_IMAGE_PATH, LIGHT_REPAIR_IMAGE_PATH, \
-    CATAPULT_IMAGE_PATH, WHITE, MENU_FONT, IMAGE_TO_HEX_RAD_RATIO, MAP_FONT_SIZE_MULTIPLIER
+    CATAPULT_IMAGE_PATH, WHITE, MENU_FONT, TANK_IMAGE_SCALE, MAP_FONT_SIZE_MULTIPLIER, \
+    EMPTY_HEX_GRASS_IMAGE_PATH, HEX_TILE_IMAGES_SCALE, OBSTACLE_HEX_OBSTACLE_IMAGE_PATH, ADVANCED_GRAPHICS
 from entities.map_features.bonuses.catapult import Catapult
 from entities.map_features.bonuses.hard_repair import HardRepair
 from entities.map_features.bonuses.light_repair import LightRepair
-from entities.map_features.landmarks.base import Base, Entities
+from entities.map_features.landmarks.base import Base, Entities, Feature
 from entities.map_features.landmarks.empty import Empty
 from entities.map_features.landmarks.obstacle import Obstacle
 from entities.tanks.tank import Tank
@@ -37,11 +38,10 @@ class MapDrawer:
         self.__projectile_group: Group = Group()
         # tanks that are shot, but not destroyed
         self.__shot_tanks_group: Group = Group()
-        # note: this could be moved somewhere else
-        self.__explosion_delay: int = Projectile.get_travel_time()
+        # self.__explosion_delay: int = Projectile.get_travel_time()
 
         # map legend
-        self.__map_legend_items = []
+        self.__map_legend_items: list[Feature] = []
         features = [Empty, Base, Obstacle]
         # regular hexes will always be on the screen and on top right, while bonuses will be on bottom right
         x, y, z = self.__map_size, self.__map_size - 1, -self.__map_size - 1
@@ -66,17 +66,15 @@ class MapDrawer:
         if self.__font is None:
             self.__font = pygame.font.Font(MENU_FONT, self.__font_size)
 
-        # fill with background color
-        # screen.fill(GAME_BACKGROUND)
-
         # display tanks and features
         for coord, entities in self.__map.items():
             feature, tank = entities['feature'], entities['tank']
             self.__draw_feature(screen, feature, tank is not None)
 
-        # draw tanks shadows
-        self.__shot_tanks_group.draw(screen)
-        self.__shot_tanks_group.update()
+        if ADVANCED_GRAPHICS[0]:
+            # draw tanks outlines for tanks that have been hit
+            self.__shot_tanks_group.draw(screen)
+            self.__shot_tanks_group.update()
 
         # draw tanks
         self.__tanks.draw(screen)
@@ -86,13 +84,14 @@ class MapDrawer:
         self.__scoreboard.draw_damage_scoreboard(screen, self.__font, self.__font_size, self.__max_damage_points)
         self.__scoreboard.draw_capture_scoreboard(screen, self.__font, self.__font_size)
 
-        # draw explosions
-        self.__explosion_group.draw(screen)
-        self.__explosion_group.update()
+        if ADVANCED_GRAPHICS[0]:
+            # draw explosions
+            self.__explosion_group.draw(screen)
+            self.__explosion_group.update()
 
-        # draw projectiles
-        self.__projectile_group.draw(screen)
-        self.__projectile_group.update()
+            # draw projectiles
+            self.__projectile_group.draw(screen)
+            self.__projectile_group.update()
 
         # display turn
         if self.__turn is not None:
@@ -105,29 +104,41 @@ class MapDrawer:
 
     def __load_images(self) -> None:
         """Loads all necessary feature images"""
-        scale_size = (HEX_RADIUS_X[0] * IMAGE_TO_HEX_RAD_RATIO, HEX_RADIUS_Y[0] * IMAGE_TO_HEX_RAD_RATIO)
+        scale_size = (HEX_RADIUS_X[0] * TANK_IMAGE_SCALE, HEX_RADIUS_Y[0] * TANK_IMAGE_SCALE)
         self.__hard_repair_image = pygame.transform.scale(pygame.image.load(HARD_REPAIR_IMAGE_PATH), scale_size)
         self.__light_repair_image = pygame.transform.scale(pygame.image.load(LIGHT_REPAIR_IMAGE_PATH), scale_size)
         self.__catapult_image = pygame.transform.scale(pygame.image.load(CATAPULT_IMAGE_PATH), scale_size)
+        self.__empty_image = pygame.transform.scale(pygame.image.load(EMPTY_HEX_GRASS_IMAGE_PATH),
+                                                    (HEX_RADIUS_X[0] * HEX_TILE_IMAGES_SCALE[0],
+                                                     HEX_RADIUS_Y[0] * HEX_TILE_IMAGES_SCALE[1]))
+        self.__obstacle_image = pygame.transform.scale(pygame.image.load(OBSTACLE_HEX_OBSTACLE_IMAGE_PATH),
+                                                       (HEX_RADIUS_X[0] * HEX_TILE_IMAGES_SCALE[0],
+                                                        HEX_RADIUS_Y[0] * HEX_TILE_IMAGES_SCALE[1])
+                                                       )
 
     def __draw_feature(self, screen, feature, is_tank_there) -> None:
         """Renders the hexagon on the screen and draw a white border around the hexagon"""
         pygame.draw.polygon(screen, feature.color, feature.corners)
-        pygame.draw.aalines(screen, WHITE, closed=True, points=feature.corners)
 
-        # todo: store images in features; make images smaller when tank is on that position
+        # todo: make this better; make images smaller when tank is on that position
         image: Surface | None = None
         match feature.type:
             case Entities.CATAPULT:
-                image = self.__catapult_image.copy()
+                image = self.__catapult_image
             case Entities.LIGHT_REPAIR:
-                image = self.__light_repair_image.copy()
+                image = self.__light_repair_image
             case Entities.HARD_REPAIR:
-                image = self.__hard_repair_image.copy()
+                image = self.__hard_repair_image
+            # case Entities.EMPTY:
+            #     image = self.__empty_image
+            # case Entities.OBSTACLE:
+            #     image = self.__obstacle_image
         if image is not None:
             x = feature.center[0] - image.get_width() / 2
             y = feature.center[1] - image.get_height() / 2
             screen.blit(image, (x, y))
+
+        pygame.draw.aalines(screen, WHITE, closed=True, points=feature.corners)
 
     def __draw_legend(self, screen: Surface) -> None:
         y = 0
@@ -152,6 +163,6 @@ class MapDrawer:
         projectile: Sprite = Projectile(start_pos, end_pos, color)
         self.__projectile_group.add(projectile)
 
-    def add_hitreg(self, coords: tuple[int, int], image_path: str, color: str | tuple[int, int, int]):
-        tank: Sprite = ShotTank(coords, image_path, color)
+    def add_hitreg(self, coords: tuple[int, int], image_path: str):
+        tank: Sprite = ShotTank(coords, image_path)
         self.__shot_tanks_group.add(tank)

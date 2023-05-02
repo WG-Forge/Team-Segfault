@@ -106,7 +106,7 @@ class Map:
             # add to destroyed tanks
             self.__destroyed.append(target)
         else:
-            self.__map_drawer.add_hitreg(Hex.make_center(target.coord), target.image_path, target.color)
+            self.__map_drawer.add_hitreg(Hex.make_center(target.coord), target.image_path)
         self.__players[tank.player_index].register_shot(target.player_index)
 
     def local_shoot_tuple(self, tank: Tank, coord: tuple) -> None:
