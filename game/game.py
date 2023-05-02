@@ -183,7 +183,7 @@ class Game(Thread):
         if self.game_map:
             self.game_map.update_turn(game_state)
 
-        if game_state["winner"] or self.__current_turn[0] == self.__num_turns:
+        if game_state["finished"]:
             self.__winner = game_state["winner"]
             if self.__winner is None:
                 self.__game_is_draw = True
@@ -201,5 +201,7 @@ class Game(Thread):
                 winner = self.__active_players[self.__winner]
                 self.__winner_index = winner.index
                 print(f'The winner is: {winner.player_name}.')
+        else:
+            print("The game was interrupted")
 
         self.__player_manager.logout()
