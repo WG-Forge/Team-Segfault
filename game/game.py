@@ -22,6 +22,7 @@ class Game(Thread):
         self.__winner = None
         self.__winner_index: int | None = None
         self.__started: bool = False
+        self.__connection_error: ConnectionError | None = None
 
         self.__current_turn: list[int] = [-1]
         self.__current_player: Player | None = None
@@ -73,19 +74,30 @@ class Game(Thread):
     def current_player(self) -> Player:
         return self.__current_player
 
+    @property
+    def connection_error(self) -> ConnectionError:
+        return self.__connection_error
+
     """     GAME LOGIC      """
 
     def run(self) -> None:
-        self.__init_game_state()
+        try:
+            self.__init_game_state()
 
-        while not self.over.is_set():
-            # start the next turn
-            self.__start_next_turn()
+            while not self.over.is_set():
+                # start the next turn
+                self.__start_next_turn()
 
-            # handshake with players
-            self.__player_manager.handle_player_turns()
+                # handshake with players
+                self.__player_manager.handle_player_turns()
 
-        self.__end_game()
+        except ConnectionError as err:
+            # a connection error happened
+            self.over.set()
+            self.__connection_error = err
+
+        finally:
+            self.__end_game()
 
     def add_local_player(self, name: str, password: str | None = None, is_observer: bool | None = None) -> None:
         self.__player_manager.add_local_player(name, password, is_observer)
@@ -170,11 +182,13 @@ class Game(Thread):
             self.over.set()
 
     def __end_game(self) -> None:
-        if self.__winner:
+        if self.__connection_error:
+            print(self.__connection_error)
+        elif self.__winner:
             winner = self.__active_players[self.__winner]
             self.__winner_index = winner.index
             print(f'The winner is: {winner.player_name}.')
         else:
-            print('The game is a draw.')
+            print('Game could not start')
 
         self.__player_manager.logout()
