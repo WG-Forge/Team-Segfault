@@ -1,10 +1,10 @@
 from enum import Enum
 from threading import Semaphore, Event
 
-from players.bot_player import BotPlayer
-from players.observer import Observer
+from players.types.bot_player import BotPlayer
+from players.types.observer import Observer
 from players.player import Player
-from players.remote_player import RemotePlayer
+from players.types.remote_player import RemotePlayer
 
 
 class PlayerTypes(Enum):

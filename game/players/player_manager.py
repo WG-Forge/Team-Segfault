@@ -3,7 +3,7 @@ from threading import Semaphore
 
 from players.player import Player
 from players.player_factory import PlayerFactory, PlayerTypes
-from players.remote_player import RemotePlayer
+from players.types.remote_player import RemotePlayer
 from remote.game_client import GameClient
 
 

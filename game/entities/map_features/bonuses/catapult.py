@@ -10,7 +10,7 @@ class Catapult(Feature):
         super().__init__(Entities.CATAPULT, coord, color=EMPTY_COLOR)
         self.__remaining_uses = 3
 
-    def is_usable(self) -> bool:
+    def is_usable(self, tank_type: str) -> bool:
         if self.__remaining_uses > 0:
             return True
         else:
