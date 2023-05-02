@@ -34,7 +34,7 @@ class Game(Thread):
 
     def __str__(self) -> str:
         out: str = ""
-        out += str.format(f'Game player_name: {self.__game_name}, '
+        out += str.format(f'Game: {self.__game_name}, '
                           f'number of players: {self.__max_players}, '
                           f'number of turns: {self.__num_turns}.')
 

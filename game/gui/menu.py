@@ -9,7 +9,7 @@ from constants import MENU_POSITION, SOUND_VOLUME, PLAYER_NAMES, GAME_NAME, WHIT
 
 class GameType(StrEnum):
     LOCAL_MULTIPLAYER = 'Multiplayer'
-    SINGLEPLAYER = 'Local'
+    SINGLE_PLAYER = 'Local'
     PVP_MULTIPLAYER = 'PvP'
     SPECTATE = 'Spectate'
 

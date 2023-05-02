@@ -2,7 +2,7 @@
 HOST_NAME = "wgforge-srv.wargaming.net"
 HOST_PORT = 443
 
-GAME_NAME = ['Test game ']
+GAME_NAME = ['Test game']
 
 # gui constants
 GUI_CAPTION = 'Team Segfault'

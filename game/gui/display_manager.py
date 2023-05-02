@@ -2,10 +2,10 @@ import os
 
 from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, MENU_BACKGROUND_IMAGE, GUI_ICON_PATH, \
     GAME_BACKGROUND, GUI_CAPTION
+from game_presets.local_multiplayer import local_multiplayer_game
+from game_presets.single_player import single_player_game
 from gui.loading_screen import LoadingScreen
 from gui.menu import *
-from tests.multiplayer_game import multiplayer_game
-from tests.single_player_game import single_player_game
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
@@ -47,12 +47,12 @@ class DisplayManager:
         GAME_SPEED[0] = self.__menu.get_game_speed()
         game_type = self.__menu.get_game_type()
         match game_type:
-            case GameType.SINGLEPLAYER:
-                self.__game = single_player_game()
+            case GameType.SINGLE_PLAYER:
+                self.__game = single_player_game(GAME_NAME[0], PLAYER_NAMES[0])
             # case GameType.PVP_MULTIPLAYER:
             #     self.__name = pvp_game()
             case GameType.LOCAL_MULTIPLAYER:
-                self.__game = multiplayer_game(GAME_NAME[0], PLAYER_NAMES[0], PLAYER_NAMES[1], PLAYER_NAMES[2])
+                self.__game = local_multiplayer_game(GAME_NAME[0], PLAYER_NAMES[0], PLAYER_NAMES[1], PLAYER_NAMES[2])
             # case GameType.SPECTATE:
             #     _ = remote_game_create()
             #     self.__game = remote_game_join()
