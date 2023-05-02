@@ -18,8 +18,6 @@ class RemotePlayer(Player):
                          player_index=player_index,
                          over=over)
 
-        self.__result_vtp: dict[Action, callable] | None = None
-
     def add_map(self, game_map: Map) -> None:
         super().add_map(game_map)
 

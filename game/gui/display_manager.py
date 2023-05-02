@@ -12,7 +12,7 @@ os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
 class DisplayManager:
 
-    def __init__(self):
+    def __init__(self, game=None):
 
         super().__init__()
         pygame.init()
@@ -25,7 +25,7 @@ class DisplayManager:
         self.__running = True
         self.__playing = False
 
-        self.__game = None
+        self.__game = game
 
         self.__clock = pygame.time.Clock()
 
@@ -37,6 +37,12 @@ class DisplayManager:
         self.__menu = Menu(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 3, self.__start_the_game)
 
         self.__loading_screen = LoadingScreen()
+
+        if game:
+            # I added this part - useful for supporting the tests we already have
+            self.__menu.disable()
+            self.__playing = True
+            self.__game.start()
 
     def __start_the_game(self) -> None:
         del self.__game
