@@ -74,9 +74,6 @@ class Obstacle {
 class Spawn {
 }
 
-abstract class Repair {
-}
-
 class LightRepair {
 }
 
@@ -108,17 +105,16 @@ Tank <|-down- Heavy
 Tank <|-down- Light
 Tank <|-down- Medium
 Entity <|-down- Feature
-Entity <|-down- Repair
-Entity <|-down- Catapult
 Entity <|-down- Tank
 Feature <|-down- Base
 Feature <|-down- Empty
 Feature <|-down- Obstacle
 Feature <|-down- Spawn
+Feature <|-down- LightRepair
+Feature <|-down- HardRepair
+Feature <|-down- Catapult
 DisplayManager "1" *-down-> "1" Game: starts
 DisplayManager "1" *-down-> "1" Scene: draws
 DisplayManager *-down-> Menu: gets input
 Player "1" *-up-> "1" Scene: updates
-Repair <|-down- LightRepair
-Repair <|-down- HardRepair
 @enduml
