@@ -122,8 +122,6 @@ class Game(Thread):
             game_state = self.__shadow_client.get_game_state()
 
         if self.over.is_set():
-            # the game was interrupted - return
-            self.__player_manager.notify_all_players()
             return None
 
         return game_state
@@ -190,6 +188,9 @@ class Game(Thread):
             self.over.set()
 
     def __end_game(self) -> None:
+        # Notify all players the game has ended
+        self.__player_manager.notify_all_players()
+
         if self.__connection_error:
             # TODO just print it in the console for now
             print(self.__connection_error)

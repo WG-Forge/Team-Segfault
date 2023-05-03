@@ -14,8 +14,6 @@ os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 class DisplayManager:
 
     def __init__(self, game=None):
-
-        super().__init__()
         pygame.init()
         pygame.display.set_icon(pygame.image.load(GUI_ICON_PATH))
 
