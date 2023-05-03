@@ -1,3 +1,5 @@
+import queue
+
 import pygame
 from pygame import Surface
 from pygame.font import Font
@@ -40,6 +42,11 @@ class MapDrawer:
         # note: this could be moved somewhere else
         self.__explosion_delay: int = Projectile.get_travel_time()
 
+        # buffered sprite creation - thread-safe queue object
+        self.__explosion_group_buf: queue = queue.Queue()
+        self.__projectile_group_buf: queue = queue.Queue()
+        self.__shot_tanks_group_buf: queue = queue.Queue()
+
         # map legend
         self.__map_legend_items = []
         features = [Empty, Base, Obstacle]
@@ -74,7 +81,10 @@ class MapDrawer:
             feature, tank = entities['feature'], entities['tank']
             self.__draw_feature(screen, feature, tank is not None)
 
-        # draw tanks shadows
+        # create sprites form buffered data
+        self.__add_sprites()
+
+        # draw tank shadows
         self.__shot_tanks_group.draw(screen)
         self.__shot_tanks_group.update()
 
@@ -102,6 +112,25 @@ class MapDrawer:
 
         # draw map legend
         self.__draw_legend(screen)
+
+    def __add_sprites(self) -> None:
+        # add tank shadows
+        while not self.__shot_tanks_group_buf.empty():
+            coords, image_path, color = self.__shot_tanks_group_buf.get()
+            tank: Sprite = ShotTank(coords, image_path, color)
+            self.__shot_tanks_group.add(tank)
+
+        # add explosions
+        while not self.__explosion_group_buf.empty():
+            coord = self.__explosion_group_buf.get()
+            explosion: Sprite = Explosion(Hex.make_center(coord))
+            self.__explosion_group.add(explosion)
+
+        # add projectiles
+        while not self.__projectile_group_buf.empty():
+            start_pos, end_pos, color = self.__projectile_group_buf.get()
+            projectile: Sprite = Projectile(start_pos, end_pos, color)
+            self.__projectile_group.add(projectile)
 
     def __load_images(self) -> None:
         """Loads all necessary feature images"""
@@ -145,13 +174,10 @@ class MapDrawer:
         self.__max_damage_points = \
             max(self.__max_damage_points, self.__players[tank.player_index].damage_points)
 
-        explosion: Sprite = Explosion(Hex.make_center(target.coord))
-        self.__explosion_group.add(explosion)
+        self.__explosion_group_buf.put(target.coord)
 
     def add_shot(self, start_pos: tuple[int, int], end_pos: tuple[int, int], color: tuple[int, int, int]) -> None:
-        projectile: Sprite = Projectile(start_pos, end_pos, color)
-        self.__projectile_group.add(projectile)
+        self.__projectile_group_buf.put((start_pos, end_pos, color))
 
     def add_hitreg(self, coords: tuple[int, int], image_path: str, color: str | tuple[int, int, int]):
-        tank: Sprite = ShotTank(coords, image_path, color)
-        self.__shot_tanks_group.add(tank)
+        self.__shot_tanks_group_buf.put((coords, image_path, color))
