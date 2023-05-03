@@ -37,7 +37,6 @@ class Menu:
     def __create_options_menu(self) -> None:
         self.__options_menu: pygame_menu.Menu = pygame_menu.Menu('Options', self.__menu_width, self.__menu_height,
                                                                  theme=self.__menu_theme, mouse_motion_selection=True)
-        # TODO: add functionality to this toggle; minimum graphics include: not drawing any animations (for now)
         self.__options_menu.add.toggle_switch('Advanced graphics: ', default=ADVANCED_GRAPHICS[0],
                                               toggleswitch_id='graphics')
         self.__options_menu.add.selector('Game map ', [(map_type.name, map_type.value) for map_type in MapType],

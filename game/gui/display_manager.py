@@ -1,7 +1,10 @@
 import os
 
+import pygame.draw
+
 from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, BACKGROUND_IMAGE_PATH, GUI_ICON_PATH, \
-    GAME_BACKGROUND, GUI_CAPTION, MAP_TYPE
+    GAME_BACKGROUND, GUI_CAPTION, MAP_TYPE, ERROR_FONT_SIZE, ERROR_MESSAGE_COLOR, HEX_RADIUS_Y, ERROR_BUTTON_DIMENSIONS, \
+    ERROR_BUTTON_POSITION
 from game_presets.local_multiplayer import local_multiplayer_game
 from game_presets.single_player import single_player_game
 from game_presets.spectator import spectator_game
@@ -36,6 +39,9 @@ class DisplayManager:
         self.__menu = Menu(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 3, self.__start_the_game)
 
         self.__loading_screen = LoadingScreen()
+
+        self.__error_happened = False
+        self.__mouse_pos: tuple = (-1, -1)
 
         if game:
             # I added this part - useful for supporting the tests we already have
@@ -77,6 +83,10 @@ class DisplayManager:
                     self.__game.over.set()
                 self.__playing = False
                 self.__running = False
+            if event.type == pygame.MOUSEBUTTONDOWN and self.__error_happened == True and self.__check_mouse_click():
+                self.__menu.enable()
+                self.__game.over.set()
+                self.__game = None
         return events
 
     def run(self) -> None:
@@ -90,12 +100,19 @@ class DisplayManager:
 
     def __run(self) -> None:
         while self.__running:
+            self.__mouse_pos = pygame.mouse.get_pos()
+
             self.__draw_background()
             events = self.__check_events()
 
             if self.__menu.is_enabled():
                 self.__menu.update(events)
                 self.__menu.draw(self.__screen)
+
+            if self.__game and self.__game.connection_error is not None:
+                self.__error_happened = True
+                self.__draw_error(self.__game.connection_error)
+                self.__menu.disable()
 
             # draw the map or loading screen if the game started
             if self.__playing and not self.__game.over.is_set():
@@ -120,3 +137,26 @@ class DisplayManager:
     def __draw_background(self) -> None:
         self.__screen.fill(GAME_BACKGROUND)
         self.__screen.blit(self.__background_image, (0, 0))
+
+    def __draw_error(self, text) -> None:
+        # display text
+        error_number, error_msg = str(text).split(':')
+        error_number = pygame.font.Font(MENU_FONT, ERROR_FONT_SIZE).render(error_number, True, ERROR_MESSAGE_COLOR)
+        error_msg = pygame.font.Font(MENU_FONT, ERROR_FONT_SIZE).render(error_msg, True, ERROR_MESSAGE_COLOR)
+        self.__screen.blit(error_number, ((SCREEN_WIDTH - error_number.get_width()) / 2, HEX_RADIUS_Y[0]))
+        self.__screen.blit(error_msg, ((SCREEN_WIDTH - error_msg.get_width()) / 2,
+                                       HEX_RADIUS_Y[0] + error_number.get_height()))
+
+        # show button
+        pygame.draw.rect(self.__screen, ERROR_MESSAGE_COLOR, (ERROR_BUTTON_POSITION[0], ERROR_BUTTON_POSITION[1],
+                                                              ERROR_BUTTON_DIMENSIONS[0], ERROR_BUTTON_DIMENSIONS[1]))
+        btn_text = pygame.font.Font(MENU_FONT, ERROR_FONT_SIZE).render('Menu', True, 'white')
+        btn_rect = btn_text.get_rect(center=(ERROR_BUTTON_POSITION[0] + ERROR_BUTTON_DIMENSIONS[0] // 2,
+                                             ERROR_BUTTON_POSITION[1] + ERROR_BUTTON_DIMENSIONS[1] // 2))
+        self.__screen.blit(btn_text, btn_rect)
+
+    def __check_mouse_click(self) -> bool:
+        return ERROR_BUTTON_POSITION[0] + ERROR_BUTTON_DIMENSIONS[0] > \
+               self.__mouse_pos[0] > ERROR_BUTTON_POSITION[0] and \
+               ERROR_BUTTON_POSITION[1] + ERROR_BUTTON_DIMENSIONS[1] > \
+               self.__mouse_pos[1] > ERROR_BUTTON_POSITION[1]
