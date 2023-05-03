@@ -77,10 +77,6 @@ class Map:
     """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
 
     def update_turn(self, game_state: dict) -> None:
-        for tank in self.__tanks.values():
-            if isinstance(self.__map[tank.coord]['feature'], Base):
-                print('in base', tank.type, tank.player_index)
-
         # Local update of the new turn
         self.__new_turn(game_state["current_turn"])
 
@@ -112,7 +108,7 @@ class Map:
                                      if isinstance(self.__map[tank.coord]['feature'], Base))
         return len(player_indexes_in_base) <= self.__max_players_in_base
 
-    def __update_repairs(self):
+    def __update_repairs_and_catapult_bonus(self):
         for tank in self.__tanks.values():
             if not tank.is_destroyed:
                 feature = self.__map[tank.coord]['feature']
@@ -120,6 +116,9 @@ class Map:
                     tank.repair()
                 elif isinstance(feature, HardRepair) and tank.type in HardRepair.can_be_used_by:
                     tank.repair()
+                elif isinstance(feature, Catapult) and feature.is_usable('all'):
+                    feature.was_used()
+                    tank.catapult_bonus = True
 
     def __is_new_round(self, turn: int) -> int:
         new_round = turn // 3
@@ -141,7 +140,7 @@ class Map:
     def __new_turn(self, turn: int):
         if self.__is_new_round(turn):
             self.__update_capture_points()
-        self.__update_repairs()
+        self.__update_repairs_and_catapult_bonus()
         self.__respawn_destroyed_tanks()
 
     """     MOVE & FIRE CONTROL        """
@@ -206,7 +205,7 @@ class Map:
 
     def is_catapult_and_usable(self, coord: tuple) -> bool:
         catapult = self.__map[coord]['feature']
-        if isinstance(catapult, Catapult) and catapult.is_usable():
+        if isinstance(catapult, Catapult) and catapult.is_usable('any'):
             return True
         return False
 

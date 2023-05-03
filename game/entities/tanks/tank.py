@@ -24,9 +24,8 @@ class Tank(Entity, ABC):
                                              tank_info["position"]["y"],
                                              tank_info["position"]["z"])
 
-        self._catapult_coords: tuple = catapult_coords
         self.__image_path: str = image_path
-        self.__num_rounds_in_base: int = 0
+        self._catapult_bonus: bool = False
 
         super().__init__(Entities(tank_info["vehicle_type"]))
 
@@ -38,16 +37,11 @@ class Tank(Entity, ABC):
         return self.__destroyed
 
     def respawn(self) -> None:
-        self.__capture_points, self.__num_rounds_in_base, self.__destroyed = 0, 0, False
+        self.__capture_points, self.__destroyed = 0, False
         self.repair()
 
     def repair(self) -> None:
         self.__health_points = self.__max_health_points
-
-    def in_base(self, can_cap: bool) -> None:
-        self.__num_rounds_in_base += 1
-        if self.__num_rounds_in_base > self.__rounds_to_cap and can_cap:
-            self.__capture_points += 1
 
     """     GETTERS AND SETTERS     """
 
@@ -91,6 +85,12 @@ class Tank(Entity, ABC):
     @property
     def image_path(self) -> str:
         return self.__image_path
+
+    @property
+    def catapult_bonus(self) -> bool: return self._catapult_bonus
+
+    @catapult_bonus.setter
+    def catapult_bonus(self, catapult_bonus: bool): self._catapult_bonus = catapult_bonus
 
     """     ABSTRACTS       """
 

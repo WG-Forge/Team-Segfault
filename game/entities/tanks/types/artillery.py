@@ -7,8 +7,8 @@ from game_map.hex import Hex
 
 
 class Artillery(Tank, ABC):
-    __sp: int = 1  # Speed Points
-    __dp: int = 1  # Destruction Points
+    __speed_points: int = 1
+    __damage_points: int = 1
     __max_range: int = 3  # Manhattan max range
     __min_range: int = 3  # Manhattan min range
     __catapult_range: int = __max_range + get_catapult_bonus_range()  # Manhattan max range when in catapult hex
@@ -28,15 +28,15 @@ class Artillery(Tank, ABC):
         return tuple(Hex.coord_sum(delta, self._coord) for delta in deltas)
 
     def shot_moves(self, target: tuple) -> tuple:
+        if self._catapult_bonus:
+            return self.__shot_moves(target, self.__catapult_deltas)
+        return self.__shot_moves(target, self.__fire_deltas)
+
+    def __shot_moves(self, target: tuple, deltas: tuple) -> tuple:
         # returns coords to where "self" can move shoot "target", ordered from closest to furthest away from "self"
-        fire_locs_around_enemy = Hex.possible_shots(target, self.__fire_deltas)
+        fire_locs_around_enemy = Hex.possible_shots(target, deltas)
         sorted_fire_locs = sorted(fire_locs_around_enemy, key=lambda loc: Hex.manhattan_dist(self._coord, loc))
         return tuple(sorted_fire_locs)
-
-    def catapult_shot_moves(self, target: tuple) -> tuple:
-        cat_locs_around_enemy = Hex.possible_shots(target, self.__catapult_deltas)
-        sorted_cat_locs = sorted(cat_locs_around_enemy, key=lambda loc: Hex.manhattan_dist(self._coord, loc))
-        return tuple(sorted_cat_locs)
 
     def fire_corridors(self) -> tuple:
         return ()
@@ -46,4 +46,4 @@ class Artillery(Tank, ABC):
 
     @property
     def speed(self) -> int:
-        return self.__sp
+        return self.__speed_points
