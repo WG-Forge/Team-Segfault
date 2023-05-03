@@ -8,7 +8,7 @@ from players.player import Player
 
 
 class BotPlayer(Player):
-    __actions = ('A', 'B', 'C', 'D', 'E')
+    __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
 
     def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
                  current_player: list[int], over: Event):
@@ -55,13 +55,13 @@ class BotPlayer(Player):
             if ttype == 'spg':
                 self.__do('C', tank)
             elif ttype == 'light_tank':
-                self.__do('D', tank)
+                self.__do('A', tank)
             elif ttype == 'heavy_tank':
-                self.__do('G', tank)
+                self.__do('A', tank)
             elif ttype == 'medium_tank':
                 self.__do('G', tank)
             elif ttype == 'at_spg':
-                self.__do('F', tank)
+                self.__do('G', tank)
 
         self.__turn += 1
 

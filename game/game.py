@@ -164,7 +164,6 @@ class Game(Thread):
         print(self)
 
     def __start_next_turn(self) -> None:
-
         # start the next turn
         game_state = self.__shadow_client.get_game_state()
 
@@ -175,6 +174,7 @@ class Game(Thread):
         # Reset current player attacks
         self.__current_player.register_turn()
 
+        print()
         print(f"Current turn: {self.__current_turn[0]}, "
               f"current player: {self.__current_player.player_name}")
 

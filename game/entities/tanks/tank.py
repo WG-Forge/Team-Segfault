@@ -6,6 +6,7 @@ from entities.entity import Entity, Entities
 class Tank(Entity, ABC):
     """ Abstract Tank class """
     __damage = 1
+    __rounds_to_cap = 1
 
     def __init__(self, tank_id: int, tank_info: dict, color: tuple[int, int, int] | str, player_index: int,
                  image_path: str, catapult_coords: tuple):
@@ -23,8 +24,8 @@ class Tank(Entity, ABC):
                                              tank_info["position"]["y"],
                                              tank_info["position"]["z"])
 
-        self._catapult_coords: tuple = catapult_coords
         self.__image_path: str = image_path
+        self._catapult_bonus: bool = False
 
         super().__init__(Entities(tank_info["vehicle_type"]))
 
@@ -36,7 +37,10 @@ class Tank(Entity, ABC):
         return self.__destroyed
 
     def respawn(self) -> None:
-        self.__destroyed = False
+        self.__capture_points, self.__destroyed = 0, False
+        self.repair()
+
+    def repair(self) -> None:
         self.__health_points = self.__max_health_points
 
     """     GETTERS AND SETTERS     """
@@ -81,6 +85,12 @@ class Tank(Entity, ABC):
     @property
     def image_path(self) -> str:
         return self.__image_path
+
+    @property
+    def catapult_bonus(self) -> bool: return self._catapult_bonus
+
+    @catapult_bonus.setter
+    def catapult_bonus(self, catapult_bonus: bool): self._catapult_bonus = catapult_bonus
 
     """     ABSTRACTS       """
 

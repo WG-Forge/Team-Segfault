@@ -2,7 +2,10 @@ from pygame import Surface
 
 from constants import HEX_RADIUS_X, HEX_RADIUS_Y, SCREEN_HEIGHT, SCREEN_WIDTH
 from entities.map_features.bonuses.catapult import Catapult
+from entities.map_features.bonuses.hard_repair import HardRepair
+from entities.map_features.bonuses.light_repair import LightRepair
 from entities.map_features.feature_factory import FeatureFactory
+from entities.map_features.landmarks.base import Base
 from entities.map_features.landmarks.empty import Empty
 from entities.map_features.landmarks.obstacle import Obstacle
 from entities.tanks.tank import Tank
@@ -13,6 +16,8 @@ from gui.map_utils.map_drawer import MapDrawer
 
 
 class Map:
+    __max_players_in_base = 2
+    __rounds_to_cap = 1
 
     def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[int]):
         HEX_RADIUS_X[0] = SCREEN_WIDTH // ((client_map['size'] - 1) * 2 * 2)
@@ -31,6 +36,9 @@ class Map:
         self.__map: dict = {}
         self.__map_size = client_map['size']
         self.__make_map(client_map, game_state, active_players)
+        self.__current_round: int = 0
+        self.__rounds_in_base_by_player_index = [0 for _ in range(3)]
+        self.__player_indexes_who_capped: set = set()
 
         self.__path_finding_algorithm: callable = _a_star.a_star
         self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn)
@@ -72,14 +80,22 @@ class Map:
     """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
 
     def update_turn(self, game_state: dict) -> None:
-        # At the beginning of each turn move the tanks that have been destroyed in the previous turn to their spawn
-        self.__respawn_destroyed_tanks()
+        # Local update of the new turn
+        self.__new_turn(game_state["current_turn"])
 
+        # At the beginning of each turn move the tanks that have been destroyed in the previous turn to their spawn
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
             server_coord = (vehicle_info["position"]["x"], vehicle_info["position"]["y"], vehicle_info["position"]["z"])
             server_hp, server_cp = vehicle_info['health'], vehicle_info["capture_points"]
 
             tank = self.__tanks[int(vehicle_id)]
+            if server_coord != tank.coord:
+                print('server_coord', server_coord, 'tank.coord', tank.coord)
+            if server_hp != tank.health_points:
+                print('server_hp', server_hp, 'tank.health_points', tank.health_points, 'tank.player_index', tank.player_index)
+            if server_cp != tank.capture_points:
+                print(tank.type, tank.player_index, 'server_cp', server_cp, 'tank.cp', tank.capture_points)
+
             self.local_move(tank, server_coord) if server_coord != tank.coord else None
             tank.health_points = server_hp if server_hp != tank.health_points else tank.health_points
             tank.capture_points = server_cp if server_cp != tank.capture_points else tank.capture_points
@@ -90,12 +106,54 @@ class Map:
             self.local_move(tank, tank.spawn_coord)
             tank.respawn()
 
+    def __can_capture_base(self) -> bool:
+        player_indexes_in_base = set(tank.player_index for tank in self.__tanks.values()
+                                     if isinstance(self.__map[tank.coord]['feature'], Base)
+                                     and not tank.is_destroyed)
+        return len(player_indexes_in_base) <= self.__max_players_in_base
+
+    def __update_repairs_and_catapult_bonus(self):
+        for tank in self.__tanks.values():
+            if not tank.is_destroyed:
+                feature = self.__map[tank.coord]['feature']
+                if isinstance(feature, LightRepair) and tank.type in LightRepair.can_be_used_by:
+                    tank.repair()
+                elif isinstance(feature, HardRepair) and tank.type in HardRepair.can_be_used_by:
+                    tank.repair()
+                elif isinstance(feature, Catapult) and feature.is_usable('all'):
+                    feature.was_used()
+                    tank.catapult_bonus = True
+                elif not isinstance(feature, Base) or tank.is_destroyed:
+                    tank.capture_points = 0
+
+    def __is_new_round(self, turn: int) -> int:
+        new_round = turn // 3
+        if new_round != self.__current_round:
+            self.__current_round = new_round
+            return True
+        return False
+
+    def __update_capture_points(self):
+        can_cap = self.__can_capture_base()
+        for tank in self.__tanks.values():
+            base = self.__map[tank.coord]['feature']
+            if not tank.is_destroyed and isinstance(base, Base):
+                if can_cap:
+                    tank.capture_points += 1
+
+    def __new_turn(self, turn: int):
+        if self.__is_new_round(turn):
+            self.__update_capture_points()
+        self.__update_repairs_and_catapult_bonus()
+        self.__respawn_destroyed_tanks()
+
     """     MOVE & FIRE CONTROL        """
 
     def local_move(self, tank: Tank, new_coord: tuple) -> None:
         self.__map[new_coord]['tank'] = tank  # New pos now has tank
         self.__map[tank.coord]['tank'] = None  # Old pos is now empty
         tank.coord = new_coord  # tank has new position
+        tank.has_moved = True
 
     def local_shoot(self, tank: Tank, target: Tank) -> None:
         destroyed = target.register_hit_return_destroyed()
@@ -151,7 +209,7 @@ class Map:
 
     def is_catapult_and_usable(self, coord: tuple) -> bool:
         catapult = self.__map[coord]['feature']
-        if isinstance(catapult, Catapult) and catapult.is_usable():
+        if isinstance(catapult, Catapult) and catapult.is_usable('any'):
             return True
         return False
 
