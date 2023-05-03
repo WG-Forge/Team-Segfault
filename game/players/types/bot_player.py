@@ -53,15 +53,15 @@ class BotPlayer(Player):
         for tank in self._tanks:
             ttype = tank.type
             if ttype == 'spg':
-                self.__do('C', tank)
+                self.__do('E', tank)
             elif ttype == 'light_tank':
                 self.__do('A', tank)
             elif ttype == 'heavy_tank':
-                self.__do('A', tank)
+                self.__do('G', tank)
             elif ttype == 'medium_tank':
                 self.__do('G', tank)
             elif ttype == 'at_spg':
-                self.__do('G', tank)
+                self.__do('E', tank)
 
         self.__turn += 1
 

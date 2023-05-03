@@ -98,9 +98,6 @@ class Map:
             if server_cp != tank.capture_points:
                 print(tank.type, tank.player_index, 'server_cp', server_cp, 'tank.cp', tank.capture_points)
 
-            if tank.type == 'at_spg' and tank.player_index == 0:
-                print(tank.type, tank.player_index, server_hp)
-
             self.local_move(tank, server_coord) if server_coord != tank.coord else None
             tank.health_points = server_hp if server_hp != tank.health_points else tank.health_points
             tank.capture_points = server_cp if server_cp != tank.capture_points else tank.capture_points
@@ -121,12 +118,9 @@ class Map:
         for tank in self.__tanks.values():
             feature = self.__map[tank.coord]['feature']
             if not tank.is_destroyed:
-                if isinstance(feature, LightRepair) and tank.type in LightRepair.can_be_used_by:
+                if isinstance(feature, LightRepair) and tank.type in LightRepair.can_be_used_by \
+                        or isinstance(feature, HardRepair) and tank.type in HardRepair.can_be_used_by:
                     tank.repair()
-                    print('repair', tank.type, tank.player_index)
-                elif isinstance(feature, HardRepair) and tank.type in HardRepair.can_be_used_by:
-                    tank.repair()
-                    print('repair', tank.type, tank.player_index, tank.coord)
                 elif isinstance(feature, Catapult) and feature.is_usable('all'):
                     feature.was_used()
                     tank.catapult_bonus = True
@@ -163,8 +157,6 @@ class Map:
         tank.has_moved = True
 
     def local_shoot(self, tank: Tank, target: Tank) -> None:
-        print('target', target.coord)
-
         destroyed = target.register_hit_return_destroyed()
         self.__map_drawer.add_shot(Hex.make_center(tank.coord), Hex.make_center(target.coord),
                                    tank.color)
@@ -233,7 +225,7 @@ class Map:
         if tank.type == 'medium_tank':
             feature_coords = self.__light_repair_coords
         closest_repair = self.__features_by_dist(tank, feature_coords)[0]
-        if self.__is_usable(closest_repair, tank.type):
+        if self.__is_usable(closest_repair, tank):
             return [closest_repair]
 
     def two_closest_catapults_if_usable(self, tank: Tank) -> list[tuple[int, int, int]]:
