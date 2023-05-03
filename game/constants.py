@@ -6,7 +6,7 @@ GAME_NAME = ['Test game']
 
 # gui constants
 GUI_CAPTION = 'Team Segfault'
-FPS_MAX = 30  # max frames per second
+FPS_MAX = 60  # max frames per second
 SCREEN_SIZE = 250
 SCREEN_RATIO = (4, 3)
 SCREEN_WIDTH = SCREEN_RATIO[0] * SCREEN_SIZE
@@ -22,6 +22,8 @@ EXPLOSION_IMAGE_SCALE = 2.0
 MAP_FONT_SIZE_MULTIPLIER = 1.2
 
 ADVANCED_GRAPHICS = [True]
+EXPLOSION_SPEED = 4
+BULLET_TRAVEL_TIME = 6
 
 # position of menus in %, relative to the window size
 MENU_POSITION = (0, 100)
@@ -47,6 +49,8 @@ MENU_BACKGROUND_COLOR = (62, 62, 66, 192)
 LOADING_BAR_BACKGROUND_COLOR = (46, 57, 74)
 
 SHOT_TANK_OUTLINE_COLOR = (255, 0, 0)
+
+SELECTOR_WIDGET_COLOR = (0, 0, 0, 0)
 # player names
 PLAYER_NAMES = ['Playa', 'Bot 1', 'Bot 2', 'Bot 3']
 
@@ -82,9 +86,14 @@ BACKGROUND_IMAGE_PATH = 'game/assets/menu/background.jpg'
 GUI_ICON_PATH = 'game/assets/icon.png'
 TRACKS_IMAGE_PATH = 'game/assets/tracks_green.png'
 
-# spring map hexes
-EMPTY_HEX_GRASS_IMAGE_PATH = 'game/assets/hex_images/spring_empty.png'
-OBSTACLE_HEX_OBSTACLE_IMAGE_PATH = 'game/assets/hex_images/spring_obstacle.png'
+# summer map hexes
+SUMMER_GRASS_PATH = 'game/assets/hex_images/summer_empty.png'
+SUMMER_OBSTACLE_PATH = 'game/assets/hex_images/summer_obstacle.png'
+DESERT_EMPTY_PATH = 'game/assets/hex_images/desert_empty.png'
+DESERT_OBSTACLE_PATH = 'game/assets/hex_images/desert_obstacle.png'
+WINTER_EMPTY_PATH = 'game/assets/hex_images/winter_empty.png'
+WINTER_OBSTACLE_PATH = 'game/assets/hex_images/winter_obstacle.png'
 
 # other
 BULLET_VECTOR = (1, 0)
+MAP_TYPE = ['']

@@ -7,7 +7,7 @@ from constants import HEX_RADIUS_Y, HEX_RADIUS_X, TANK_PULSE_FULL_DURATION, TANK
 class ShotTank(pygame.sprite.Sprite):
     """Class representing a shadow of a tank that has been shot, but not destroyed"""
 
-    def __init__(self, coord: tuple[int, int], image_path: str):
+    def __init__(self, coord: tuple[int, int], image_path: str, color: str | tuple[int, int, int] = None):
         super().__init__()
 
         # image index

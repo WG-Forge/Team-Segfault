@@ -1,7 +1,7 @@
 import os
 
 from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, BACKGROUND_IMAGE_PATH, GUI_ICON_PATH, \
-    GAME_BACKGROUND, GUI_CAPTION
+    GAME_BACKGROUND, GUI_CAPTION, MAP_TYPE
 from game_presets.local_multiplayer import local_multiplayer_game
 from game_presets.single_player import single_player_game
 from game_presets.spectator import spectator_game
@@ -48,10 +48,10 @@ class DisplayManager:
         self.__menu.disable()
         SOUND_VOLUME[0] = self.__menu.volume
         PLAYER_NAMES[0] = self.__menu.player_name
-        GAME_NAME[0] = self.__menu.map_name
+        GAME_NAME[0] = self.__menu.game_name
         GAME_SPEED[0] = self.__menu.game_speed
         ADVANCED_GRAPHICS[0] = self.__menu.advanced_graphics
-        print(ADVANCED_GRAPHICS[0])
+        MAP_TYPE[0] = self.__menu.map_type
         game_type = self.__menu.game_type
         match game_type:
             case GameType.SINGLE_PLAYER:
@@ -99,10 +99,8 @@ class DisplayManager:
 
             # draw the map or loading screen if the game started
             if self.__playing and not self.__game.over.is_set():
-                if self.__game.game_map:
-                    self.__game.game_map.draw(self.__screen)
-                else:
-                    self.__loading_screen.draw(self.__screen)
+                self.__game.game_map.draw(self.__screen) if self.__game.game_map \
+                    else self.__loading_screen.draw(self.__screen)
 
             # check if game has ended
             if self.__playing and self.__game.over.is_set():
@@ -110,7 +108,6 @@ class DisplayManager:
                 self.__playing = False
                 self.__menu.enable()
 
-            # draw end screen if
             # if self.__end_screen.enabled:
             #     self.__end_screen.draw()
 

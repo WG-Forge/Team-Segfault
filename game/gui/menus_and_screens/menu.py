@@ -2,8 +2,9 @@ import pygame
 import pygame_menu
 
 from constants import MENU_POSITION, SOUND_VOLUME, PLAYER_NAMES, GAME_NAME, WHITE, MENU_BACKGROUND_COLOR, \
-    MENU_SELECTED_TEXT_COLOR, GAME_SPEED, MENU_MIN_WIDTH, MENU_FONT, ADVANCED_GRAPHICS
+    MENU_SELECTED_TEXT_COLOR, GAME_SPEED, MENU_MIN_WIDTH, MENU_FONT, ADVANCED_GRAPHICS, SELECTOR_WIDGET_COLOR
 from game_presets.game_type_enum import GameType
+from gui.map_utils.map_type_enum import MapType
 
 
 class Menu:
@@ -39,8 +40,9 @@ class Menu:
         # TODO: add functionality to this toggle; minimum graphics include: not drawing any animations (for now)
         self.__options_menu.add.toggle_switch('Advanced graphics: ', default=ADVANCED_GRAPHICS[0],
                                               toggleswitch_id='graphics')
-        self.__options_menu.add.selector('Game map ', [('Forest', 0), ('Desert', 1)])
-
+        self.__options_menu.add.selector('Game map ', [(map_type.name, map_type.value) for map_type in MapType],
+                                         selector_id='map_type', style='fancy',
+                                         style_fancy_bgcolor=SELECTOR_WIDGET_COLOR)
         self.__options_menu.add.range_slider('Game speed', default=GAME_SPEED[0], range_values=(0, 1), increment=0.1,
                                              rangeslider_id='game_speed_slider')
         self.__options_menu.add.range_slider('Volume', default=SOUND_VOLUME[0], range_values=(0, 1),
@@ -55,7 +57,7 @@ class Menu:
         self.__play_menu.add.button('Battle!', start_game)
         # (title, number of players(game instances) needed or 0 if it's a local game)
         self.__play_menu.add.selector('Game type', [(game_type.value, 0) for game_type in GameType],
-                                      selector_id='game_type', style='fancy', style_fancy_bgcolor=(0, 0, 0, 0))
+                                      selector_id='game_type', style='fancy', style_fancy_bgcolor=SELECTOR_WIDGET_COLOR)
         self.__play_menu.add.text_input('Nickname: ', default=PLAYER_NAMES[0], textinput_id='nickname', maxwidth=10)
         self.__play_menu.add.text_input('Game name: ', default=GAME_NAME[0], textinput_id='game_name', maxwidth=10)
         self.__play_menu.add.button('Back', pygame_menu.events.BACK)
@@ -102,7 +104,7 @@ class Menu:
         return self.__options_menu.get_widget('volume_slider').get_value()
 
     @property
-    def map_name(self) -> str:
+    def game_name(self) -> str:
         return self.__play_menu.get_widget('game_name').get_value()
 
     @property
@@ -120,6 +122,10 @@ class Menu:
     @property
     def advanced_graphics(self) -> bool:
         return self.__options_menu.get_widget('graphics').get_value()
+
+    @property
+    def map_type(self) -> int:
+        return self.__options_menu.get_widget('map_type').get_value()[0][1]
 
     @staticmethod
     def set_menu_size(menu: pygame_menu.Menu) -> None:
