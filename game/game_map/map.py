@@ -17,6 +17,7 @@ from gui.map_utils.map_drawer import MapDrawer
 
 class Map:
     __max_players_in_base = 2
+    __rounds_to_cap = 1
 
     def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[int]):
         HEX_RADIUS_X[0] = SCREEN_WIDTH // ((client_map['size'] - 1) * 2 * 2)
@@ -36,6 +37,8 @@ class Map:
         self.__map_size = client_map['size']
         self.__make_map(client_map, game_state, active_players)
         self.__current_round: int = 0
+        self.__rounds_in_base_by_player_index = [0 for _ in range(3)]
+        self.__player_indexes_who_capped: set = set()
 
         self.__path_finding_algorithm: callable = _a_star.a_star
         self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn)
@@ -105,7 +108,8 @@ class Map:
 
     def __can_capture_base(self) -> bool:
         player_indexes_in_base = set(tank.player_index for tank in self.__tanks.values()
-                                     if isinstance(self.__map[tank.coord]['feature'], Base))
+                                     if isinstance(self.__map[tank.coord]['feature'], Base)
+                                     and not tank.is_destroyed)
         return len(player_indexes_in_base) <= self.__max_players_in_base
 
     def __update_repairs_and_catapult_bonus(self):
@@ -119,11 +123,12 @@ class Map:
                 elif isinstance(feature, Catapult) and feature.is_usable('all'):
                     feature.was_used()
                     tank.catapult_bonus = True
+                elif not isinstance(feature, Base) or tank.is_destroyed:
+                    tank.capture_points = 0
 
     def __is_new_round(self, turn: int) -> int:
         new_round = turn // 3
         if new_round != self.__current_round:
-            print('new_round', new_round)
             self.__current_round = new_round
             return True
         return False
@@ -133,9 +138,8 @@ class Map:
         for tank in self.__tanks.values():
             base = self.__map[tank.coord]['feature']
             if not tank.is_destroyed and isinstance(base, Base):
-                capture_points = base.player_in_base_return_capture_points(tank.player_index)
                 if can_cap:
-                    tank.capture_points += capture_points
+                    tank.capture_points += 1
 
     def __new_turn(self, turn: int):
         if self.__is_new_round(turn):
