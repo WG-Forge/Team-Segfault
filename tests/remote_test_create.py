@@ -1,7 +1,7 @@
-from game.game import Game
+from src.game import Game
 
 # Run directly from this module, and then run the remote_test_join as a separate entity
-from gui.display_manager import DisplayManager
+from src.gui.display_manager import DisplayManager
 
 
 def remote_test_create() -> None:
