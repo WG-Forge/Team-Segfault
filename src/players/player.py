@@ -33,7 +33,6 @@ class Player(Thread, ABC):
         self._map: Map | None = None
 
         self._damage_points = 0
-        self._capture_points = 0
         self._tanks: list[Tank] = []
         self._tank_map: dict[int, Tank] = {}
         self._player_index: int | None = None
@@ -59,7 +58,6 @@ class Player(Thread, ABC):
         self.idx = player_info["idx"]
         self.is_observer = player_info["is_observer"]
         self._damage_points = 0
-        self._capture_points = 0
         self._game_client = game_client
 
     def add_tank(self, new_tank: Tank) -> None:
@@ -101,25 +99,32 @@ class Player(Thread, ABC):
     """     GETTERS AND SETTERS    """
 
     @property
-    def color(self) -> tuple: return self.__player_colour
+    def color(self) -> tuple:
+        return self.__player_colour
 
     @property
-    def tanks(self) -> list[Tank]: return self._tanks
+    def tanks(self) -> list[Tank]:
+        return self._tanks
 
     @property
-    def capture_points(self) -> int: return self._capture_points
+    def capture_points(self) -> int:
+        return sum([tank.capture_points for tank in self._tanks])
 
     @property
-    def damage_points(self) -> int: return self._damage_points
+    def damage_points(self) -> int:
+        return self._damage_points
 
     @property
-    def turn_actions(self) -> dict | None: return self._turn_actions
+    def turn_actions(self) -> dict | None:
+        return self._turn_actions
 
     @turn_actions.setter
-    def turn_actions(self, actions: dict) -> None: self._turn_actions = actions
+    def turn_actions(self, actions: dict) -> None:
+        self._turn_actions = actions
 
     @property
-    def index(self) -> int | None: return self._player_index
+    def index(self) -> int | None:
+        return self._player_index
 
     @index.setter
     def index(self, player_index: int) -> None:
