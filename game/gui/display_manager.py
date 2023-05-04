@@ -71,6 +71,7 @@ class DisplayManager:
             case _:
                 self.__menu.enable()
                 return
+        self.__error_happened = False
         self.__playing = True
         self.__game.start()
 
@@ -83,10 +84,12 @@ class DisplayManager:
                     self.__game.over.set()
                 self.__playing = False
                 self.__running = False
-            if event.type == pygame.MOUSEBUTTONDOWN and self.__error_happened == True and self.__check_mouse_click():
+            if event.type == pygame.MOUSEBUTTONDOWN and self.__error_happened is True and self.__check_mouse_click():
                 self.__menu.enable()
                 self.__game.over.set()
                 self.__game = None
+                # need to reset this because there is no error for the next started game
+                self.__error_happened = False
         return events
 
     def run(self) -> None:
