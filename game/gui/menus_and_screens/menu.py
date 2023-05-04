@@ -55,7 +55,7 @@ class Menu:
                                                               , mouse_motion_selection=True)
         self.__play_menu.add.button('Battle!', start_game)
         # (title, number of players(game instances) needed or 0 if it's a local game)
-        self.__play_menu.add.selector('Game type', [(game_type.value, 0) for game_type in GameType],
+        self.__play_menu.add.selector('Game type', [(str(game_type), 0) for game_type in GameType],
                                       selector_id='game_type', style='fancy', style_fancy_bgcolor=SELECTOR_WIDGET_COLOR)
         self.__play_menu.add.text_input('Nickname: ', default=PLAYER_NAMES[0], textinput_id='nickname', maxwidth=10)
         self.__play_menu.add.text_input('Game name: ', default=GAME_NAME[0], textinput_id='game_name', maxwidth=10)

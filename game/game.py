@@ -141,6 +141,9 @@ class Game(Thread):
             # the game was interrupted
             return
 
+        self.__num_turns = game_state["num_turns"]
+        self.__max_players = game_state["num_players"]
+
         # add all remote players and observers
         self.__player_manager.add_remote_players(game_state["players"])
         self.__player_manager.add_remote_players(game_state["observers"])
@@ -152,9 +155,6 @@ class Game(Thread):
 
         # initialize the game map (now adds tanks to players & game_map too)
         self.game_map = Map(client_map, game_state, self.__active_players, self.__current_turn)
-
-        self.__num_turns = game_state["num_turns"]
-        self.__max_players = game_state["num_players"]
 
         # pass Map reference to players
         for player in self.__active_players.values():

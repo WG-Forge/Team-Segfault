@@ -6,6 +6,7 @@ from constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, BACKGROUND_IMAGE_PAT
     GAME_BACKGROUND, GUI_CAPTION, MAP_TYPE, ERROR_FONT_SIZE, ERROR_MESSAGE_COLOR, HEX_RADIUS_Y, ERROR_BUTTON_DIMENSIONS, \
     ERROR_BUTTON_POSITION
 from game_presets.local_multiplayer import local_multiplayer_game
+from game_presets.pvp_game import pvp_game
 from game_presets.single_player import single_player_game
 from game_presets.spectator import spectator_game
 from gui.menus_and_screens.loading_screen import LoadingScreen
@@ -62,8 +63,8 @@ class DisplayManager:
         match game_type:
             case GameType.SINGLE_PLAYER:
                 self.__game = single_player_game(GAME_NAME[0], PLAYER_NAMES[0])
-            # case GameType.PVP_MULTIPLAYER:
-            #     self.__name = pvp_game()
+            case GameType.PVP_MULTIPLAYER:
+                self.__game = pvp_game(GAME_NAME[0], PLAYER_NAMES[0])
             case GameType.LOCAL_MULTIPLAYER:
                 self.__game = local_multiplayer_game(GAME_NAME[0], PLAYER_NAMES[0], PLAYER_NAMES[1], PLAYER_NAMES[2])
             case GameType.SPECTATE:
@@ -88,8 +89,8 @@ class DisplayManager:
                 self.__menu.enable()
                 self.__game.over.set()
                 self.__game = None
-                # need to reset this because there is no error for the next started game
-                self.__error_happened = False
+                # stop the game -> set the self.__playing flag to False
+                self.__playing = False
         return events
 
     def run(self) -> None:
