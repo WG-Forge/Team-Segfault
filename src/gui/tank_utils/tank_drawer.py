@@ -44,7 +44,7 @@ class TankDrawer(pygame.sprite.Sprite):
             return
         font_size = round(min(HEX_RADIUS_Y[0], HEX_RADIUS_X[0]))
         font = pygame.font.SysFont('arial', font_size, bold=True)
-        text = font.render(str(self.__tank.health_points), True, 'white')
+        text = font.render(str(self.__tank.health_points), True, 'black')
         text_rect = text.get_rect(bottomleft=(Hex.make_center(self.__tank.coord)[0] + HEX_RADIUS_X[0] / 2,
                                               Hex.make_center(self.__tank.coord)[1] + HEX_RADIUS_Y[0] / 2))
         screen.blit(text, text_rect)

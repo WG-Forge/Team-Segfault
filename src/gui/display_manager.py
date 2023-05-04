@@ -72,7 +72,6 @@ class DisplayManager:
             case _:
                 self.__menu.enable()
                 return
-        self.__error_happened = False
         self.__playing = True
         self.__game.start()
 
@@ -89,6 +88,7 @@ class DisplayManager:
                 self.__menu.enable()
                 self.__game.over.set()
                 self.__game = None
+                self.__error_happened = False
                 # stop the game -> set the self.__playing flag to False
                 self.__playing = False
         return events

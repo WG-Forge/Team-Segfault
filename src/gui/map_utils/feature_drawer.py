@@ -2,7 +2,7 @@ import pygame
 from pygame import Surface
 
 from src.constants import MAP_TYPE, HEX_RADIUS_Y, HEX_RADIUS_X, LIGHT_REPAIR_IMAGE_PATH, HARD_REPAIR_IMAGE_PATH, \
-    TANK_IMAGE_SCALE, CATAPULT_IMAGE_PATH, HEX_TILE_IMAGES_SCALE, SUMMER_OBSTACLE_PATH, WHITE, \
+    TANK_IMAGE_SCALE, CATAPULT_IMAGE_PATH, HEX_TILE_IMAGES_SCALE, SUMMER_OBSTACLE_PATH, WHITE, BLACK, \
     SUMMER_GRASS_PATH, DESERT_OBSTACLE_PATH, DESERT_EMPTY_PATH, WINTER_EMPTY_PATH, WINTER_OBSTACLE_PATH
 from src.entities.map_features.bonuses.catapult import Catapult
 from src.entities.map_features.bonuses.hard_repair import HardRepair
@@ -16,6 +16,7 @@ from src.gui.map_utils.map_type_enum import MapType
 class FeatureDrawer:
     def __init__(self, map_size: int):
 
+        self.__aaline_color: str | tuple[int, int, int] = WHITE
         self.__load_images()
 
         # map legend
@@ -49,6 +50,7 @@ class FeatureDrawer:
             case MapType.WINTER:
                 empty_path = WINTER_EMPTY_PATH
                 obstacle_path = WINTER_OBSTACLE_PATH
+                self.__aaline_color = BLACK
             case MapType.DESERT:
                 empty_path = DESERT_EMPTY_PATH
                 obstacle_path = DESERT_OBSTACLE_PATH
@@ -68,7 +70,6 @@ class FeatureDrawer:
         if self.__empty_image and self.__obstacle_image:
             image = self.__obstacle_image.copy() if feature.type == Entities.OBSTACLE else self.__empty_image.copy()
 
-        # todo: make images smaller when tank is on that position
         if image is not None:
             x = feature.center[0] - image.get_width() / 2
             y = feature.center[1] - image.get_height() / 2
@@ -97,9 +98,11 @@ class FeatureDrawer:
         if is_bonus:
             x = feature.center[0] - image.get_width() / 2
             y = feature.center[1] - image.get_height() / 2
+            if is_tank_there:
+                image = pygame.transform.scale(image, (HEX_RADIUS_X[0] / 2, HEX_RADIUS_Y[0] / 2))
             screen.blit(image, (x, y))
 
-        pygame.draw.aalines(screen, WHITE, closed=True, points=feature.corners)
+        pygame.draw.aalines(screen, self.__aaline_color, closed=True, points=feature.corners)
 
     def draw_legend(self, screen, font) -> None:
         y = 0
