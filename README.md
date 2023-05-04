@@ -17,9 +17,11 @@ players will battle each other, until the game ends in a draw or a winner is det
 
 ### Running
 
-Set the project workspace to the folder which contains main.py, start the Python virtual environment, and follow the on-screen instructions!
+Set the project workspace to the folder which contains main.py, start the Python virtual environment (if you are using an IDE), or just start the game by running the command `py .\main.py` with the project root as your current directory, and follow the on-screen instructions!
 
 Python 3.11 <= is required.
+
+Make sure to install all the required packages in **requirements.txt**.
 
 ### Running without the menu/debugging
 
