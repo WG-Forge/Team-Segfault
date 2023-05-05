@@ -23,7 +23,7 @@ class GameClient:
 
     def login(self, name: str, password: str | None = None, game_name: str | None = None,
               num_turns: int | None = None, num_players: int | None = None,
-              is_observer: bool | None = None) -> dict:
+              is_observer: bool | None = None, is_full: bool | None = None) -> dict:
         """
         User login
         :param name: player username
@@ -32,6 +32,7 @@ class GameClient:
         :param num_turns: number of game turns (if creating a game)
         :param num_players: number of game players (if creating a game)
         :param is_observer: define if joining as an observer
+        :param is_full: define if you want to play the full game with all combinations of player order
         :return: user dict
         """
 
@@ -41,7 +42,8 @@ class GameClient:
             "game": game_name,
             "num_turns": num_turns,
             "num_players": num_players,
-            "is_observer": is_observer
+            "is_observer": is_observer,
+            "is_full": is_full
         }
 
         d = {k: v for k, v in d.items() if v is not None}

@@ -10,14 +10,12 @@ from src.players.player import Player
 class BotPlayer(Player):
     __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
 
-    def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
-                 current_player: list[int], over: Event):
-        super().__init__(name=name,
-                         password=password,
-                         is_observer=is_observer,
-                         turn_played_sem=turn_played_sem,
-                         current_player=current_player,
-                         over=over)
+    def __init__(self, turn_played_sem: Semaphore, current_player: list[int], over: Event,
+                 name: str | None = None, password: str | None = None,
+                 is_observer: bool | None = None):
+        super().__init__(turn_played_sem=turn_played_sem, current_player=current_player, over=over,
+                         name=name, password=password,
+                         is_observer=is_observer)
 
         self.__turn: int = 0
 

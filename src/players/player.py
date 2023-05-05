@@ -14,9 +14,9 @@ class Player(Thread, ABC):
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
     __possible_colours = PLAYER_COLORS
 
-    def __init__(self,
-                 turn_played_sem: Semaphore, current_player: list[int], over: Event,
-                 name: str | None = None, password: str | None = None, is_observer: bool | None = None):
+    def __init__(self, turn_played_sem: Semaphore, current_player: list[int], over: Event,
+                 name: str | None = None, password: str | None = None,
+                 is_observer: bool | None = None):
         super().__init__()
 
         self.idx: int = -1
@@ -34,7 +34,6 @@ class Player(Thread, ABC):
 
         self._damage_points = 0
         self._tanks: list[Tank] = []
-        self._tank_map: dict[int, Tank] = {}
         self._player_index: int | None = None
         self.__player_colour: tuple | None = None
         self.__has_shot: list[int] = []  # Holds a list of enemies this player has shot last turn
@@ -136,6 +135,11 @@ class Player(Thread, ABC):
 
     def register_shot(self, enemy_index: int) -> None:
         self.__has_shot.append(enemy_index)
+
+    def register_round(self) -> None:
+        self._damage_points = 0
+        self._tanks = []
+        self.__has_shot = []  # Holds a list of enemies this player has shot last turn
 
     def register_turn(self) -> None:  # Call this for every player at the beginning of every turn
         self.__has_shot = []

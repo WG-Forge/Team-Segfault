@@ -8,7 +8,7 @@ from src.remote.game_client import GameClient
 
 class Game(Thread):
     def __init__(self, game_name: str | None = None, num_turns: int | None = None,
-                 max_players: int = 1) -> None:
+                 max_players: int = 1, is_full: bool = False) -> None:
         super().__init__()
 
         self.game_map: Map | None = None
@@ -19,6 +19,10 @@ class Game(Thread):
 
         self.__num_turns: int | None = num_turns
         self.__max_players: int = max_players
+        self.__is_full: bool = is_full
+        self.__num_rounds: int | None = None
+        self.__current_round: int | None = None
+
         self.__winner: int | None = None
         self.__winner_index: int | None = None
         self.__started: bool = False
@@ -84,6 +88,18 @@ class Game(Thread):
     def game_is_draw(self) -> bool:
         return self.__game_is_draw
 
+    @property
+    def is_full(self) -> bool:
+        return self.__is_full
+
+    @property
+    def num_rounds(self) -> int | None:
+        return self.__num_rounds
+
+    @property
+    def current_round(self) -> int | None:
+        return self.__current_round
+
     """     GAME LOGIC      """
 
     def run(self) -> None:
@@ -143,6 +159,7 @@ class Game(Thread):
 
         self.__num_turns = game_state["num_turns"]
         self.__max_players = game_state["num_players"]
+        self.__num_rounds = game_state["num_rounds"]
 
         # add all remote players and observers
         self.__player_manager.add_remote_players(game_state["players"])
@@ -151,7 +168,20 @@ class Game(Thread):
         # start all player instances
         self.__player_manager.start_players()
 
+        self.__start_next_round(game_state)
+
+        # output the game info to console
+        print(self)
+
+    def __start_next_round(self, game_state: dict) -> None:
+        # start the next round
+        self.__current_round = game_state["current_round"]
+
         client_map: dict = self.__shadow_client.get_map()
+
+        # register round start for every player
+        for player in self.__active_players.values():
+            player.register_round()
 
         # initialize the game map (now adds tanks to players & game_map too)
         self.game_map = Map(client_map, game_state, self.__active_players, self.__current_turn)
@@ -160,16 +190,14 @@ class Game(Thread):
         for player in self.__active_players.values():
             player.add_map(self.game_map)
 
-        # output the game info to console
-        print(self)
-
     def __start_next_turn(self) -> None:
         # start the next turn
         game_state = self.__shadow_client.get_game_state()
 
         self.__current_turn[0] = game_state["current_turn"]
         self.__current_player_idx[0] = game_state["current_player_idx"]
-        self.__current_player = self.__active_players[self.__current_player_idx[0]]
+        if self.__current_player_idx[0] != 0:
+            self.__current_player = self.__active_players[self.__current_player_idx[0]]
 
         # Reset current player attacks
         self.__current_player.register_turn()
@@ -185,24 +213,30 @@ class Game(Thread):
             self.__winner = game_state["winner"]
             if self.__winner is None:
                 self.__game_is_draw = True
-            self.over.set()
+            self.__print_winner()
+
+            if not self.__is_full or game_state["current_round"] == self.__num_rounds:
+                self.over.set()
+            else:
+                self.__start_next_round(game_state)
 
     def __end_game(self) -> None:
         # Notify all players the game has ended
         self.__player_manager.notify_all_players()
 
         if self.__connection_error:
-            # TODO just print it in the console for now
             print(self.__connection_error)
-        elif self.__winner or self.__game_is_draw:
-            if self.__game_is_draw:
-                # TODO just print it in the console for now
-                print('The game is a draw')
-            else:
-                winner = self.__active_players[self.__winner]
-                self.__winner_index = winner.index
-                print(f'The winner is: {winner.player_name}.')
-        else:
+        elif not self.__winner and not self.__game_is_draw:
             print("The game was interrupted")
 
         self.__player_manager.logout()
+
+    def __print_winner(self) -> None:
+        print()
+        if self.__game_is_draw:
+            # TODO just print it in the console for now
+            print('The game is a draw')
+        else:
+            winner = self.__active_players[self.__winner]
+            self.__winner_index = winner.index
+            print(f'The winner is: {winner.player_name}.')

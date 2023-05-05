@@ -95,7 +95,8 @@ class PlayerManager:
                                    game_name=self.__game.game_name,
                                    num_turns=self.__game.num_turns,
                                    num_players=self.__game.max_players,
-                                   is_observer=True)
+                                   is_observer=True,
+                                   is_full=self.__game.is_full)
 
     def logout(self) -> None:
         # end by logging out of the shadow observer
@@ -119,9 +120,12 @@ class PlayerManager:
 
     def __connect_local_player(self, player: Player) -> None:
         game_client: GameClient = GameClient()
-        user_info: dict = game_client.login(player.player_name, player.password,
-                                            self.__game.game_name, self.__game.num_turns,
-                                            self.__game.max_players, player.is_observer)
+        user_info: dict = game_client.login(name=player.player_name, password=player.password,
+                                            game_name=self.__game.game_name,
+                                            num_turns=self.__game.num_turns,
+                                            num_players=self.__game.max_players,
+                                            is_observer=player.is_observer,
+                                            is_full=self.__game.is_full)
 
         player.add_to_game(user_info, game_client)
 

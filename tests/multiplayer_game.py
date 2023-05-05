@@ -9,7 +9,7 @@ def multiplayer_game() -> None:
     print("*** Multiplayer game test ***")
     name: str = "Test game 1: "
     name += str(random.randint(0, 10000))
-    game = Game(game_name=name, max_players=3, num_turns=45)
+    game = Game(game_name=name, max_players=3, num_turns=45, is_full=True)
 
     game.add_local_player(name="Vuk", is_observer=False)
     game.add_local_player(name="Egor", is_observer=True)
