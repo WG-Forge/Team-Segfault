@@ -22,7 +22,7 @@ class Game(Thread):
         self.__is_full: bool = is_full
         self.__num_rounds: int | None = None
         self.__current_round: int | None = None
-        self.__next_round: bool = False
+        self.__next_round: bool = True
 
         self.__winner: int | None = None
         self.__winner_index: int | None = None
@@ -36,7 +36,9 @@ class Game(Thread):
 
         # Observer connection that is used for collecting data
         self.__shadow_client = GameClient()
+
         self.__active_players: dict[int, Player] = {}
+        self.__player_wins: dict[int, int] = {}
         self.__current_player_idx: list[int] = [-1]
         self.__player_manager: PlayerManager = PlayerManager(self, self.__shadow_client)
 
@@ -101,6 +103,10 @@ class Game(Thread):
     def current_round(self) -> int | None:
         return self.__current_round
 
+    @property
+    def player_wins(self) -> dict[int, int]:
+        return self.__player_wins
+
     """     GAME LOGIC      """
 
     def run(self) -> None:
@@ -108,15 +114,15 @@ class Game(Thread):
             self.__init_game_state()
 
             while not self.over.is_set():
+                # start next round if need be
+                if self.__next_round:
+                    self.__start_next_round()
+
                 # start the next turn
                 self.__start_next_turn()
 
                 # handshake with players
                 self.__player_manager.handle_player_turns()
-
-                # start next round if need be
-                if self.__next_round:
-                    self.__start_next_round()
 
         except ConnectionError as err:
             # a connection error happened
@@ -173,6 +179,10 @@ class Game(Thread):
         # start all player instances
         self.__player_manager.start_players()
 
+        # set the player win counts
+        for idx in self.__active_players.keys():
+            self.__player_wins[idx] = 0
+
         self.__start_next_round()
 
         # output the game info to console
@@ -222,7 +232,9 @@ class Game(Thread):
             self.__winner = game_state["winner"]
             if self.__winner is None:
                 self.__game_is_draw = True
-            self.__print_winner()
+            else:
+                self.__player_wins[self.__winner] += 1
+            self.__print_round_winner()
 
             if not self.__is_full or game_state["current_round"] == self.__num_rounds:
                 self.over.set()
@@ -237,15 +249,42 @@ class Game(Thread):
             print(self.__connection_error)
         elif not self.__winner and not self.__game_is_draw:
             print("The game was interrupted")
+        else:
+            self.__print_game_winner()
 
         self.__player_manager.logout()
 
-    def __print_winner(self) -> None:
+    def __print_round_winner(self) -> None:
         print()
         if self.__game_is_draw:
             # TODO just print it in the console for now
-            print('The game is a draw')
+            print('The round is a draw')
         else:
             winner = self.__active_players[self.__winner]
             self.__winner_index = winner.index
-            print(f'The winner is: {winner.player_name}.')
+            print(f'The round winner is: {winner.player_name}.')
+
+    def __print_game_winner(self) -> None:
+        winner: Player | None = None
+
+        min_wins: int = 0
+        max_wins: int = 0
+
+        print()
+        for idx, win_num in self.__player_wins.items():
+            if self.__active_players[idx].is_observer:
+                continue
+
+            print(f"{self.__active_players[idx]} wins: {win_num}")
+
+            # TODO this is C divine intellect code
+            if max_wins < win_num:
+                winner = self.__active_players[idx]
+                max_wins = win_num
+            min_wins = min(min_wins, win_num)
+
+        print()
+        if min_wins != max_wins:
+            print(f"{winner} is the game winner!")
+        else:
+            print("The game is a draw!")
