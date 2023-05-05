@@ -19,6 +19,10 @@ class BotPlayer(Player):
 
         self.__turn: int = 0
 
+    def register_round(self) -> None:
+        self.__turn = 0
+        super().register_round()
+
     def _make_turn_plays(self) -> None:
         try:
             # play your move if you are the current player

@@ -22,6 +22,7 @@ class Game(Thread):
         self.__is_full: bool = is_full
         self.__num_rounds: int | None = None
         self.__current_round: int | None = None
+        self.__next_round: bool = False
 
         self.__winner: int | None = None
         self.__winner_index: int | None = None
@@ -113,6 +114,10 @@ class Game(Thread):
                 # handshake with players
                 self.__player_manager.handle_player_turns()
 
+                # start next round if need be
+                if self.__next_round:
+                    self.__start_next_round()
+
         except ConnectionError as err:
             # a connection error happened
             self.over.set()
@@ -168,13 +173,17 @@ class Game(Thread):
         # start all player instances
         self.__player_manager.start_players()
 
-        self.__start_next_round(game_state)
+        self.__start_next_round()
 
         # output the game info to console
         print(self)
 
-    def __start_next_round(self, game_state: dict) -> None:
+    def __start_next_round(self) -> None:
         # start the next round
+        self.__next_round = False
+
+        game_state: dict = self.__shadow_client.get_game_state()
+
         self.__current_round = game_state["current_round"]
 
         client_map: dict = self.__shadow_client.get_map()
@@ -218,7 +227,7 @@ class Game(Thread):
             if not self.__is_full or game_state["current_round"] == self.__num_rounds:
                 self.over.set()
             else:
-                self.__start_next_round(game_state)
+                self.__next_round = True
 
     def __end_game(self) -> None:
         # Notify all players the game has ended

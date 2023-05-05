@@ -56,7 +56,6 @@ class Player(Thread, ABC):
         self.player_name = player_info["name"]
         self.idx = player_info["idx"]
         self.is_observer = player_info["is_observer"]
-        self._damage_points = 0
         self._game_client = game_client
 
     def add_tank(self, new_tank: Tank) -> None:
@@ -139,9 +138,8 @@ class Player(Thread, ABC):
     def register_round(self) -> None:
         self._damage_points = 0
         self._tanks = []
-        self.__has_shot = []  # Holds a list of enemies this player has shot last turn
 
-    def register_turn(self) -> None:  # Call this for every player at the beginning of every turn
+    def register_turn(self) -> None:
         self.__has_shot = []
 
     def register_destroyed_vehicle(self, tank: Tank) -> None:
