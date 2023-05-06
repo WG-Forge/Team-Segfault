@@ -31,8 +31,8 @@ class PlayerManager:
         self.notify_all_players()
 
         # if current player isn't a remote player, end the turn
-        if (not isinstance(self.__game.current_player, RemotePlayer) or self.__game.current_player_idx[0] == 0) \
-                and not self.__game.over.is_set():
+        if (not isinstance(self.__game.current_player, RemotePlayer)
+                and not self.__game.over.is_set()):
             self.__shadow_client.force_turn()
 
         # wait for everyone to finish their turns
