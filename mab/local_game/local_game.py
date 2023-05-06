@@ -1,6 +1,7 @@
 from typing import Dict, Type, Union
 
-from .local_map.local_map import LocalMap
+from data.data_io import DataIO
+from src.game_map.map import Map
 from .local_players.local_bot_player import LocalBotPlayer
 
 
@@ -13,12 +14,12 @@ class LocalGame:
 
     def __run(self, game_actions: GameActions, num_turns: int, num_players=3) -> None:
         players: Dict[int, LocalBotPlayer] = {i: LocalBotPlayer(i, game_actions[i]) for i in range(num_players)}
-        game_map = LocalMap(players)
+
+        game_map = Map(DataIO.load_client_map(), DataIO.load_game_state())
         for player in players.values():
             player.add_map(game_map)
 
-        turn = 1
-        winner = None
+        turn, winner = 1, None
         while not winner and turn <= num_turns:
             player_idx = (turn - 1) % num_players
             player = players[player_idx]

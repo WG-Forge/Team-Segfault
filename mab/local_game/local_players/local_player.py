@@ -1,68 +1,30 @@
-from abc import abstractmethod, ABC
-from dataclasses import dataclass
-from threading import Thread, Semaphore, Event
+from abc import abstractmethod
 
-from local_constants import PLAYER_COLORS
-from local_entities.local_tanks.local_tank import LocalTank
-from local_map.local_map import LocalMap
-from remote.game_client import GameClient
+from src.entities.tanks.tank import Tank
+from game_map.map import Map
 
 
-@dataclass
-class LocalPlayer(Thread, ABC):
-    """ Abstract base player class """
+class LocalPlayer:
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
-    __possible_colours = PLAYER_COLORS
 
-    def __init__(self,
-                 turn_played_sem: Semaphore, current_player: list[int], over: Event,
-                 name: str | None = None, password: str | None = None, is_observer: bool | None = None):
+    def __init__(self):
         super().__init__()
 
         self.idx: int = -1
-        self.player_name: str | None = name
-        self.password: str | None = password
-        self.is_observer: bool | None = is_observer
-
-        self.next_turn_sem = Semaphore(0)
-        self._current_player = current_player
-        self.__turn_played_sem = turn_played_sem
-        self.__over = over
-
-        self._game_client: GameClient | None = None
-        self._map: LocalMap | None = None
+        self._map: Map | None = None
 
         self._damage_points = 0
         self._capture_points = 0
-        self._tanks: list[LocalTank] = []
-        self._tank_map: dict[int, LocalTank] = {}
+        self._tanks: list[Tank] = []
+        self._tank_map: dict[int, Tank] = {}
         self._player_index: int | None = None
         self.__player_colour: tuple | None = None
         self.__has_shot: list[int] = []  # Holds a list of enemies this player has shot last turn
 
         self._game_actions: dict | None = None
-
         self._turn_actions: dict | None = None
 
-    def __hash__(self):
-        return super.__hash__(self)
-
-    def __str__(self):
-        out = str.format(f'Player {self.idx}: {self.player_name}')
-        if self.is_observer:
-            out += ', observer'
-
-        return out
-
-    def add_to_game(self, player_info: dict, game_client: GameClient) -> None:
-        self.player_name = player_info["name"]
-        self.idx = player_info["idx"]
-        self.is_observer = player_info["is_observer"]
-        self._damage_points = 0
-        self._capture_points = 0
-        self._game_client = game_client
-
-    def add_tank(self, new_tank: LocalTank) -> None:
+    def add_tank(self, new_tank: Tank) -> None:
         # Adds the tank in order of who gets priority movement
         new_tank_priority = LocalPlayer.__type_order.index(new_tank.type)
         for i, old_tank in enumerate(self._tanks):
@@ -72,31 +34,11 @@ class LocalPlayer(Thread, ABC):
                 return
         self._tanks.append(new_tank)
 
-    def add_map(self, game_map: LocalMap) -> None:
+    def add_map(self, game_map: Map) -> None:
         self._map = game_map
 
     def run(self) -> None:
-        while not self.__over.is_set():
-            # wait for condition
-            self.next_turn_sem.acquire()
-
-            try:
-                # check if the game ended
-                if self.__over.is_set():
-                    break
-
-                self._make_turn_plays()
-
-            except ConnectionError as err:
-                print(err)
-            except TimeoutError as err:
-                print(err)
-            finally:
-                # notify condition
-                self.__turn_played_sem.release()
-
-        # finalization
-        self._finalize()
+        self._make_turn_plays()
 
     """     GETTERS AND SETTERS    """
 
@@ -104,7 +46,7 @@ class LocalPlayer(Thread, ABC):
     def color(self) -> tuple: return self.__player_colour
 
     @property
-    def tanks(self) -> list[LocalTank]: return self._tanks
+    def tanks(self) -> list[Tank]: return self._tanks
 
     @property
     def capture_points(self) -> int: return self._capture_points
@@ -125,7 +67,6 @@ class LocalPlayer(Thread, ABC):
     def index(self, player_index: int) -> None:
         # set and update player index if player is not an observer
         self._player_index = player_index
-        self.__player_colour = LocalPlayer.__possible_colours[player_index]
 
     """     MISC        """
 
@@ -135,7 +76,7 @@ class LocalPlayer(Thread, ABC):
     def register_turn(self) -> None:  # Call this for every player at the beginning of every turn
         self.__has_shot = []
 
-    def register_destroyed_vehicle(self, tank: LocalTank) -> None:
+    def register_destroyed_vehicle(self, tank: Tank) -> None:
         self._damage_points += tank.max_health_points
 
     def has_shot(self, player_index: int) -> bool:
@@ -145,8 +86,4 @@ class LocalPlayer(Thread, ABC):
 
     @abstractmethod
     def _make_turn_plays(self) -> None:
-        pass
-
-    @abstractmethod
-    def _finalize(self) -> None:
         pass

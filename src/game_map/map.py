@@ -1,5 +1,6 @@
 from pygame import Surface
 
+from data.data_io import DataIO
 from src.constants import HEX_RADIUS_X, HEX_RADIUS_Y, SCREEN_HEIGHT, SCREEN_WIDTH
 from src.entities.map_features.bonuses.catapult import Catapult
 from src.entities.map_features.bonuses.hard_repair import HardRepair
@@ -19,7 +20,9 @@ class Map:
     __max_players_in_base = 2
     __rounds_to_cap = 1
 
-    def __init__(self, client_map: dict, game_state: dict, active_players: dict, current_turn: list[int]):
+    def __init__(self, client_map: dict, game_state: dict, active_players: dict,
+                 current_turn: list[int] = None, graphics=True):
+        print('active_players', active_players)
         HEX_RADIUS_X[0] = SCREEN_WIDTH // ((client_map['size'] - 1) * 2 * 2)
         HEX_RADIUS_Y[0] = SCREEN_HEIGHT // ((client_map['size'] - 1) * 2 * 2)
 
@@ -42,7 +45,10 @@ class Map:
         self.__player_indexes_who_capped: set = set()
 
         self.__path_finding_algorithm: callable = _a_star.a_star
-        self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn)
+        if graphics:
+            self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn)
+
+        self.__save(client_map, game_state)
 
     """     MAP MAKING      """
 
@@ -50,10 +56,6 @@ class Map:
         # Make empty map
         rings = [Hex.make_ring(ring_num) for ring_num in range(client_map["size"])]
         self.__map = {coord: {'feature': Empty(coord), 'tank': None} for ring in rings for coord in ring}
-
-        # Uncomment to save new maps to run in the local version
-        # save_server_map(client_map)
-        # save_game_state(game_state)
 
         # Make features, put them in map
         feature_factory = FeatureFactory(client_map["content"], self.__map)
@@ -267,3 +269,10 @@ class Map:
 
     def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> tuple | None:
         return self.__path_finding_algorithm(self.__map, tank, finish)
+
+    """     SAVING FOR RUNNING LOCALLY      """
+
+    @staticmethod
+    def __save(client_map: dict, game_state: dict) -> None:
+        DataIO.save_client_map(client_map)
+        DataIO.save_game_state(game_state)

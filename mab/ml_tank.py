@@ -2,17 +2,22 @@ import random as rnd
 import statistics
 
 
-class Tank:
+class MLTank:
     # Shorthand for arms to save on dict size:
-    __actions = ('A', 'B', 'C', 'D', 'E')
+    __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
     __action_num = len(__actions)
 
-    def __init__(self, num_turns: int, group_size: int):
+    def __init__(self, num_turns: int, group_size: int, can_repair: bool):
         self.__tank_results_table: dict[str, list[int]] = {}  # {arm combo player_name: [list of rewards]}
         self.__game_action_combo: str = ''  # String representing actions taken in this turn
         self.__num_turns = num_turns
         self.__group_size: int = group_size
         self.__num_groups: int = num_turns // group_size
+
+        if can_repair:
+            self.__max_action_index: int = self.__action_num - 1
+        else:
+            self.__max_action_index: int = self.__action_num - 2
 
     def register_reward(self, reward: int) -> None:
         # If the combination of arms used in this turn has never been used create a new entry in
@@ -29,7 +34,7 @@ class Tank:
     def get_explore_actions(self) -> str:
         # Returns a random set of actions to explore the different probabilities of each
         action_combo = [
-            self.__actions[rnd.randint(0, self.__action_num - 1)] * self.__group_size
+            self.__actions[rnd.randint(0, self.__max_action_index)] * self.__group_size
             for _ in range(self.__num_groups)
         ]
         self.__game_action_combo = ''.join(action_combo)

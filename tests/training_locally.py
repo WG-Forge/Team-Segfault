@@ -1,4 +1,4 @@
-from mab.driver import Driver
+from mab.ml_driver import MLDriver
 
 
 # from mab.local_game.local_game import LocalGame
@@ -12,7 +12,7 @@ from mab.driver import Driver
 def train(num_trainings: int = 1, num_turns: int = 15, restart: bool = False) -> None:
     print('*** Training Bots ***')
 
-    mab_driver = Driver(num_turns, restart)
+    mab_driver = MLDriver(num_turns, restart)
     for game_num in range(1, num_trainings + 1):
         print(f'Game Number: {game_num},', end='')
 

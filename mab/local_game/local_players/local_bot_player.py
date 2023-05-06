@@ -1,24 +1,16 @@
 import time
-from threading import Semaphore, Event
 
-from local_constants import GAME_SPEED
-from local_entities.local_entity_enum import LocalEntities
-from local_entities.local_tanks.local_tank import LocalTank
-from local_players.local_player import LocalPlayer
+from src.constants import GAME_SPEED
+from src.entities.entity_enum import Entities
+from src.entities.tanks.tank import Tank
+from mab.local_game.local_players.local_player import LocalPlayer
 
 
 class LocalBotPlayer(LocalPlayer):
     __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
 
-    def __init__(self, name: str, password: str, is_observer: bool, turn_played_sem: Semaphore,
-                 current_player: list[int], over: Event):
-        super().__init__(name=name,
-                         password=password,
-                         is_observer=is_observer,
-                         turn_played_sem=turn_played_sem,
-                         current_player=current_player,
-                         over=over)
-
+    def __init__(self):
+        super().__init__()
         self.__turn: int = 0
 
     def _make_turn_plays(self) -> None:
@@ -53,19 +45,19 @@ class LocalBotPlayer(LocalPlayer):
         for tank in self._tanks:
             ttype = tank.type
             if ttype == 'spg':
-                self.__do('C', tank)
+                self.__do('E', tank)
             elif ttype == 'light_tank':
                 self.__do('A', tank)
             elif ttype == 'heavy_tank':
-                self.__do('A', tank)
+                self.__do('G', tank)
             elif ttype == 'medium_tank':
                 self.__do('G', tank)
             elif ttype == 'at_spg':
-                self.__do('G', tank)
+                self.__do('E', tank)
 
         self.__turn += 1
 
-    def __do(self, action: str, tank: LocalTank) -> None:
+    def __do(self, action: str, tank: Tank) -> None:
         if action == 'A':
             # Move into the closest free base and from then on shoot enemies in range without moving
             self.__move_and_camp(tank, 'in base')
@@ -89,7 +81,7 @@ class LocalBotPlayer(LocalPlayer):
             self.__catapult_else_e(tank)
         elif action == 'G':
             # Do action E, if health points != max health points and closest appropriate repair hex is free move into it
-            # Do action E. This action only callable for local_tanks that can repair (at_spg, heavy_tank, medium_tank)
+            # Do action E. This action only callable for tanks that can repair (at_spg, heavy_tank, medium_tank)
             self.__repair_if_low_hp_else_e(tank)
 
     def __repair_if_low_hp_else_e(self, tank):
@@ -97,7 +89,7 @@ class LocalBotPlayer(LocalPlayer):
             return
         self.__do('E', tank)
 
-    def __catapult_else_e(self, tank: LocalTank) -> None:
+    def __catapult_else_e(self, tank: Tank) -> None:
         enemies_in_range = self._map.enemies_in_range(tank)
         if enemies_in_range:
             self.__camp(tank, enemies_in_range)
@@ -109,7 +101,7 @@ class LocalBotPlayer(LocalPlayer):
                 if len(cats) == 0:
                     self.__do('E', tank)
 
-    def __move_return_has_moved(self, where: str, who: LocalTank) -> bool:
+    def __move_return_has_moved(self, where: str, who: Tank) -> bool:
         who_coord, go_to = who.coord, None
         if where == 'close to base':
             go_to = self._map.closest_free_base_adjacents(who_coord)
@@ -131,26 +123,26 @@ class LocalBotPlayer(LocalPlayer):
                     return True
         return False
 
-    def __move_and_camp(self, tank: LocalTank, where: str) -> None:
+    def __move_and_camp(self, tank: Tank, where: str) -> None:
         if not self.__move_return_has_moved(where, tank):
             enemies_in_range = self._map.enemies_in_range(tank)
             if enemies_in_range:
                 self.__camp(tank, enemies_in_range)
 
-    def __shoot_else_move(self, tank: LocalTank, where: str) -> None:
+    def __shoot_else_move(self, tank: Tank, where: str) -> None:
         enemies_in_range = self._map.enemies_in_range(tank)
         if enemies_in_range:
             self.__camp(tank, enemies_in_range)
         else:
             self.__move_return_has_moved(where, tank)
 
-    def __camp(self, tank: LocalTank, enemies_in_range: list[LocalTank]) -> None:
-        if tank.type != LocalEntities.TANK_DESTROYER:
+    def __camp(self, tank: Tank, enemies_in_range: list[Tank]) -> None:
+        if tank.type != Entities.TANK_DESTROYER:
             self.__update_maps_with_shot(tank, enemies_in_range[0])
         else:
             self.__td_camp(tank, self._map.tanks_in_range(tank))
 
-    def __td_camp(self, td: LocalTank, tanks: list[LocalTank]) -> None:
+    def __td_camp(self, td: Tank, tanks: list[Tank]) -> None:
         # Get the enemy in the fire corridor with the largest number of enemies and least friends
         tanks_by_corridor = [
             [tank for tank in tanks if tank.coord in c]
@@ -171,7 +163,7 @@ class LocalBotPlayer(LocalPlayer):
         if best_corridor and best_score > 0:
             self.__update_maps_with_shot(td, best_corridor[0], is_td=True)
 
-    def __move_to_if_possible(self, tank: LocalTank, where: tuple) -> bool:
+    def __move_to_if_possible(self, tank: Tank, where: tuple) -> bool:
         next_best = self._map.next_best_available_hex_in_path_to(tank, where)
 
         if next_best is not None:
@@ -179,12 +171,12 @@ class LocalBotPlayer(LocalPlayer):
             return True
         return False
 
-    def __update_maps_with_move(self, tank: LocalTank, action_coord: tuple) -> None:
+    def __update_maps_with_move(self, tank: Tank, action_coord: tuple) -> None:
         x, y, z = action_coord
         self._map.local_move(tank, action_coord)
         self._game_client.server_move({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
 
-    def __update_maps_with_shot(self, tank: LocalTank, enemy: LocalTank, is_td=False) -> None:
+    def __update_maps_with_shot(self, tank: Tank, enemy: Tank, is_td=False) -> None:
         if is_td:
             td_shooting_coord = tank.td_shooting_coord(enemy.coord)
             x, y, z = td_shooting_coord
