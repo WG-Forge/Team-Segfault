@@ -1,6 +1,6 @@
 from pygame import Surface
 
-from data.data_io import DataIO
+from mab.data.data_io import DataIO
 from src.constants import HEX_RADIUS_X, HEX_RADIUS_Y, SCREEN_HEIGHT, SCREEN_WIDTH
 from src.entities.map_features.bonuses.catapult import Catapult
 from src.entities.map_features.bonuses.hard_repair import HardRepair

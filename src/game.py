@@ -294,3 +294,8 @@ class Game(Thread):
             print(f"{winner} is the game winner!")
         else:
             print("The game is a draw!")
+
+    @property
+    def player_wins_and_info(self) -> list[tuple[str, str | tuple[int, int, int], int]]:
+        return [(self.__active_players[idx].player_name, self.__active_players[idx].color, self.__player_wins[idx])
+                for idx in self.__active_players if idx in self.__player_wins]

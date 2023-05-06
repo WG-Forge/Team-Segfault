@@ -1,7 +1,7 @@
 from src.game import Game
 
 
-def local_multiplayer_game(game_name: str, *player_names: str, max_players: int = 3, num_turns: int = 45,
+def local_multiplayer_game(game_name: str, player_names: list[str], max_players: int = 3, num_turns: int = 45,
                            is_full: bool = False) -> Game:
     game = Game(game_name=game_name, max_players=max_players, num_turns=num_turns, is_full=is_full)
 

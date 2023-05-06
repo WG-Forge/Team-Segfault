@@ -9,6 +9,7 @@ from src.game_presets.local_multiplayer import local_multiplayer_game
 from src.game_presets.pvp_game import pvp_game
 from src.game_presets.single_player import single_player_game
 from src.game_presets.spectator import spectator_game
+from src.gui.menus_and_screens.end_screen import EndScreen
 from src.gui.menus_and_screens.loading_screen import LoadingScreen
 from src.gui.menus_and_screens.menu import *
 
@@ -44,6 +45,8 @@ class DisplayManager:
         self.__error_happened = False
         self.__mouse_pos: tuple = (-1, -1)
 
+        self.__end_screen: EndScreen = EndScreen()
+
         if game:
             # I added this part - useful for supporting the tests we already have
             self.__menu.disable()
@@ -53,6 +56,7 @@ class DisplayManager:
     def __start_the_game(self) -> None:
         del self.__game
         self.__menu.disable()
+
         SOUND_VOLUME[0] = self.__menu.volume
         PLAYER_NAMES[0] = self.__menu.player_name
         GAME_NAME[0] = self.__menu.game_name
@@ -60,18 +64,22 @@ class DisplayManager:
         ADVANCED_GRAPHICS[0] = self.__menu.advanced_graphics
         MAP_TYPE[0] = self.__menu.map_type
         game_type = self.__menu.game_type
+
         match game_type:
             case GameType.SINGLE_PLAYER:
                 self.__game = single_player_game(GAME_NAME[0], PLAYER_NAMES[0])
             case GameType.PVP_MULTIPLAYER:
                 self.__game = pvp_game(GAME_NAME[0], PLAYER_NAMES[0])
             case GameType.LOCAL_MULTIPLAYER:
-                self.__game = local_multiplayer_game(GAME_NAME[0], PLAYER_NAMES[0], PLAYER_NAMES[1], PLAYER_NAMES[2])
+                self.__game = local_multiplayer_game(game_name=GAME_NAME[0],
+                                                     player_names=PLAYER_NAMES[:3],
+                                                     is_full=self.__menu.full_game)
             case GameType.SPECTATE:
                 self.__game = spectator_game(GAME_NAME[0], PLAYER_NAMES[1])
             case _:
                 self.__menu.enable()
                 return
+
         self.__playing = True
         self.__game.start()
 
@@ -103,6 +111,7 @@ class DisplayManager:
             pygame.quit()
 
     def __run(self) -> None:
+        players = []
         while self.__running:
             self.__mouse_pos = pygame.mouse.get_pos()
 
@@ -113,6 +122,7 @@ class DisplayManager:
                 self.__menu.update(events)
                 self.__menu.draw(self.__screen)
 
+            # check if error happened
             if self.__game and self.__game.connection_error is not None:
                 self.__error_happened = True
                 self.__draw_error(self.__game.connection_error)
@@ -120,6 +130,7 @@ class DisplayManager:
 
             # draw the map or loading screen if the game started
             if self.__playing and not self.__game.over.is_set():
+                players = self.__game.player_wins_and_info
                 self.__game.game_map.draw(self.__screen) if self.__game.game_map \
                     else self.__loading_screen.draw(self.__screen)
 
@@ -127,10 +138,14 @@ class DisplayManager:
             if self.__playing and self.__game.over.is_set():
                 self.__loading_screen.reset()
                 self.__playing = False
+                # self.__end_screen.toggle_enable()  # uncomment this and comment the line below for podium display
                 self.__menu.enable()
 
-            # if self.__end_screen.enabled:
-            #     self.__end_screen.draw()
+            if self.__end_screen and self.__end_screen.enabled:
+                # delete shadow client and sort the list
+                players = sorted(filter(lambda x: x[1] is not None, self.__game.player_wins_and_info),
+                                 key=lambda x: x[0], reverse=True)
+                self.__end_screen.draw_podium(self.__screen, players)
 
             # delay for a constant framerate
             self.__clock.tick(FPS_MAX)

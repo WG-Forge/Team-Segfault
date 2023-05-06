@@ -2,7 +2,7 @@ from enum import StrEnum
 
 
 class GameType(StrEnum):
-    LOCAL_MULTIPLAYER = 'Multiplayer'
-    SINGLE_PLAYER = 'Local'
+    SINGLE_PLAYER = 'Local singleplayer'
+    LOCAL_MULTIPLAYER = 'Local multiplayer'
     PVP_MULTIPLAYER = 'PvP'
     SPECTATE = 'Spectate'

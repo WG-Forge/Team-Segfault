@@ -30,6 +30,7 @@ ADVANCED_GRAPHICS = [True]
 EXPLOSION_SPEED = 4
 BULLET_TRAVEL_TIME = 6
 
+PODIUM_WIDTH = SCREEN_WIDTH * 3 / 4
 # position of menus in %, relative to the window size
 MENU_POSITION = (0, 100)
 MENU_MIN_WIDTH = SCREEN_WIDTH / 4
@@ -58,6 +59,8 @@ SHOT_TANK_OUTLINE_COLOR = (255, 0, 0)
 SELECTOR_WIDGET_COLOR = (0, 0, 0, 0)
 
 ERROR_MESSAGE_COLOR = (224, 34, 34)
+
+PODIUM_COLORS = ((255, 215, 0), (192, 192, 192), (205, 127, 50))
 # player names
 PLAYER_NAMES = ['Playa', 'Bot 1', 'Bot 2', 'Bot 3']
 
@@ -65,6 +68,7 @@ PLAYER_NAMES = ['Playa', 'Bot 1', 'Bot 2', 'Bot 3']
 # game speed range is [0.0 - 1.0]; represents (1 - game_speed) seconds sleep between turns
 GAME_SPEED = [1.0]
 SOUND_VOLUME = [0.0]
+MAX_PLAYERS = 3
 
 # sound paths
 EXPLOSION_SOUND = 'src/assets/sounds/explosion.mp3'
