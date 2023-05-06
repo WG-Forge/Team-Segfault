@@ -136,11 +136,10 @@ class Map:
         return False
 
     def __update_capture_points(self):
-        can_cap = self.__can_capture_base()
-        for tank in self.__tanks.values():
-            base = self.__map[tank.coord]['feature']
-            if not tank.is_destroyed and isinstance(base, Base):
-                if can_cap:
+        if self.__can_capture_base():
+            for coord in self.__base_coords:
+                tank = self.__map[coord]['tank']
+                if tank and not tank.is_destroyed:
                     tank.capture_points += 1
 
     def __new_turn(self, turn: int):
