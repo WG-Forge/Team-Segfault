@@ -267,7 +267,7 @@ class Game(Thread):
     def __print_game_winner(self) -> None:
         winner: Player | None = None
 
-        min_wins: int = 0
+        min_wins: int = -1
         max_wins: int = 0
 
         print()
@@ -281,7 +281,11 @@ class Game(Thread):
             if max_wins < win_num:
                 winner = self.__active_players[idx]
                 max_wins = win_num
-            min_wins = min(min_wins, win_num)
+
+            if min_wins == -1:
+                min_wins = win_num
+            else:
+                min_wins = min(min_wins, win_num)
 
         print()
         if min_wins != max_wins:

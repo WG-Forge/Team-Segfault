@@ -123,6 +123,7 @@ class Map:
                     tank.repair()
                 elif isinstance(feature, Catapult) and feature.is_usable('all'):
                     feature.was_used()
+                    print(f"Catapult bonus: {tank}")
                     tank.catapult_bonus = True
             if not isinstance(feature, Base) or tank.is_destroyed:
                 tank.capture_points = 0
@@ -181,13 +182,16 @@ class Map:
                 self.local_shoot(tank, enemy)
 
     def td_shoot(self, td: Tank, target: tuple) -> None:
-        danger_zone = Hex.danger_zone(td.coord, target)
+        firing_range: int = 3
+        if td.catapult_bonus:
+            firing_range += 1
+        danger_zone = Hex.danger_zone(td.coord, target, firing_range)
         for coord in danger_zone:
             entities = self.__map.get(coord)
             if entities and not isinstance(entities['feature'], Obstacle):
                 target_tank = self.__map[coord]['tank']
-                # Target tank can be an ally or an enemy
-                if target_tank:
+                # Tank that violates neutrality rule or is an ally is skipped
+                if self.is_enemy(td, target_tank):
                     self.local_shoot(td, target_tank)
             else:
                 break
