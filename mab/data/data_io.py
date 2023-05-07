@@ -10,6 +10,24 @@ class DataIO:
     ResultsTable = Type[dict[int, dict[str, dict[str, list[int]]]]]
     GameActions = Type[dict[int, dict[str, str]]]
 
+    """     FORMATTING      """
+
+    @staticmethod
+    def __format_game_state(game_state: dict) -> dict:
+        idx_by_index: dict[int, int] = {}
+        index: int = 0
+        for player_dict in game_state['players']:
+            idx = player_dict.get('idx')
+            if idx not in idx_by_index:
+                idx_by_index[idx] = index
+                index += 1
+            player_dict[idx] = index
+
+        for vehicle_dict in game_state['vehicles'].values():
+            vehicle_dict['player_id'] = idx_by_index[vehicle_dict['player_id']]
+
+        return game_state
+
     """     SAVING      """
 
     @staticmethod
@@ -18,18 +36,18 @@ class DataIO:
             json.dump(what, file)
 
     @staticmethod
-    def save_client_map(client_map) -> None: DataIO.__save(client_map, DataIO.__client_map_path)
+    def save_client_map(client_map: dict) -> None: DataIO.__save(client_map, DataIO.__client_map_path)
 
     @staticmethod
-    def save_game_state(game_state) -> None: DataIO.__save(game_state, DataIO.__game_state_path)
+    def save_game_state(game_state: dict) -> None:
+        game_state = DataIO.__format_game_state(game_state)
+        DataIO.__save(game_state, DataIO.__game_state_path)
 
     @staticmethod
     def save_results_table(results_table: ResultsTable) -> None: DataIO.__save(results_table, DataIO.__results_table_path)
 
     @staticmethod
-    def save_num_games(explore_prob, max_explore_prob, decay_per_game) -> None:
-        num_games = int((max_explore_prob - explore_prob) / decay_per_game)
-        DataIO.__save(num_games, DataIO.__num_games_path)
+    def save_num_games(num_games: int) -> None: DataIO.__save(num_games, DataIO.__num_games_path)
 
     """     LOADING     """
 

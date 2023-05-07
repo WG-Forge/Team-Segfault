@@ -22,7 +22,7 @@ class Map:
 
     def __init__(self, client_map: dict, game_state: dict, active_players: dict,
                  current_turn: list[int] = None, graphics=True):
-        print('active_players', active_players)
+
         HEX_RADIUS_X[0] = SCREEN_WIDTH // ((client_map['size'] - 1) * 2 * 2)
         HEX_RADIUS_Y[0] = SCREEN_HEIGHT // ((client_map['size'] - 1) * 2 * 2)
 
@@ -48,7 +48,7 @@ class Map:
         if graphics:
             self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn)
 
-        self.__save(client_map, game_state)
+        # self.__save(client_map, game_state)  # Uncomment to save to run locally
 
     """     MAP MAKING      """
 
@@ -172,7 +172,7 @@ class Map:
             # add to destroyed tanks
             self.__destroyed.append(target)
         else:
-            self.__map_drawer.add_hitreg(Hex.make_center(target.coord), target.image_path)
+            self.__map_drawer.add_hitreg(self.__map[target.coord]['feature'].center, target.image_path)
         self.__players[tank.player_index].register_shot(target.player_index)
 
     def local_shoot_tuple(self, tank: Tank, coord: tuple) -> None:
@@ -191,7 +191,7 @@ class Map:
             entities = self.__map.get(coord)
             if entities and not isinstance(entities['feature'], Obstacle):
                 target_tank = self.__map[coord]['tank']
-                # Tank that violates neutrality rule or is an ally is skipped
+                # Tank that violates neutrality rule or is an allay is skipped
                 if self.is_enemy(td, target_tank):
                     self.local_shoot(td, target_tank)
             else:
@@ -270,9 +270,34 @@ class Map:
     def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> tuple | None:
         return self.__path_finding_algorithm(self.__map, tank, finish)
 
+    """     NO GRAPHICS METHODS     """
+
+    def local_shoot_no_graphics(self, tank: Tank, target: Tank) -> None:
+        destroyed = target.register_hit_return_destroyed()
+        if destroyed:
+            self.__players[tank.player_index].register_destroyed_vehicle(target)
+            self.__destroyed.append(target)
+        self.__players[tank.player_index].register_shot(target.player_index)
+
+    def td_shoot_no_graphics(self, td: Tank, target: tuple) -> None:
+        firing_range: int = 3
+        if td.catapult_bonus:
+            firing_range += 1
+        danger_zone = Hex.danger_zone(td.coord, target, firing_range)
+        for coord in danger_zone:
+            entities = self.__map.get(coord)
+            if entities and not isinstance(entities['feature'], Obstacle):
+                target_tank = self.__map[coord]['tank']
+                # Tank that violates neutrality rule or is an allay is skipped
+                if self.is_enemy(td, target_tank):
+                    self.local_shoot_no_graphics(td, target_tank)
+            else:
+                break
+
     """     SAVING FOR RUNNING LOCALLY      """
 
     @staticmethod
     def __save(client_map: dict, game_state: dict) -> None:
         DataIO.save_client_map(client_map)
         DataIO.save_game_state(game_state)
+

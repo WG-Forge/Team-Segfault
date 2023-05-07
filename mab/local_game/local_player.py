@@ -7,8 +7,7 @@ from game_map.map import Map
 class LocalPlayer:
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, player_index: int):
 
         self.idx: int = -1
         self._map: Map | None = None
@@ -17,9 +16,10 @@ class LocalPlayer:
         self._capture_points = 0
         self._tanks: list[Tank] = []
         self._tank_map: dict[int, Tank] = {}
-        self._player_index: int | None = None
+        self._player_index: int = player_index
         self.__player_colour: tuple | None = None
         self.__has_shot: list[int] = []  # Holds a list of enemies this player has shot last turn
+        self.__is_observer: bool = False
 
         self._game_actions: dict | None = None
         self._turn_actions: dict | None = None
@@ -64,9 +64,10 @@ class LocalPlayer:
     def index(self) -> int | None: return self._player_index
 
     @index.setter
-    def index(self, player_index: int) -> None:
-        # set and update player index if player is not an observer
-        self._player_index = player_index
+    def index(self, player_index: int) -> None: self._player_index = player_index
+
+    @property
+    def is_observer(self) -> bool: return self.__is_observer
 
     """     MISC        """
 
@@ -87,3 +88,10 @@ class LocalPlayer:
     @abstractmethod
     def _make_turn_plays(self) -> None:
         pass
+
+    """     ML      """
+
+    def has_capped(self) -> bool:
+        if self._capture_points > 4:
+            return True
+        return False

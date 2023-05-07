@@ -1,60 +1,21 @@
-import time
-
-from src.constants import GAME_SPEED
 from src.entities.entity_enum import Entities
 from src.entities.tanks.tank import Tank
-from mab.local_game.local_players.local_player import LocalPlayer
+from local_game.local_player import LocalPlayer
 
 
-class LocalBotPlayer(LocalPlayer):
+class LocalBot(LocalPlayer):
     __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, player_index: int, game_actions: dict[str, str]):
+        super().__init__(player_index)
         self.__turn: int = 0
 
+        # game_actions = {tank_name: action_string}
+        self.__game_actions = game_actions
+
     def _make_turn_plays(self) -> None:
-        try:
-            # play your move if you are the current player
-            if self._current_player[0] == self.idx:
-                delay = 1.0 - GAME_SPEED[0]
-                if delay > 0:
-                    time.sleep(delay)  # comment/uncomment this for a turn delay effect
-                self.__place_actions()
-        except Exception as e:
-            print(e)
-        finally:
-            # end your turn
-            self._game_client.force_turn()
-
-    def _finalize(self) -> None:
-        # manage your own connection
-        self._game_client.logout()
-        self._game_client.disconnect()
-
-    def __place_actions(self) -> None:
-        # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
-        # Uncomment to play with the results of ML training
-        # if self._game_actions:
-        #     for tank in self._tanks:
-        #         action = self._game_actions[tank.type][self.__turn]
-        #         self.__do(action, tank)
-        # else:
-
-        # testing new actions
         for tank in self._tanks:
-            ttype = tank.type
-            if ttype == 'spg':
-                self.__do('E', tank)
-            elif ttype == 'light_tank':
-                self.__do('A', tank)
-            elif ttype == 'heavy_tank':
-                self.__do('G', tank)
-            elif ttype == 'medium_tank':
-                self.__do('G', tank)
-            elif ttype == 'at_spg':
-                self.__do('E', tank)
-
+            self.__do(self.__game_actions[tank.type][self.__turn], tank)
         self.__turn += 1
 
     def __do(self, action: str, tank: Tank) -> None:
@@ -172,17 +133,11 @@ class LocalBotPlayer(LocalPlayer):
         return False
 
     def __update_maps_with_move(self, tank: Tank, action_coord: tuple) -> None:
-        x, y, z = action_coord
         self._map.local_move(tank, action_coord)
-        self._game_client.server_move({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
 
     def __update_maps_with_shot(self, tank: Tank, enemy: Tank, is_td=False) -> None:
         if is_td:
             td_shooting_coord = tank.td_shooting_coord(enemy.coord)
-            x, y, z = td_shooting_coord
-            self._map.td_shoot(tank, td_shooting_coord)
+            self._map.td_shoot_no_graphics(tank, td_shooting_coord)
         else:
-            x, y, z = enemy.coord
-            self._map.local_shoot(tank, enemy)
-
-        self._game_client.server_shoot({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
+            self._map.local_shoot_no_graphics(tank, enemy)

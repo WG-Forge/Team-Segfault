@@ -1,50 +1,62 @@
-from typing import Dict, Type, Union
+from typing import Dict
 
 from data.data_io import DataIO
 from src.game_map.map import Map
-from .local_players.local_bot_player import LocalBotPlayer
+from local_game.local_bot import LocalBot
 
 
 class LocalGame:
-    GameActions = Type[Dict[int, Dict[str, str]]]
+    GameActions = dict[int, dict[str, str]]
 
     def __init__(self, game_actions: GameActions, num_turns: int = 15) -> None:
-        self.__winner_index = None
+        self.__winners_index = []
         self.__run(game_actions, num_turns)
 
     def __run(self, game_actions: GameActions, num_turns: int, num_players=3) -> None:
-        players: Dict[int, LocalBotPlayer] = {i: LocalBotPlayer(i, game_actions[i]) for i in range(num_players)}
+        players: Dict[int, LocalBot] = {
+            i: LocalBot(i, game_actions[i])
+            for i in range(num_players)
+        }
 
-        game_map = Map(DataIO.load_client_map(), DataIO.load_game_state())
+        game_map = Map(DataIO.load_client_map(), DataIO.load_game_state(), players, graphics=False)
         for player in players.values():
             player.add_map(game_map)
 
-        turn, winner = 1, None
+        turn, winner, win_type = 1, None, ''
         while not winner and turn <= num_turns:
             player_idx = (turn - 1) % num_players
             player = players[player_idx]
             player.register_turn()
             player.run()
 
-            if player.is_winner():
+            if player.has_capped():
                 winner = player
+                win_type = 'captured the base'
             turn += 1
 
         max_dp = -1
+        player_damages = []
         if not winner:
             for i, player in players.items():
-                dp = player.get_damage_points()
+                dp = player.damage_points
+                player_damages.append(dp)
                 if dp > max_dp:
                     winner = player
                     max_dp = dp
+                    win_type = 'most damage'
                 elif dp == max_dp:
                     winner = None
 
         if winner:
-            self.__winner_index = winner.get_index()
-            print(' Winner player:', self.__winner_index)
+            self.__winners_index.append(winner.index)
+            print(' Winner is player', self.__winners_index[0], win_type)
         else:
-            print(' Draw')
+            print(' Draw between players: ', end='')
+            for player_index in range(num_players):
+                if player_damages[player_index] == max_dp:
+                    self.__winners_index.append(player_index)
+                    print(player_index, end=', ')
+            print()
 
-    def get_winner_index(self) -> Union[int, None]:
-        return self.__winner_index
+    @property
+    def winners_index(self) -> list[int]: return self.__winners_index
