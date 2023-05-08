@@ -26,8 +26,7 @@ class TankFactory:
         tanks: dict[int, Tank] = {}
         for vehicle_id, vehicle_info in vehicles.items():
             player = active_players[vehicle_info["player_id"]]
-            tank, spawn = TankFactory.make_tank_and_spawn(int(vehicle_id), vehicle_info, player.color,
-                                                          player.index, catapult_coords)
+            tank, spawn = TankFactory.make_tank_and_spawn(int(vehicle_id), vehicle_info, player.color, player.index)
             game_map[tank.coord]['tank'] = tank
             game_map[tank.spawn_coord]['feature'] = spawn
             tanks[int(vehicle_id)] = tank
@@ -35,10 +34,10 @@ class TankFactory:
         return tanks
 
     @staticmethod
-    def make_tank_and_spawn(tank_id: int, tank_info: dict, tank_color: tuple,
-                            player_index: int, catapult_coords: tuple) -> tuple[TANK_TYPES, Spawn]:
+    def make_tank_and_spawn(tank_id: int, tank_info: dict,
+                            tank_color: tuple, player_index: int) -> tuple[TANK_TYPES, Spawn]:
         tank_class = TankFactory.TANK_TYPES[tank_info["vehicle_type"]]
-        tank = tank_class(tank_id, tank_info, tank_color, player_index, catapult_coords)
+        tank = tank_class(tank_id, tank_info, tank_color, player_index)
         spawn = Spawn(tank.spawn_coord, tank_id, tank_color)
         return tank, spawn
 
