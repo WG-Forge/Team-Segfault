@@ -3,13 +3,14 @@ import os
 import pygame.draw
 
 from src.constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, BACKGROUND_IMAGE_PATH, GUI_ICON_PATH, \
-    GAME_BACKGROUND, GUI_CAPTION, MAP_TYPE, ERROR_FONT_SIZE, ERROR_MESSAGE_COLOR, HEX_RADIUS_Y, ERROR_BUTTON_DIMENSIONS, \
-    ERROR_BUTTON_POSITION
+    GAME_BACKGROUND, GUI_CAPTION, MAP_TYPE, ERROR_FONT_SIZE, ERROR_MESSAGE_COLOR, HEX_RADIUS_Y
 from src.game_presets.local_multiplayer import local_multiplayer_game
 from src.game_presets.pvp_game import pvp_game
 from src.game_presets.single_player import single_player_game
 from src.game_presets.spectator import spectator_game
 from src.gui.menus_and_screens.end_screen import EndScreen
+from src.gui.menus_and_screens.error_screen import ErrorScreen
+from src.gui.menus_and_screens.helper_menu import HelperMenu
 from src.gui.menus_and_screens.loading_screen import LoadingScreen
 from src.gui.menus_and_screens.menu import *
 
@@ -42,10 +43,10 @@ class DisplayManager:
 
         self.__loading_screen = LoadingScreen()
 
-        self.__error_happened = False
-        self.__mouse_pos: tuple = (-1, -1)
-
+        self.__error_screen: ErrorScreen = ErrorScreen()
         self.__end_screen: EndScreen = EndScreen()
+        self.__helper_menu: HelperMenu = HelperMenu(self.__menu.enable, self.__error_screen.disable,
+                                                    self.__end_screen.disable)
 
         if game:
             # I added this part - useful for supporting the tests we already have
@@ -64,7 +65,7 @@ class DisplayManager:
         ADVANCED_GRAPHICS[0] = self.__menu.advanced_graphics
         MAP_TYPE[0] = self.__menu.map_type
         game_type = self.__menu.game_type
-
+        num_players = self.__menu.num_players
         match game_type:
             case GameType.SINGLE_PLAYER:
                 self.__game = single_player_game(GAME_NAME[0], PLAYER_NAMES[0])
@@ -73,7 +74,8 @@ class DisplayManager:
             case GameType.LOCAL_MULTIPLAYER:
                 self.__game = local_multiplayer_game(game_name=GAME_NAME[0],
                                                      player_names=PLAYER_NAMES[:3],
-                                                     is_full=self.__menu.full_game)
+                                                     is_full=self.__menu.full_game,
+                                                     max_players=num_players)
             case GameType.SPECTATE:
                 self.__game = spectator_game(GAME_NAME[0], PLAYER_NAMES[1])
             case _:
@@ -92,13 +94,6 @@ class DisplayManager:
                     self.__game.over.set()
                 self.__playing = False
                 self.__running = False
-            if event.type == pygame.MOUSEBUTTONDOWN and self.__error_happened is True and self.__check_mouse_click():
-                self.__menu.enable()
-                self.__game.over.set()
-                self.__game = None
-                self.__error_happened = False
-                # stop the game -> set the self.__playing flag to False
-                self.__playing = False
         return events
 
     def run(self) -> None:
@@ -113,20 +108,28 @@ class DisplayManager:
     def __run(self) -> None:
         players = []
         while self.__running:
-            self.__mouse_pos = pygame.mouse.get_pos()
 
             self.__draw_background()
             events = self.__check_events()
 
+            # draw enabled menu
             if self.__menu.is_enabled():
                 self.__menu.update(events)
                 self.__menu.draw(self.__screen)
 
+            if self.__helper_menu.enabled:
+                self.__helper_menu.update(events)
+                self.__helper_menu.draw(self.__screen)
+
             # check if error happened
             if self.__game and self.__game.connection_error is not None:
-                self.__error_happened = True
-                self.__draw_error(self.__game.connection_error)
+                self.__error_screen.enable()
+                self.__error_screen.set_error_message(self.__game.connection_error)
+
+                self.__helper_menu.enable()
                 self.__menu.disable()
+
+                self.__finalize_game()
 
             # draw the map or loading screen if the game started
             if self.__playing and not self.__game.over.is_set():
@@ -138,14 +141,19 @@ class DisplayManager:
             if self.__playing and self.__game.over.is_set():
                 self.__loading_screen.reset()
                 self.__playing = False
-                # self.__end_screen.toggle_enable()  # uncomment this and comment the line below for podium display
-                self.__menu.enable()
-
-            if self.__end_screen and self.__end_screen.enabled:
                 # delete shadow client and sort the list
                 players = sorted(filter(lambda x: x[1] is not None, self.__game.player_wins_and_info),
-                                 key=lambda x: x[0], reverse=True)
+                                 key=lambda x: x[2], reverse=True)
+
+                self.__helper_menu.enable()
+                self.__end_screen.enable()
+
+            # draw error/end screen
+            if self.__end_screen.enabled:
                 self.__end_screen.draw_podium(self.__screen, players)
+
+            if self.__error_screen.enabled:
+                self.__error_screen.draw_error(self.__screen)
 
             # delay for a constant framerate
             self.__clock.tick(FPS_MAX)
@@ -166,16 +174,7 @@ class DisplayManager:
         self.__screen.blit(error_msg, ((SCREEN_WIDTH - error_msg.get_width()) / 2,
                                        HEX_RADIUS_Y[0] + error_number.get_height()))
 
-        # show button
-        pygame.draw.rect(self.__screen, ERROR_MESSAGE_COLOR, (ERROR_BUTTON_POSITION[0], ERROR_BUTTON_POSITION[1],
-                                                              ERROR_BUTTON_DIMENSIONS[0], ERROR_BUTTON_DIMENSIONS[1]))
-        btn_text = pygame.font.Font(MENU_FONT, ERROR_FONT_SIZE).render('Menu', True, 'white')
-        btn_rect = btn_text.get_rect(center=(ERROR_BUTTON_POSITION[0] + ERROR_BUTTON_DIMENSIONS[0] // 2,
-                                             ERROR_BUTTON_POSITION[1] + ERROR_BUTTON_DIMENSIONS[1] // 2))
-        self.__screen.blit(btn_text, btn_rect)
-
-    def __check_mouse_click(self) -> bool:
-        return ERROR_BUTTON_POSITION[0] + ERROR_BUTTON_DIMENSIONS[0] > \
-               self.__mouse_pos[0] > ERROR_BUTTON_POSITION[0] and \
-               ERROR_BUTTON_POSITION[1] + ERROR_BUTTON_DIMENSIONS[1] > \
-               self.__mouse_pos[1] > ERROR_BUTTON_POSITION[1]
+    def __finalize_game(self) -> None:
+        self.__game.over.set()
+        self.__game = None
+        self.__playing = False
