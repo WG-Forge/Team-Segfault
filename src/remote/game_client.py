@@ -123,9 +123,9 @@ class GameClient:
         self.__receive_response()
 
     @staticmethod
-    def __unpack_int(data: bytes) -> int:
-        ret = struct.unpack('i', data[:4])
-        return ret[0]
+    def __unpack_header(data: bytes) -> tuple[int, int]:
+        resp_code, msg_len = struct.unpack('ii', data[:8])
+        return resp_code, msg_len
 
     @staticmethod
     def __unpack(data: bytes) -> dict:
@@ -148,16 +148,23 @@ class GameClient:
             raise ConnectionError("Error: Data was not sent correctly.")
 
     def __receive_response(self) -> dict:
-        data: bytes = self.__server_connection.receive_data(message_size=BYTES_IN_INT, buffer_size=BYTES_IN_INT)
-        resp_code: int = self.__unpack_int(data)
+        resp_code: int
+        msg_len: int
 
-        data = self.__server_connection.receive_data(message_size=BYTES_IN_INT, buffer_size=BYTES_IN_INT)
-        msg_len: int = self.__unpack_int(data)
+        try:
+            data: bytes = self.__server_connection.receive_data(message_size=BYTES_IN_INT * 2)
+        except EOFError:
+            raise ConnectionError("Error: Could not receive message header.")
+
+        resp_code, msg_len = self.__unpack_header(data)
 
         if msg_len <= 0:
             return {}
 
-        msg: bytes = self.__server_connection.receive_data(message_size=msg_len)
+        try:
+            msg: bytes = self.__server_connection.receive_data(message_size=msg_len)
+        except EOFError:
+            raise ConnectionError("Error: Could not receive message body.")
 
         dct: dict = self.__unpack(msg)
 
