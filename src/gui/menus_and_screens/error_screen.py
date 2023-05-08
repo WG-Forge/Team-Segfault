@@ -29,7 +29,7 @@ class ErrorScreen:
         lines.append(line)
 
         # render each line of text
-        y_offset = error_number.get_height() + HEX_RADIUS_Y[0]
+        y_offset = error_number.get_height() + 2 * HEX_RADIUS_Y[0]
         for line in lines:
             text_surface = self.__font.render(line, True, ERROR_MESSAGE_COLOR)
             text_rect = text_surface.get_rect()
