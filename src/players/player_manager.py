@@ -1,7 +1,6 @@
 import random
 from threading import Semaphore
 
-from data.data_io import DataIO
 from src.players.player import Player
 from src.players.player_factory import PlayerFactory, PlayerTypes
 from src.players.types.remote_player import RemotePlayer
