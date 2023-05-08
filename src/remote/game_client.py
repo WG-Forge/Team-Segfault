@@ -1,7 +1,7 @@
 import json
 import struct
 
-from src.constants import HOST_PORT, HOST_NAME
+from src.constants import HOST_PORT, HOST_NAME, BYTES_IN_INT
 from src.remote.server_connection import ServerConnection
 from src.remote.server_enum import Action
 from src.remote.server_enum import Result
@@ -123,10 +123,13 @@ class GameClient:
         self.__receive_response()
 
     @staticmethod
-    def __unpack(data: bytes) -> tuple[Result, bytes]:
-        (resp_code, msg_len), data = struct.unpack("ii", data[:8]), data[8:]
-        msg = data[:msg_len]
-        return resp_code, msg
+    def __unpack_header(data: bytes) -> tuple[int, int]:
+        resp_code, msg_len = struct.unpack('ii', data[:8])
+        return resp_code, msg_len
+
+    @staticmethod
+    def __unpack(data: bytes) -> dict:
+        return json.loads(data)
 
     @staticmethod
     def __pack(act: Action, dct: dict) -> bytes:
@@ -142,20 +145,32 @@ class GameClient:
         out: bytes = self.__pack(act, dct)
 
         if not self.__server_connection.send_data(out):
-            raise ConnectionError(f"Error: Data was not sent correctly.")
+            raise ConnectionError("Error: Data was not sent correctly.")
 
     def __receive_response(self) -> dict:
-        ret: bytes = self.__server_connection.receive_data()
-        resp_code, msg = self.__unpack(ret)
-        dct: dict = {}
+        resp_code: int
+        msg_len: int
+
+        try:
+            data: bytes = self.__server_connection.receive_data(message_size=BYTES_IN_INT * 2)
+        except EOFError:
+            raise ConnectionError("Error: Could not receive message header.")
+
+        resp_code, msg_len = self.__unpack_header(data)
+
+        if msg_len <= 0:
+            return {}
+
+        try:
+            msg: bytes = self.__server_connection.receive_data(message_size=msg_len)
+        except EOFError:
+            raise ConnectionError("Error: Could not receive message body.")
+
+        dct: dict = self.__unpack(msg)
 
         if resp_code == Result.TIMEOUT:
-            dct = json.loads(msg)
             raise TimeoutError(f"Error {resp_code}: {dct['error_message']}")
         elif resp_code != Result.OKEY:
-            dct = json.loads(msg)
             raise ConnectionError(f"Error {resp_code}: {dct['error_message']}")
-        elif len(msg) > 0:
-            return json.loads(msg)
 
         return dct

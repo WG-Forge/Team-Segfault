@@ -13,6 +13,8 @@ class MLTank:
         self.__num_turns = num_turns
         self.__group_size: int = group_size
         self.__num_groups: int = num_turns // group_size
+        if self.__num_groups * group_size < num_turns:
+            self.__num_groups += 1
 
         if can_repair:
             self.__max_action_index: int = self.__action_num - 1

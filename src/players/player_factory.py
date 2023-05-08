@@ -27,11 +27,13 @@ class PlayerFactory:
                       over: Event,
                       name: str | None = None,
                       password: str | None = None,
-                      is_observer: bool | None = None) -> Player:
+                      is_observer: bool | None = None,
+                      current_turn: list[int] = None) -> Player:
         player_class = PlayerFactory.__CLASS_MAPPING[player_type]
         return player_class(name=name,
                             password=password,
                             is_observer=is_observer,
                             turn_played_sem=turn_played_sem,
                             current_player=current_player_idx,
-                            over=over)
+                            over=over,
+                            current_turn=current_turn)

@@ -5,8 +5,10 @@ from typing import Type
 class DataIO:
     __results_table_path = "mab\\data\\training_data\\results_table.json"
     __num_games_path = "mab\\data\\training_data\\num_games.json"
+    __best_actions_path = "mab\\data\\training_data\\best_actions.json"
     __client_map_path = "mab\\data\\server_data\\client_map.json"
     __game_state_path = "mab\\data\\server_data\\game_state.json"
+
     ResultsTable = Type[dict[int, dict[str, dict[str, list[int]]]]]
     GameActions = Type[dict[int, dict[str, str]]]
 
@@ -34,6 +36,9 @@ class DataIO:
     def __save(what, where: str) -> None:
         with open(where, 'w') as file:
             json.dump(what, file)
+
+    @staticmethod
+    def save_best_actions(best_actions: GameActions) -> None: DataIO.__save(best_actions, DataIO.__best_actions_path)
 
     @staticmethod
     def save_client_map(client_map: dict) -> None: DataIO.__save(client_map, DataIO.__client_map_path)
@@ -68,3 +73,6 @@ class DataIO:
 
     @staticmethod
     def load_num_games() -> int: return DataIO.__load(DataIO.__num_games_path)
+
+    @staticmethod
+    def load_best_actions() -> dict[str, dict[str, str]]: return DataIO.__load(DataIO.__best_actions_path)
