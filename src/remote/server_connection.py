@@ -1,11 +1,11 @@
-from socket import socket
+import socket
 
 from src.constants import DEFAULT_BUFFER_SIZE
 
 
 class ServerConnection:
     def __init__(self) -> None:
-        self.__socket: socket = socket()
+        self.__socket: socket = socket.socket()
 
     def __enter__(self):
         return self
@@ -20,8 +20,11 @@ class ServerConnection:
         self.__socket.close()
 
     def send_data(self, out: bytes) -> bool:
-        ret: bool = self.__socket.send(out) > 0
-        return ret
+        try:
+            self.__socket.sendall(out)
+            return True
+        except socket.error:
+            return False
 
     def receive_data(self, message_size: int, buffer_size: int = DEFAULT_BUFFER_SIZE) -> bytes:
         received: int = 0

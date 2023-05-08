@@ -145,7 +145,7 @@ class GameClient:
         out: bytes = self.__pack(act, dct)
 
         if not self.__server_connection.send_data(out):
-            raise ConnectionError(f"Error: Data was not sent correctly.")
+            raise ConnectionError("Error: Data was not sent correctly.")
 
     def __receive_response(self) -> dict:
         data: bytes = self.__server_connection.receive_data(message_size=BYTES_IN_INT, buffer_size=BYTES_IN_INT)
