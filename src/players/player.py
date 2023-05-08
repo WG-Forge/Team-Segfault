@@ -34,7 +34,8 @@ class Player(Thread, ABC):
         self._game_client: GameClient | None = None
         self._map: Map | None = None
 
-        self._damage_points = 0
+        self._damage_points: int = 0
+        self._capture_points: int = 0
         self._tanks: list[Tank] = []
         self._player_index: int | None = None
         self.__player_colour: tuple | None = None
@@ -109,9 +110,17 @@ class Player(Thread, ABC):
     def capture_points(self) -> int:
         return sum([tank.capture_points for tank in self._tanks])
 
+    @capture_points.setter
+    def capture_points(self, capture_points: int) -> None:
+        self._capture_points = capture_points
+
     @property
     def damage_points(self) -> int:
         return self._damage_points
+
+    @damage_points.setter
+    def damage_points(self, damage_points: int) -> None:
+        self._damage_points = damage_points
 
     @property
     def index(self) -> int | None:

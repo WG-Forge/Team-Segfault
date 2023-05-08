@@ -1,7 +1,7 @@
+import queue
 import random
 from threading import Semaphore
 
-from data.data_io import DataIO
 from src.players.player import Player
 from src.players.player_factory import PlayerFactory, PlayerTypes
 from src.players.types.remote_player import RemotePlayer
@@ -11,18 +11,31 @@ from src.remote.game_client import GameClient
 class PlayerManager:
     """" Manages player connections and synchronization """
 
-    def __init__(self, game, shadow_client: GameClient, current_turn: list[int] = None):
+    def __init__(self, game):
         # game container
         self.__game = game
-        self.__shadow_client = shadow_client
+        self.__shadow_client = self.__game.shadow_client
 
-        self.__lobby_players: int = 0
         self.__num_players: int = 0
-        self.__current_turn: list[int] = current_turn
+        self.__current_turn: list[int] = self.__game.current_turn
 
         self.__turn_played_sem: Semaphore = Semaphore(0)
 
-        self.__players_queue: list[Player] = []
+        # Thread safe queue for connecting local players
+        self.__player_queue: queue = queue.Queue()
+
+    def login(self) -> None:
+        self.__shadow_client.login(name=f"{self.__game.game_name}-Team-Segfault-Shadow-{random.randint(0, 100000)}",
+                                   game_name=self.__game.game_name,
+                                   num_turns=self.__game.num_turns,
+                                   num_players=self.__game.max_players,
+                                   is_observer=True,
+                                   is_full=self.__game.is_full)
+
+    def logout(self) -> None:
+        # end by logging out of the shadow observer
+        self.__shadow_client.logout()
+        self.__shadow_client.disconnect()
 
     def notify_all_players(self) -> None:
         # release all players using their private semaphores
@@ -49,28 +62,19 @@ class PlayerManager:
                 player.index = ind
                 ind += 1
 
-            player.start()
+            # do not start remote observers - there is no need
+            if not isinstance(player, RemotePlayer) or not player.is_observer:
+                player.start()
 
     def add_remote_players(self, players: dict) -> None:
         for player in players:
             if player["idx"] not in self.__game.active_players:
                 self.__add_remote_player(player)
 
-    def connect_queued_players(self) -> None:
-        for player in self.__players_queue:
-            self.__connect_local_player(player)
-
     def add_local_player(self, name: str, password: str | None = None, is_observer: bool | None = None) -> None:
         """
-        Will connect the player if game has started.
-        If the game is full, player will be connected as an observer.
+        Will connect the local bot player to the game if a player with the same id is not connected.
         """
-        if self.__lobby_players >= self.__game.max_players:
-            is_observer = True
-
-        if not is_observer:
-            self.__lobby_players += 1
-
         self.__num_players += 1
 
         player: Player
@@ -89,29 +93,17 @@ class PlayerManager:
                                              over=self.__game.over,
                                              current_turn=self.__current_turn)
 
-        if self.__game.started:
+        self.__player_queue.put(player)
+
+    def connect_queued_players(self):
+        while not self.__player_queue.empty():
+            player: Player = self.__player_queue.get()
             self.__connect_local_player(player)
-        else:
-            self.__players_queue.append(player)
-
-    def login(self) -> None:
-        self.__shadow_client.login(name=f"{self.__game.game_name}-Team-Segfault-Shadow-{random.randint(0, 100000)}",
-                                   game_name=self.__game.game_name,
-                                   num_turns=self.__game.num_turns,
-                                   num_players=self.__game.max_players,
-                                   is_observer=True,
-                                   is_full=self.__game.is_full)
-
-    def logout(self) -> None:
-        # end by logging out of the shadow observer
-        self.__shadow_client.logout()
-        self.__shadow_client.disconnect()
 
     def __add_remote_player(self, user_info: dict) -> None:
+        # Do not start remote observers later on, just keep their info as read-only data
         if not user_info["is_observer"]:
-            self.__lobby_players += 1
-
-        self.__num_players += 1
+            self.__num_players += 1
 
         player: Player = PlayerFactory.create_player(player_type=PlayerTypes.Remote,
                                                      turn_played_sem=self.__turn_played_sem,
@@ -132,5 +124,8 @@ class PlayerManager:
                                             is_full=self.__game.is_full)
 
         player.add_to_game(user_info, game_client)
+
+        if player.idx in self.__game.active_players.keys():
+            raise ConnectionError("Error: Player you are trying to join with is already in the game!")
 
         self.__game.active_players[player.idx] = player

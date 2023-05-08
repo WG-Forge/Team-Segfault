@@ -25,10 +25,9 @@ class Game(Thread):
 
         self.__winner: int | None = None
         self.__winner_index: int | None = None
-        self.__started: bool = False
         self.__game_is_draw: bool = False
 
-        self.__connection_error: ConnectionError | None = None
+        self.__error: Exception | None = None
 
         self.__current_turn: list[int] = [-1]
         self.__current_round: int = 0
@@ -38,12 +37,19 @@ class Game(Thread):
         self.__shadow_client = GameClient()
 
         self.__active_players: dict[int, Player] = {}
-        self.__num_active_players: int = len(self.__active_players)
         self.__player_wins: dict[int, int] = {}
         self.__current_player_idx: list[int] = [-1]
-        self.__player_manager: PlayerManager = PlayerManager(self, self.__shadow_client, self.__current_turn)
 
         self.__use_ml_actions = use_ml_actions
+
+        self.__player_manager: PlayerManager = PlayerManager(self)
+
+        # Login with the player manager to be able to access game info
+        try:
+            self.__player_manager.login()
+        except ConnectionError | TimeoutError as err:
+            self.__error = err
+            self.over.set()
 
     def __str__(self) -> str:
         out: str = ""
@@ -67,10 +73,6 @@ class Game(Thread):
         return self.__current_player_idx
 
     @property
-    def started(self) -> bool:
-        return self.__started
-
-    @property
     def game_name(self) -> str | None:
         return self.__game_name
 
@@ -87,8 +89,8 @@ class Game(Thread):
         return self.__current_player
 
     @property
-    def connection_error(self) -> ConnectionError:
-        return self.__connection_error
+    def error(self) -> Exception | None:
+        return self.__error
 
     @property
     def game_is_draw(self) -> bool:
@@ -105,6 +107,14 @@ class Game(Thread):
     @property
     def current_round(self) -> int | None:
         return self.__current_round
+
+    @property
+    def current_turn(self) -> list[int] | None:
+        return self.__current_turn
+
+    @property
+    def shadow_client(self) -> GameClient:
+        return self.__shadow_client
 
     @property
     def player_wins(self) -> dict[int, int]:
@@ -127,10 +137,10 @@ class Game(Thread):
                 # handshake with players
                 self.__player_manager.handle_player_turns()
 
-        except ConnectionError as err:
-            # a connection error happened
+        except ConnectionError or TimeoutError as err:
+            # an error happened
             self.over.set()
-            self.__connection_error = err
+            self.__error = err
 
         finally:
             self.__end_game()
@@ -147,9 +157,20 @@ class Game(Thread):
         """ Return game state if the lobby is full, else None if the game was interrupted """
         game_state: dict = self.__shadow_client.get_game_state()
 
+        # add initial remote players and observers
+        self.__player_manager.add_remote_players(game_state["players"])
+        self.__player_manager.add_remote_players(game_state["observers"])
+
+        # connect queued players
+        self.__player_manager.connect_queued_players()
+
         while not self.over.is_set() and game_state["num_players"] != len(game_state["players"]):
             # wait for all the players to join
             game_state = self.__shadow_client.get_game_state()
+
+            # add new remote players and observers
+            self.__player_manager.add_remote_players(game_state["players"])
+            self.__player_manager.add_remote_players(game_state["observers"])
 
         if self.over.is_set():
             return None
@@ -157,13 +178,9 @@ class Game(Thread):
         return game_state
 
     def __init_game_state(self) -> None:
-        self.__started = True
-
-        # Login to the shadow client
-        self.__player_manager.login()
-
-        # Add the queued local players to the game
-        self.__player_manager.connect_queued_players()
+        # Check if an error happened when connecting
+        if self.over.is_set():
+            return
 
         game_state: dict | None = self.__wait_for_full_lobby()
 
@@ -177,14 +194,13 @@ class Game(Thread):
 
         # add all remote players and observers
         self.__player_manager.add_remote_players(game_state["players"])
-        self.__player_manager.add_remote_players(game_state["observers"])
 
         # start all player instances
         self.__player_manager.start_players()
 
         # set the player win counts
-        for idx in self.__active_players.keys():
-            self.__player_wins[idx] = 0
+        for idx, wins in game_state["player_result_points"].items():
+            self.__player_wins[int(idx)] = wins
 
         self.__start_next_round()
 
@@ -250,8 +266,8 @@ class Game(Thread):
         # Notify all players the game has ended
         self.__player_manager.notify_all_players()
 
-        if self.__connection_error:
-            print(self.__connection_error)
+        if self.__error:
+            print(self.__error)
         elif not self.__winner and not self.__game_is_draw:
             print("The game was interrupted")
         else:
@@ -262,7 +278,6 @@ class Game(Thread):
     def __print_round_winner(self) -> None:
         print()
         if self.__game_is_draw:
-            # TODO just print it in the console for now
             print('The round is a draw')
         else:
             winner = self.__active_players[self.__winner]
@@ -292,7 +307,7 @@ class Game(Thread):
                 min_wins = min(min_wins, win_num)
 
         print()
-        if min_wins != max_wins:
+        if len(self.__player_wins) > 1 and min_wins != max_wins:
             print(f"{winner} is the game winner!")
         else:
             print("The game is a draw!")

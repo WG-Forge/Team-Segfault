@@ -26,6 +26,7 @@ class Map:
         HEX_RADIUS_Y[0] = SCREEN_HEIGHT // ((client_map['size'] - 1) * 2 * 2)
 
         self.__players: dict = self.__add_players(active_players)
+        self.__players_by_idx: dict = active_players
         self.__num_players: int = len(self.__players)
         self.__tanks: dict[int, Tank] = {}
         self.__destroyed: list[Tank] = []
@@ -105,8 +106,20 @@ class Map:
                 print(tank.type, tank.player_index, 'server_cp', server_cp, 'tank.cp', tank.capture_points)
 
             self.local_move(tank, server_coord) if server_coord != tank.coord else None
-            tank.health_points = server_hp if server_hp != tank.health_points else tank.health_points
-            tank.capture_points = server_cp if server_cp != tank.capture_points else tank.capture_points
+
+            # Server hp and cp will always be correct
+            tank.health_points = server_hp
+            tank.capture_points = server_cp
+
+        for player_id, points in game_state["win_points"].items():
+            player = self.__players_by_idx[int(player_id)]
+
+            # capture points and kill points
+            server_cp, server_dp = points["capture"], points["kill"]
+
+            # Server cp and dp will always be correct
+            player.damage_points = server_dp
+            player.capture_points = server_cp
 
     def __respawn_destroyed_tanks(self) -> None:
         while self.__destroyed:

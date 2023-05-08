@@ -111,9 +111,9 @@ class DisplayManager:
                 self.__helper_menu.draw(self.__screen)
 
             # check if error happened
-            if self.__game and self.__game.connection_error is not None:
+            if self.__game and self.__game.error is not None:
                 self.__error_screen.enable()
-                self.__error_screen.set_error_message(self.__game.connection_error)
+                self.__error_screen.set_error_message(self.__game.error)
 
                 self.__helper_menu.enable()
                 self.__menu.disable()
