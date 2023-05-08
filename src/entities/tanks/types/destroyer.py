@@ -21,8 +21,8 @@ class TankDestroyer(Tank, ABC):
     __catapult_corridor_deltas: tuple = Hex.td_fire_corridor_deltas(__catapult_range)
     __all_deltas: tuple = __fire_deltas + __catapult_deltas
 
-    def __init__(self, tank_id: int, tank_info: dict, colour: tuple, player_index: int, catapult_coords: tuple):
-        super().__init__(tank_id, tank_info, colour, player_index, TD_IMAGE_PATH, catapult_coords)
+    def __init__(self, tank_id: int, tank_info: dict, colour: tuple, player_index: int):
+        super().__init__(tank_id, tank_info, colour, player_index, TD_IMAGE_PATH)
 
     def coords_in_range(self, is_on_catapult: bool) -> tuple:
         if is_on_catapult:

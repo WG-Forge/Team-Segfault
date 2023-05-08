@@ -8,8 +8,9 @@ class Tank(Entity, ABC):
     __damage = 1
     __rounds_to_cap = 1
 
-    def __init__(self, tank_id: int, tank_info: dict, color: tuple[int, int, int] | str, player_index: int,
-                 image_path: str, catapult_coords: tuple):
+    def __init__(self, tank_id: int, tank_info: dict, color: tuple[int, int, int] | str,
+                 player_index: int, image_path: str):
+
         self.__tank_id = tank_id
         self.__health_points: int = tank_info["health"]
         self.__max_health_points: int = self.__health_points

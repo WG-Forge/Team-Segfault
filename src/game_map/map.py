@@ -42,6 +42,7 @@ class Map:
         self.__make_map(client_map, game_state, active_players)
         self.__path_finding_algorithm: callable = _a_star.a_star
 
+        self.__previous_player_index: int = 0
         self.__current_turn: list[int] = current_turn
         self.__current_round: int = 0
         self.__old_round: int = -1
@@ -137,8 +138,9 @@ class Map:
         for tank in self.__tanks.values():
             feature = self.__map[tank.coord]['feature']
             if not tank.is_destroyed:
-                if isinstance(feature, LightRepair) and tank.type in LightRepair.can_be_used_by \
-                        or isinstance(feature, HardRepair) and tank.type in HardRepair.can_be_used_by:
+                if tank.player_index == self.__previous_player_index and \
+                        (isinstance(feature, LightRepair) and tank.type in LightRepair.can_be_used_by
+                         or isinstance(feature, HardRepair) and tank.type in HardRepair.can_be_used_by):
                     tank.repair()
                 elif isinstance(feature, Catapult) and feature.is_usable('all'):
                     feature.was_used()
@@ -161,6 +163,7 @@ class Map:
                     tank.capture_points += 1
 
     def __new_turn(self):
+        self.__previous_player_index = self.__current_turn[0]-1 % self.__num_players
         if self.__is_new_round():
             self.__update_capture_points()
         self.__update_repairs_and_catapult_bonus()
@@ -172,7 +175,6 @@ class Map:
         self.__map[new_coord]['tank'] = tank  # New pos now has tank
         self.__map[tank.coord]['tank'] = None  # Old pos is now empty
         tank.coord = new_coord  # tank has new position
-        tank.has_moved = True
 
     def local_shoot(self, tank: Tank, target: Tank) -> None:
         destroyed = target.register_hit_return_destroyed()
