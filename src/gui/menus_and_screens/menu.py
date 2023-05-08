@@ -69,7 +69,7 @@ class Menu:
 
     def __create_credits_menu(self) -> None:
         self.__credits: pygame_menu.Menu = pygame_menu.Menu('Credits', self.__menu_width, self.__menu_height,
-                                                            theme=self.__menu_theme)
+                                                            theme=self.__menu_theme, mouse_motion_selection=True)
         self.__credits.add.label('Vuk Djordjevic')
         self.__credits.add.label('Ricardo Suarez del Valle')
         self.__credits.add.label('Jovan Milanovic')
