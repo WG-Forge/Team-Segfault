@@ -27,7 +27,7 @@ class HelperMenu:
             width += widget.get_width()
             height += widget.get_height()
         # position it on the center
-        self.__menu.resize(width, height, position=(50, 50))
+        self.__menu.resize(width, height, position=(0, 0))
         self.__menu.disable()
 
     def __close_screen(self) -> None:
