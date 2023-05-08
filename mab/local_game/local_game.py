@@ -24,6 +24,8 @@ class LocalGame:
 
         turn, winner, win_type = 1, None, ''
         while not winner and turn <= num_turns:
+            game_map.update_local_turn(turn)
+
             player_idx = (turn - 1) % num_players
             player = players[player_idx]
             player.register_turn()

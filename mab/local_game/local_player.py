@@ -13,7 +13,6 @@ class LocalPlayer:
         self._map: Map | None = None
 
         self._damage_points = 0
-        self._capture_points = 0
         self._tanks: list[Tank] = []
         self._tank_map: dict[int, Tank] = {}
         self._player_index: int = player_index
@@ -47,9 +46,6 @@ class LocalPlayer:
 
     @property
     def tanks(self) -> list[Tank]: return self._tanks
-
-    @property
-    def capture_points(self) -> int: return self._capture_points
 
     @property
     def damage_points(self) -> int: return self._damage_points
@@ -92,6 +88,7 @@ class LocalPlayer:
     """     ML      """
 
     def has_capped(self) -> bool:
-        if self._capture_points > 4:
+        capture_points = sum([tank.capture_points for tank in self._tanks])
+        if capture_points > 4:
             return True
         return False

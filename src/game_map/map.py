@@ -125,7 +125,6 @@ class Map:
                     tank.repair()
                 elif isinstance(feature, Catapult) and feature.is_usable('all'):
                     feature.was_used()
-                    print(f"Catapult bonus: {tank}")
                     tank.catapult_bonus = True
             if not isinstance(feature, Base) or tank.is_destroyed:
                 tank.capture_points = 0
@@ -294,7 +293,9 @@ class Map:
             else:
                 break
 
-    """     SAVING FOR RUNNING LOCALLY      """
+    """     RUNNING LOCALLY      """
+
+    def update_local_turn(self, turn: int) -> None: self.__new_turn(turn)
 
     @staticmethod
     def __save(client_map: dict, game_state: dict) -> None:

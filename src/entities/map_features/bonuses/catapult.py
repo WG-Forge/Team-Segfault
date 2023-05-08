@@ -18,8 +18,6 @@ class Catapult(Feature):
 
     def was_used(self) -> None:
         self.__remaining_uses -= 1
-        print('__remaining_uses', self.__remaining_uses)
-
 
 def get_catapult_bonus_range() -> int:
     return Catapult.bonus_range
