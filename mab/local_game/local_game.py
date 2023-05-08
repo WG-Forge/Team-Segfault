@@ -17,19 +17,19 @@ class LocalGame:
         current_round: list[int] = [0]
 
         players: Dict[int, LocalBot] = {
-            i: LocalBot(i, game_actions[i])
+            i: LocalBot(i, game_actions[i], current_turn)
             for i in range(num_players)
         }
 
         game_map = Map(DataIO.load_client_map(), DataIO.load_game_state(), players,
-                       current_turn=current_turn, current_round=current_round, graphics=False)
+                       current_turn=current_turn, graphics=False)
 
         for player in players.values():
             player.add_map(game_map)
 
         winner, win_type = None, ''
         while not winner and current_turn[0] <= num_turns:
-            game_map.update_local_turn(current_turn[0])
+            game_map.register_new_turn()
 
             player_idx = (current_turn[0] - 1) % num_players
             player = players[player_idx]

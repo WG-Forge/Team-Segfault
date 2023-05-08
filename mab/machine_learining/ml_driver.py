@@ -13,6 +13,7 @@ class MLDriver:
     def __init__(self, num_turns: int, restart=False, num_players: int = 3):
         # Player index corresponds to who starts first, so Players[0] plays turn 1
         group_size = self.calc_action_group_size(num_turns)
+        print('group_size', group_size)
         self.__players = {
             agent_index: MLPlayer(num_turns, group_size)
             for agent_index in range(num_players)

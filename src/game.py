@@ -31,14 +31,14 @@ class Game(Thread):
         self.__connection_error: ConnectionError | None = None
 
         self.__current_turn: list[int] = [-1]
-        self.__current_round: list[int] = [-1]
-
+        self.__current_round: int = 0
         self.__current_player: Player | None = None
 
         # Observer connection that is used for collecting data
         self.__shadow_client = GameClient()
 
         self.__active_players: dict[int, Player] = {}
+        self.__num_active_players: int = len(self.__active_players)
         self.__player_wins: dict[int, int] = {}
         self.__current_player_idx: list[int] = [-1]
         self.__player_manager: PlayerManager = PlayerManager(self, self.__shadow_client, self.__current_turn)
@@ -104,7 +104,7 @@ class Game(Thread):
 
     @property
     def current_round(self) -> int | None:
-        return self.__current_round[0]
+        return self.__current_round
 
     @property
     def player_wins(self) -> dict[int, int]:
@@ -197,8 +197,7 @@ class Game(Thread):
 
         game_state: dict = self.__shadow_client.get_game_state()
 
-        self.__current_round[0] = game_state["current_round"]
-        print(self.__current_round)
+        self.__current_round = game_state["current_round"]
 
         client_map: dict = self.__shadow_client.get_map()
 
@@ -207,8 +206,7 @@ class Game(Thread):
             player.register_round()
 
         # initialize the game map (now adds tanks to players & game_map too)
-        self.game_map = Map(client_map, game_state, self.__active_players,
-                            self.__current_turn, self.__current_round)
+        self.game_map = Map(client_map, game_state, self.__active_players, self.__current_turn)
 
         # pass Map reference to players
         for player in self.__active_players.values():

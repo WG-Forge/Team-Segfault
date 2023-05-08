@@ -20,12 +20,13 @@ class Map:
     __max_players_in_base = 2
 
     def __init__(self, client_map: dict, game_state: dict, active_players: dict,
-                 current_turn: list[int] = None, current_round: list[int] = None, graphics=True):
+                 current_turn: list[int] = None, graphics=True):
 
         HEX_RADIUS_X[0] = SCREEN_WIDTH // ((client_map['size'] - 1) * 2 * 2)
         HEX_RADIUS_Y[0] = SCREEN_HEIGHT // ((client_map['size'] - 1) * 2 * 2)
 
         self.__players: dict = self.__add_players(active_players)
+        self.__num_players: int = len(self.__players)
         self.__tanks: dict[int, Tank] = {}
         self.__destroyed: list[Tank] = []
         self.__base_coords: tuple = ()
@@ -41,7 +42,7 @@ class Map:
         self.__path_finding_algorithm: callable = _a_star.a_star
 
         self.__current_turn: list[int] = current_turn
-        self.__current_round: list[int] = current_round
+        self.__current_round: int = 0
         self.__old_round: int = -1
         self.__rounds_in_base_by_player_index = [0 for _ in range(3)]
         self.__player_indexes_who_capped: set = set()
@@ -132,9 +133,10 @@ class Map:
             if not isinstance(feature, Base) or tank.is_destroyed:
                 tank.capture_points = 0
 
-    def __is_new_round(self, turn: int) -> int:
-        if self.__current_round[0] != self.__old_round:
-            self.__old_round = self.__current_round[0]
+    def __is_new_round(self) -> int:
+        new_round = self.__current_turn[0] // self.__num_players
+        if new_round != self.__current_round:
+            self.__current_round = new_round
             return True
         return False
 
@@ -146,7 +148,7 @@ class Map:
                     tank.capture_points += 1
 
     def __new_turn(self):
-        if self.__is_new_round(self.__current_turn[0]):
+        if self.__is_new_round():
             self.__update_capture_points()
         self.__update_repairs_and_catapult_bonus()
         self.__respawn_destroyed_tanks()
@@ -296,6 +298,8 @@ class Map:
                 break
 
     """     RUNNING LOCALLY      """
+
+    def register_new_turn(self) -> None: self.__new_turn()
 
     @staticmethod
     def __save(client_map: dict, game_state: dict) -> None:
