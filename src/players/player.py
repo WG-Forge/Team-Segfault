@@ -15,7 +15,7 @@ class Player(Thread, ABC):
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
     __possible_colours = PLAYER_COLORS
 
-    def __init__(self, turn_played_sem: Semaphore, current_player: list[int], over: Event,
+    def __init__(self, turn_played_sem: Semaphore, current_player: list[int], current_turn: list[int], over: Event,
                  name: str | None = None, password: str | None = None,
                  is_observer: bool | None = None):
         super().__init__()
@@ -27,6 +27,7 @@ class Player(Thread, ABC):
 
         self.next_turn_sem = Semaphore(0)
         self._current_player = current_player
+        self._current_turn = current_turn
         self.__turn_played_sem = turn_played_sem
         self.__over = over
 

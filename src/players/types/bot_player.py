@@ -1,8 +1,7 @@
+import random as rnd
 import time
 from threading import Semaphore, Event
-import random as rnd
 
-from data.data_io import DataIO
 from src.constants import GAME_SPEED
 from src.entities.entity_enum import Entities
 from src.entities.tanks.tank import Tank
@@ -17,14 +16,14 @@ class BotPlayer(Player):
         'spg': False, 'light_tank': False, 'heavy_tank': True, 'medium_tank': True, 'at_spg': True
     }
 
-    def __init__(self, turn_played_sem: Semaphore, current_player: list[int], over: Event,
+    def __init__(self, turn_played_sem: Semaphore, current_player: list[int], current_turn: list[int], over: Event,
                  name: str | None = None, password: str | None = None,
-                 is_observer: bool | None = None, current_turn: list[int] = None):
-        super().__init__(turn_played_sem=turn_played_sem, current_player=current_player, over=over,
+                 is_observer: bool | None = None):
+        super().__init__(turn_played_sem=turn_played_sem,
+                         current_player=current_player, current_turn=current_turn,
+                         over=over,
                          name=name, password=password,
                          is_observer=is_observer)
-
-        self.__current_turn: list[int] = current_turn
 
     def register_round(self) -> None:
         super().register_round()
@@ -52,7 +51,7 @@ class BotPlayer(Player):
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
         if self._best_actions:
             for tank in self._tanks:
-                action = self._best_actions[tank.type][self.__current_turn[0]]
+                action = self._best_actions[tank.type][self._current_turn[0]]
                 self.__do(action, tank)
         else:
             # testing random actions
@@ -62,7 +61,7 @@ class BotPlayer(Player):
                 can_repair = self.__tank_names_can_repair[tank.type]
                 possible_actions = self.__actions if can_repair else self.__no_repair_actions
                 while action not in possible_actions:
-                    action = self.__actions[rnd.randint(0, len(possible_actions)-1)]
+                    action = self.__actions[rnd.randint(0, len(possible_actions) - 1)]
                 self.__do(action, tank)
 
     def __do(self, action: str, tank: Tank) -> None:

@@ -299,10 +299,10 @@ class Map:
 
     """     RUNNING LOCALLY      """
 
-    def register_new_turn(self) -> None: self.__new_turn()
+    def register_new_turn(self) -> None:
+        self.__new_turn()
 
     @staticmethod
     def __save(client_map: dict, game_state: dict) -> None:
         DataIO.save_client_map(client_map)
         DataIO.save_game_state(game_state)
-

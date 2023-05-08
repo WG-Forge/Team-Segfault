@@ -8,10 +8,12 @@ from src.remote.server_enum import Action
 
 
 class RemotePlayer(Player):
-    def __init__(self, turn_played_sem: Semaphore, current_player: list[int], over: Event,
+    def __init__(self, turn_played_sem: Semaphore, current_player: list[int], current_turn: list[int], over: Event,
                  name: str | None = None, password: str | None = None,
-                 is_observer: bool | None = None, current_turn: list[int] = None):
-        super().__init__(turn_played_sem=turn_played_sem, current_player=current_player, over=over,
+                 is_observer: bool | None = None):
+        super().__init__(turn_played_sem=turn_played_sem,
+                         current_player=current_player, current_turn=current_turn,
+                         over=over,
                          name=name, password=password,
                          is_observer=is_observer)
 
