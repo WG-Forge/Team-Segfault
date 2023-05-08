@@ -1,7 +1,7 @@
 import json
 import struct
 
-from src.constants import HOST_PORT, HOST_NAME
+from src.constants import HOST_PORT, HOST_NAME, BYTES_IN_INT
 from src.remote.server_connection import ServerConnection
 from src.remote.server_enum import Action
 from src.remote.server_enum import Result
@@ -123,10 +123,13 @@ class GameClient:
         self.__receive_response()
 
     @staticmethod
-    def __unpack(data: bytes) -> tuple[Result, bytes]:
-        (resp_code, msg_len), data = struct.unpack("ii", data[:8]), data[8:]
-        msg = data[:msg_len]
-        return resp_code, msg
+    def __unpack_int(data: bytes) -> int:
+        ret = struct.unpack('i', data[:4])
+        return ret[0]
+
+    @staticmethod
+    def __unpack(data: bytes) -> dict:
+        return json.loads(data)
 
     @staticmethod
     def __pack(act: Action, dct: dict) -> bytes:
@@ -145,17 +148,22 @@ class GameClient:
             raise ConnectionError(f"Error: Data was not sent correctly.")
 
     def __receive_response(self) -> dict:
-        ret: bytes = self.__server_connection.receive_data()
-        resp_code, msg = self.__unpack(ret)
-        dct: dict = {}
+        data: bytes = self.__server_connection.receive_data(message_size=BYTES_IN_INT, buffer_size=BYTES_IN_INT)
+        resp_code: int = self.__unpack_int(data)
+
+        data = self.__server_connection.receive_data(message_size=BYTES_IN_INT, buffer_size=BYTES_IN_INT)
+        msg_len: int = self.__unpack_int(data)
+
+        if msg_len <= 0:
+            return {}
+
+        msg: bytes = self.__server_connection.receive_data(message_size=msg_len)
+
+        dct: dict = self.__unpack(msg)
 
         if resp_code == Result.TIMEOUT:
-            dct = json.loads(msg)
             raise TimeoutError(f"Error {resp_code}: {dct['error_message']}")
         elif resp_code != Result.OKEY:
-            dct = json.loads(msg)
             raise ConnectionError(f"Error {resp_code}: {dct['error_message']}")
-        elif len(msg) > 0:
-            return json.loads(msg)
 
         return dct

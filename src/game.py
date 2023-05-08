@@ -238,7 +238,7 @@ class Game(Thread):
                 self.__player_wins[self.__winner] += 1
             self.__print_round_winner()
 
-            if not self.__is_full or game_state["current_round"] == self.__num_rounds:
+            if game_state["current_round"] == self.__num_rounds:
                 self.over.set()
             else:
                 self.__next_round = True
@@ -279,7 +279,6 @@ class Game(Thread):
 
             print(f"{self.__active_players[idx]} wins: {win_num}")
 
-            # TODO this is C divine intellect code
             if max_wins < win_num:
                 winner = self.__active_players[idx]
                 max_wins = win_num

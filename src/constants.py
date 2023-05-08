@@ -2,6 +2,11 @@
 HOST_NAME = "wgforge-srv.wargaming.net"
 HOST_PORT = 443
 
+# message format constants
+BYTES_IN_INT = 4
+DEFAULT_BUFFER_SIZE = 4096
+
+# game name
 GAME_NAME = ['Test game']
 
 # gui constants

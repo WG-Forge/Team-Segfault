@@ -1,9 +1,10 @@
 from socket import socket
 
+from src.constants import DEFAULT_BUFFER_SIZE
+
 
 class ServerConnection:
     def __init__(self) -> None:
-        self.__buffer_size = 4096
         self.__socket: socket = socket()
 
     def __enter__(self):
@@ -22,6 +23,12 @@ class ServerConnection:
         ret: bool = self.__socket.send(out) > 0
         return ret
 
-    def receive_data(self) -> bytes:
-        msg: bytes = self.__socket.recv(self.__buffer_size)
+    def receive_data(self, message_size: int, buffer_size: int = DEFAULT_BUFFER_SIZE) -> bytes:
+        received: int = 0
+        msg: bytes = bytes()
+        while received < message_size:
+            packet: bytes = self.__socket.recv(buffer_size)
+            received += len(packet)
+            msg += packet
+
         return msg
