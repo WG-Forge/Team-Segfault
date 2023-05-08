@@ -4,10 +4,8 @@ import pygame.draw
 
 from src.constants import FPS_MAX, SCREEN_WIDTH, SCREEN_HEIGHT, BACKGROUND_IMAGE_PATH, GUI_ICON_PATH, \
     GAME_BACKGROUND, GUI_CAPTION, MAP_TYPE, ERROR_FONT_SIZE, ERROR_MESSAGE_COLOR, HEX_RADIUS_Y
-from src.game_presets.local_multiplayer import local_multiplayer_game
-from src.game_presets.pvp_game import pvp_game
-from src.game_presets.single_player import single_player_game
-from src.game_presets.spectator import spectator_game
+from src.game_presets.local_game import local_game
+from src.game_presets.online_game import online_game
 from src.gui.menus_and_screens.end_screen import EndScreen
 from src.gui.menus_and_screens.error_screen import ErrorScreen
 from src.gui.menus_and_screens.helper_menu import HelperMenu
@@ -54,33 +52,24 @@ class DisplayManager:
             self.__playing = True
             self.__game.start()
 
-    def __start_the_game(self) -> None:
+    def __start_the_game(self, game_type: GameType, is_full: bool, num_players: int = 1,
+                         num_turns: int | None = None) -> None:
         del self.__game
         self.__menu.disable()
 
         SOUND_VOLUME[0] = self.__menu.volume
-        PLAYER_NAMES[0] = self.__menu.player_name
-        GAME_NAME[0] = self.__menu.game_name
         GAME_SPEED[0] = self.__menu.game_speed
         ADVANCED_GRAPHICS[0] = self.__menu.advanced_graphics
         MAP_TYPE[0] = self.__menu.map_type
-        game_type = self.__menu.game_type
-        num_players = self.__menu.num_players
-        match game_type:
-            case GameType.SINGLE_PLAYER:
-                self.__game = single_player_game(GAME_NAME[0], PLAYER_NAMES[0])
-            case GameType.PVP_MULTIPLAYER:
-                self.__game = pvp_game(GAME_NAME[0], PLAYER_NAMES[0])
-            case GameType.LOCAL_MULTIPLAYER:
-                self.__game = local_multiplayer_game(game_name=GAME_NAME[0],
-                                                     player_names=PLAYER_NAMES[:3],
-                                                     is_full=self.__menu.full_game,
-                                                     max_players=num_players)
-            case GameType.SPECTATE:
-                self.__game = spectator_game(GAME_NAME[0], PLAYER_NAMES[1])
-            case _:
-                self.__menu.enable()
-                return
+
+        if game_type == GameType.LOCAL:
+            self.__game = local_game(num_players=num_players, is_full=is_full, num_turns=num_turns)
+        else:
+            PLAYER_NAMES[0] = self.__menu.player_name
+            GAME_NAME[0] = self.__menu.game_name
+            self.__game = online_game(game_name=GAME_NAME[0], player_name=PLAYER_NAMES[0], num_players=num_players,
+                                      num_turns=num_turns, is_full=is_full, is_observer=self.__menu.observer,
+                                      password=self.__menu.password)
 
         self.__playing = True
         self.__game.start()

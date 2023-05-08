@@ -67,7 +67,7 @@ PLAYER_NAMES = ['Playa', 'Bot 1', 'Bot 2', 'Bot 3']
 GAME_SPEED = [1.0]
 SOUND_VOLUME = [0.0]
 MAX_PLAYERS = 3
-
+DEFAULT_NUM_TURNS = 45
 # sound paths
 EXPLOSION_SOUND = 'src/assets/sounds/explosion.mp3'
 BULLET_SOUND = 'src/assets/sounds/shot.mp3'
