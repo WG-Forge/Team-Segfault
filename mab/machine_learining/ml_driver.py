@@ -13,6 +13,7 @@ class MLDriver:
     def __init__(self, num_turns: int, restart=False, num_players: int = 3):
         # Player index corresponds to who starts first, so Players[0] plays turn 1
         group_size = self.calc_action_group_size(num_turns)
+        print('group_size', group_size)
         self.__players = {
             agent_index: MLPlayer(num_turns, group_size)
             for agent_index in range(num_players)
@@ -21,11 +22,17 @@ class MLDriver:
         if not restart:
             self.__continue_training()
 
+    def __get_exploit_actions(self) -> GameActions:
+        return cast(self.GameActions, {
+            player_index: player.get_exploit_actions()
+            for player_index, player in self.__players.items()
+        })
+
     def get_game_actions(self) -> GameActions:
-        game_actions = {}
-        for player_index, player in self.__players.items():
-            game_actions[player_index] = player.get_game_actions()
-        return cast(self.GameActions, game_actions)
+        return cast(self.GameActions, {
+            player_index: player.get_game_actions()
+            for player_index, player in self.__players.items()
+        })
 
     def register_winners(self, winners_index: list[int]) -> None:
         for player_index, player in self.__players.items():
@@ -47,6 +54,7 @@ class MLDriver:
         results_table = {index: player.get_results_table() for index, player in self.__players.items()}
         DataIO.save_results_table(cast(self.ResultsTable, results_table))
         DataIO.save_num_games(self.__game_num)
+        DataIO.save_best_actions(self.__get_exploit_actions())
 
     @staticmethod
     def calc_action_group_size(num_turns: int, action_num: int = 5, max_combos: int = 10000) -> int:

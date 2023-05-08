@@ -89,6 +89,7 @@ class LocalPlayer:
 
     def has_capped(self) -> bool:
         capture_points = sum([tank.capture_points for tank in self._tanks])
+        # print('capture_points', capture_points)
         if capture_points > 4:
             return True
         return False

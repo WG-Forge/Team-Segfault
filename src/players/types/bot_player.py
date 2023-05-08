@@ -1,6 +1,8 @@
 import time
 from threading import Semaphore, Event
+import random as rnd
 
+from data.data_io import DataIO
 from src.constants import GAME_SPEED
 from src.entities.entity_enum import Entities
 from src.entities.tanks.tank import Tank
@@ -9,18 +11,22 @@ from src.players.player import Player
 
 class BotPlayer(Player):
     __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
+    __no_repair_actions = ('A', 'B', 'C', 'D', 'E', 'F')
+    __num_actions = len(__actions)
+    __tank_names_can_repair = {
+        'spg': False, 'light_tank': False, 'heavy_tank': True, 'medium_tank': True, 'at_spg': True
+    }
 
     def __init__(self, turn_played_sem: Semaphore, current_player: list[int], over: Event,
                  name: str | None = None, password: str | None = None,
-                 is_observer: bool | None = None):
+                 is_observer: bool | None = None, current_turn: list[int] = None):
         super().__init__(turn_played_sem=turn_played_sem, current_player=current_player, over=over,
                          name=name, password=password,
                          is_observer=is_observer)
 
-        self.__turn: int = 0
+        self.__current_turn: list[int] = current_turn
 
     def register_round(self) -> None:
-        self.__turn = 0
         super().register_round()
 
     def _make_turn_plays(self) -> None:
@@ -44,28 +50,20 @@ class BotPlayer(Player):
 
     def __place_actions(self) -> None:
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
-        # Uncomment to play with the results of ML training
-        # if self._game_actions:
-        #     for tank in self._tanks:
-        #         action = self._game_actions[tank.type][self.__turn]
-        #         self.__do(action, tank)
-        # else:
-
-        # testing new actions
-        for tank in self._tanks:
-            ttype = tank.type
-            if ttype == 'spg':
-                self.__do('E', tank)
-            elif ttype == 'light_tank':
-                self.__do('A', tank)
-            elif ttype == 'heavy_tank':
-                self.__do('G', tank)
-            elif ttype == 'medium_tank':
-                self.__do('G', tank)
-            elif ttype == 'at_spg':
-                self.__do('E', tank)
-
-        self.__turn += 1
+        if self._best_actions:
+            for tank in self._tanks:
+                action = self._best_actions[tank.type][self.__current_turn[0]]
+                self.__do(action, tank)
+        else:
+            # testing random actions
+            print('random')
+            for tank in self._tanks:
+                action = None
+                can_repair = self.__tank_names_can_repair[tank.type]
+                possible_actions = self.__actions if can_repair else self.__no_repair_actions
+                while action not in possible_actions:
+                    action = self.__actions[rnd.randint(0, len(possible_actions)-1)]
+                self.__do(action, tank)
 
     def __do(self, action: str, tank: Tank) -> None:
         if action == 'A':

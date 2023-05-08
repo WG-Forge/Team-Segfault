@@ -30,13 +30,20 @@ class MLPlayer:
         for bandit in self.__tanks.values():
             bandit.register_reward(reward)
 
-    def get_game_actions(self) -> dict[str, str]:
-        exploring = rnd.random() < self.__explore_prob
-        actions = {
-            name: (tank.get_explore_actions() if exploring else tank.get_exploit_actions())
+    def get_exploit_actions(self) -> dict[str, str]:
+        return {
+            name: tank.get_exploit_actions()
             for name, tank in self.__tanks.items()
         }
-        return actions
+
+    def get_explore_actions(self) -> dict[str, str]:
+        return {
+            name: tank.get_explore_actions()
+            for name, tank in self.__tanks.items()
+        }
+
+    def get_game_actions(self) -> dict[str, str]:
+        return self.get_explore_actions() if rnd.random() < self.__explore_prob else self.get_exploit_actions()
 
     def get_results_table(self) -> dict[str, list[int]]:
         return {

@@ -8,7 +8,7 @@ from src.remote.game_client import GameClient
 
 class Game(Thread):
     def __init__(self, game_name: str | None = None, num_turns: int | None = None,
-                 max_players: int = 1, is_full: bool = False) -> None:
+                 max_players: int = 1, is_full: bool = False, use_ml_actions: bool = True) -> None:
         super().__init__()
 
         self.game_map: Map | None = None
@@ -21,7 +21,6 @@ class Game(Thread):
         self.__max_players: int = max_players
         self.__is_full: bool = is_full
         self.__num_rounds: int | None = None
-        self.__current_round: int | None = None
         self.__next_round: bool = True
 
         self.__winner: int | None = None
@@ -32,15 +31,19 @@ class Game(Thread):
         self.__connection_error: ConnectionError | None = None
 
         self.__current_turn: list[int] = [-1]
+        self.__current_round: int = 0
         self.__current_player: Player | None = None
 
         # Observer connection that is used for collecting data
         self.__shadow_client = GameClient()
 
         self.__active_players: dict[int, Player] = {}
+        self.__num_active_players: int = len(self.__active_players)
         self.__player_wins: dict[int, int] = {}
         self.__current_player_idx: list[int] = [-1]
-        self.__player_manager: PlayerManager = PlayerManager(self, self.__shadow_client)
+        self.__player_manager: PlayerManager = PlayerManager(self, self.__shadow_client, self.__current_turn)
+
+        self.__use_ml_actions = use_ml_actions
 
     def __str__(self) -> str:
         out: str = ""

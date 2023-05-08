@@ -18,7 +18,6 @@ from src.gui.map_utils.map_drawer import MapDrawer
 
 class Map:
     __max_players_in_base = 2
-    __rounds_to_cap = 1
 
     def __init__(self, client_map: dict, game_state: dict, active_players: dict,
                  current_turn: list[int] = None, graphics=True):
@@ -40,15 +39,18 @@ class Map:
         self.__map: dict = {}
         self.__map_size = client_map['size']
         self.__make_map(client_map, game_state, active_players)
+        self.__path_finding_algorithm: callable = _a_star.a_star
+
+        self.__current_turn: list[int] = current_turn
         self.__current_round: int = 0
+        self.__old_round: int = -1
         self.__rounds_in_base_by_player_index = [0 for _ in range(3)]
         self.__player_indexes_who_capped: set = set()
 
-        self.__path_finding_algorithm: callable = _a_star.a_star
         if graphics:
             self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn)
 
-        # self.__save(client_map, game_state)  # Uncomment to save to run locally
+        # self.__save(client_map, game_state)  # Uncomment to save to run locally (only needed when server data changes)
 
     """     MAP MAKING      """
 
@@ -84,7 +86,7 @@ class Map:
 
     def update_turn(self, game_state: dict) -> None:
         # Local update of the new turn
-        self.__new_turn(game_state["current_turn"])
+        self.__new_turn()
 
         # At the beginning of each turn move the tanks that have been destroyed in the previous turn to their spawn
         for vehicle_id, vehicle_info in game_state["vehicles"].items():
@@ -92,6 +94,8 @@ class Map:
             server_hp, server_cp = vehicle_info['health'], vehicle_info["capture_points"]
 
             tank = self.__tanks[int(vehicle_id)]
+
+            # Used to test discrepancies between server and local data
             if server_coord != tank.coord:
                 print('server_coord', server_coord, 'tank.coord', tank.coord)
             if server_hp != tank.health_points:
@@ -129,8 +133,8 @@ class Map:
             if not isinstance(feature, Base) or tank.is_destroyed:
                 tank.capture_points = 0
 
-    def __is_new_round(self, turn: int) -> int:
-        new_round = turn // self.__num_players
+    def __is_new_round(self) -> int:
+        new_round = self.__current_turn[0] // self.__num_players
         if new_round != self.__current_round:
             self.__current_round = new_round
             return True
@@ -143,8 +147,8 @@ class Map:
                 if tank and not tank.is_destroyed:
                     tank.capture_points += 1
 
-    def __new_turn(self, turn: int):
-        if self.__is_new_round(turn):
+    def __new_turn(self):
+        if self.__is_new_round():
             self.__update_capture_points()
         self.__update_repairs_and_catapult_bonus()
         self.__respawn_destroyed_tanks()
@@ -295,7 +299,7 @@ class Map:
 
     """     RUNNING LOCALLY      """
 
-    def update_local_turn(self, turn: int) -> None: self.__new_turn(turn)
+    def register_new_turn(self) -> None: self.__new_turn()
 
     @staticmethod
     def __save(client_map: dict, game_state: dict) -> None:
