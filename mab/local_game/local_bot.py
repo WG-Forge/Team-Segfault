@@ -6,17 +6,16 @@ from local_game.local_player import LocalPlayer
 class LocalBot(LocalPlayer):
     __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
 
-    def __init__(self, player_index: int, game_actions: dict[str, str]):
+    def __init__(self, player_index: int, game_actions: dict[str, str], current_turn: list[int]):
         super().__init__(player_index)
-        self.__turn: int = 0
+        self.__current_turn: list[int] = current_turn
 
         # game_actions = {tank_name: action_string}
         self.__game_actions = game_actions
 
     def _make_turn_plays(self) -> None:
         for tank in self._tanks:
-            self.__do(self.__game_actions[tank.type][self.__turn], tank)
-        self.__turn += 1
+            self.__do(self.__game_actions[tank.type][self.__current_turn[0]], tank)
 
     def __do(self, action: str, tank: Tank) -> None:
         if action == 'A':

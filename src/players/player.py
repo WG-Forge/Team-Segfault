@@ -2,6 +2,7 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
 
+from data.data_io import DataIO
 from src.constants import PLAYER_COLORS
 from src.entities.tanks.tank import Tank
 from src.game_map.map import Map
@@ -38,9 +39,8 @@ class Player(Thread, ABC):
         self.__player_colour: tuple | None = None
         self.__has_shot: list[int] = []  # Holds a list of enemies this player has shot last turn
 
-        self._game_actions: dict | None = None
-
-        self._turn_actions: dict | None = None
+        # Game actions loaded from ML
+        self._best_actions: dict[str, str] | None = None
 
     def __hash__(self):
         return super.__hash__(self)
@@ -113,14 +113,6 @@ class Player(Thread, ABC):
         return self._damage_points
 
     @property
-    def turn_actions(self) -> dict | None:
-        return self._turn_actions
-
-    @turn_actions.setter
-    def turn_actions(self, actions: dict) -> None:
-        self._turn_actions = actions
-
-    @property
     def index(self) -> int | None:
         return self._player_index
 
@@ -129,6 +121,8 @@ class Player(Thread, ABC):
         # set and update player index if player is not an observer
         self._player_index = player_index
         self.__player_colour = Player.__possible_colours[player_index]
+
+        self._best_actions = DataIO.load_best_actions()[str(self._player_index)]
 
     """     MISC        """
 

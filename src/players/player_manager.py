@@ -1,6 +1,7 @@
 import random
 from threading import Semaphore
 
+from data.data_io import DataIO
 from src.players.player import Player
 from src.players.player_factory import PlayerFactory, PlayerTypes
 from src.players.types.remote_player import RemotePlayer
@@ -10,13 +11,14 @@ from src.remote.game_client import GameClient
 class PlayerManager:
     """" Manages player connections and synchronization """
 
-    def __init__(self, game, shadow_client: GameClient):
+    def __init__(self, game, shadow_client: GameClient, current_turn: list[int] = None):
         # game container
         self.__game = game
         self.__shadow_client = shadow_client
 
         self.__lobby_players: int = 0
         self.__num_players: int = 0
+        self.__current_turn: list[int] = current_turn
 
         self.__turn_played_sem: Semaphore = Semaphore(0)
 
@@ -84,7 +86,8 @@ class PlayerManager:
                                              is_observer=is_observer,
                                              turn_played_sem=self.__turn_played_sem,
                                              current_player_idx=self.__game.current_player_idx,
-                                             over=self.__game.over)
+                                             over=self.__game.over,
+                                             current_turn=self.__current_turn)
 
         if self.__game.started:
             self.__connect_local_player(player)

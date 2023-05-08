@@ -8,7 +8,7 @@ from src.remote.game_client import GameClient
 
 class Game(Thread):
     def __init__(self, game_name: str | None = None, num_turns: int | None = None,
-                 max_players: int = 1, is_full: bool = False) -> None:
+                 max_players: int = 1, is_full: bool = False, use_ml_actions: bool = True) -> None:
         super().__init__()
 
         self.game_map: Map | None = None
@@ -21,7 +21,6 @@ class Game(Thread):
         self.__max_players: int = max_players
         self.__is_full: bool = is_full
         self.__num_rounds: int | None = None
-        self.__current_round: int | None = None
         self.__next_round: bool = True
 
         self.__winner: int | None = None
@@ -32,6 +31,8 @@ class Game(Thread):
         self.__connection_error: ConnectionError | None = None
 
         self.__current_turn: list[int] = [-1]
+        self.__current_round: list[int] = [-1]
+
         self.__current_player: Player | None = None
 
         # Observer connection that is used for collecting data
@@ -40,7 +41,9 @@ class Game(Thread):
         self.__active_players: dict[int, Player] = {}
         self.__player_wins: dict[int, int] = {}
         self.__current_player_idx: list[int] = [-1]
-        self.__player_manager: PlayerManager = PlayerManager(self, self.__shadow_client)
+        self.__player_manager: PlayerManager = PlayerManager(self, self.__shadow_client, self.__current_turn)
+
+        self.__use_ml_actions = use_ml_actions
 
     def __str__(self) -> str:
         out: str = ""
@@ -101,7 +104,7 @@ class Game(Thread):
 
     @property
     def current_round(self) -> int | None:
-        return self.__current_round
+        return self.__current_round[0]
 
     @property
     def player_wins(self) -> dict[int, int]:
@@ -194,7 +197,8 @@ class Game(Thread):
 
         game_state: dict = self.__shadow_client.get_game_state()
 
-        self.__current_round = game_state["current_round"]
+        self.__current_round[0] = game_state["current_round"]
+        print(self.__current_round)
 
         client_map: dict = self.__shadow_client.get_map()
 
@@ -203,7 +207,8 @@ class Game(Thread):
             player.register_round()
 
         # initialize the game map (now adds tanks to players & game_map too)
-        self.game_map = Map(client_map, game_state, self.__active_players, self.__current_turn)
+        self.game_map = Map(client_map, game_state, self.__active_players,
+                            self.__current_turn, self.__current_round)
 
         # pass Map reference to players
         for player in self.__active_players.values():
