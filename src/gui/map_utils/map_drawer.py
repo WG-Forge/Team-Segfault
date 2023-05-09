@@ -18,8 +18,11 @@ from src.gui.tank_utils.tank_drawer import TankDrawer
 
 
 class MapDrawer:
-    def __init__(self, map_size: int, players: dict, game_map: dict, current_turn: list[int]):
+    def __init__(self, map_size: int, players: dict, game_map: dict, current_turn: list[int], num_turns: int,
+                 num_rounds: int):
         self.__turn: list[int] = current_turn
+        self.__num_turns = num_turns
+        self.__num_rounds = num_rounds
         self.__max_damage_points: int = 0
         self.__players = players
         self.__map = game_map
@@ -46,7 +49,7 @@ class MapDrawer:
             if tank is not None:
                 self.__tanks.add(TankDrawer(tank))
 
-    def draw(self, screen: Surface, max_turns: int, current_round: int, num_rounds: int) -> None:
+    def draw(self, screen: Surface, current_round: int) -> None:
         if self.__font is None:
             self.__font = pygame.font.Font(MENU_FONT, self.__font_size)
 
@@ -81,12 +84,12 @@ class MapDrawer:
 
         # display turn
         if self.__turn is not None:
-            text = self.__font.render('Turn: ' + str(self.__turn[0]) + '/' + str(max_turns), True, WHITE)
+            text = self.__font.render('Turn: ' + str(self.__turn[0]) + '/' + str(self.__num_turns), True, WHITE)
             text_rect = text.get_rect(midtop=(SCREEN_WIDTH // 2, 0))
             screen.blit(text, text_rect)
 
         # display round
-        text = self.__font.render('Round: ' + str(current_round) + '/' + str(num_rounds), True, WHITE)
+        text = self.__font.render('Round: ' + str(current_round) + '/' + str(self.__num_rounds), True, WHITE)
         text_rect = text.get_rect(midbottom=(SCREEN_WIDTH // 2, SCREEN_HEIGHT))
         screen.blit(text, text_rect)
 

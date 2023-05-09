@@ -19,7 +19,7 @@ from src.gui.map_utils.map_drawer import MapDrawer
 class Map:
     __max_players_in_base = 2
 
-    def __init__(self, client_map: dict, game_state: dict, active_players: dict,
+    def __init__(self, client_map: dict, game_state: dict, active_players: dict, num_turns: int, num_rounds: int,
                  current_turn: list[int] = None, graphics=True):
 
         HEX_RADIUS_X[0] = SCREEN_WIDTH // ((client_map['size'] - 1) * 2 * 2)
@@ -50,7 +50,8 @@ class Map:
         self.__player_indexes_who_capped: set = set()
 
         if graphics:
-            self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn)
+            self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn,
+                                                     num_turns, num_rounds)
 
         # self.__save(client_map, game_state)  # Uncomment to save to run locally (only needed when server data changes)
 
@@ -81,8 +82,8 @@ class Map:
 
     """     DRAWING     """
 
-    def draw(self, screen: Surface, num_turns: int, current_round: int, num_rounds: int) -> None:
-        self.__map_drawer.draw(screen, num_turns, current_round, num_rounds)
+    def draw(self, screen: Surface, current_round: int) -> None:
+        self.__map_drawer.draw(screen, current_round)
 
     """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
 
