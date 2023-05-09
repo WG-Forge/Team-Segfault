@@ -99,8 +99,9 @@ BULLET_IMAGE_PATH = 'src/assets/white_bullet.png'
 BACKGROUND_IMAGE_PATH = 'src/assets/menu/background.jpg'
 GUI_ICON_PATH = 'src/assets/icon.png'
 TRACKS_IMAGE_PATH = 'src/assets/tracks_green.png'
+TROPHY_IMAGE_PATH = 'src/assets/trophy.png'
 
-# summer map hexes
+# map hexes
 SUMMER_GRASS_PATH = 'src/assets/hex_images/summer_empty.png'
 SUMMER_OBSTACLE_PATH = 'src/assets/hex_images/summer_obstacle.png'
 DESERT_EMPTY_PATH = 'src/assets/hex_images/desert_empty.png'

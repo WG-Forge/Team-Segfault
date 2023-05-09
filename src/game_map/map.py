@@ -81,8 +81,8 @@ class Map:
 
     """     DRAWING     """
 
-    def draw(self, screen: Surface) -> None:
-        self.__map_drawer.draw(screen)
+    def draw(self, screen: Surface, num_turns: int, current_round: int, num_rounds: int) -> None:
+        self.__map_drawer.draw(screen, num_turns, current_round, num_rounds)
 
     """     SYNCHRONIZE SERVER AND LOCAL MAPS        """
 
