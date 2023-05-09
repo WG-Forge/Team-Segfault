@@ -52,19 +52,6 @@ class EndScreen:
             y = self.__positions[current_index][1] - img.get_height() * 3 / 4
             screen.blit(img, dest=(x, y))
 
-            # # write name and number of points:
-
-            # # draw trophies for each player
-            # name = self.__scoreboard_font.render(player[0], True, player[1])
-            # name_rect = name.get_rect()
-            # x, y = SCREEN_WIDTH // 2, self.__trophy.get_height() * (1 + 2 * i) // 2
-            # name_rect.topleft = (x, y)
-            #
-            # x += name_rect.width
-            # screen.blit(name, name_rect)
-            # for point in range(player[2]):
-            #     screen.blit(self.__trophy, (x + point * self.__trophy.get_width(), y - self.__trophy.get_height() // 2))
-
         # write name and number of points
         for i, player in enumerate(players):
             name = self.__scoreboard_font.render(player[0], True, player[1])
