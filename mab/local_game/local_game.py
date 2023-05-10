@@ -21,8 +21,8 @@ class LocalGame:
             for i in range(num_players)
         }
 
-        game_map = Map(DataIO.load_client_map(), DataIO.load_game_state(), players,
-                       current_turn=current_turn, graphics=False)
+        game_map = Map(DataIO.load_client_map(), DataIO.load_game_state(), players, current_turn=current_turn,
+                       graphics=False, num_turns=num_turns, num_rounds=num_turns//num_players)
 
         for player in players.values():
             player.add_map(game_map)
