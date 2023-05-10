@@ -1,3 +1,8 @@
+import os
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+from data.data_io import DataIO
 from mab.local_game.local_game import LocalGame
 from mab.machine_learining.ml_driver import MLDriver
 
@@ -12,20 +17,29 @@ def train(num_trainings: int = 1, num_turns: int = 15, restart: bool = False) ->
 
     mab_driver = MLDriver(num_turns, restart)
 
-    for game_num in range(1, num_trainings + 1):
-        print(f'Game Number: {game_num},', end='')
+    client_map = DataIO.load_client_map()
+    game_state = DataIO.load_game_state()
 
+    def train_single_game() -> None:
         game_actions = mab_driver.get_game_actions()
-        game = LocalGame(game_actions, num_turns)
+        game: LocalGame
+        game = LocalGame(client_map=client_map, game_state=game_state, game_actions=game_actions,
+                         num_turns=num_turns)
 
         winners_index = game.winners_index
         mab_driver.register_winners(winners_index)
 
+    with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+        futures = [executor.submit(train_single_game) for _ in range(num_trainings)]
+        for future in futures:
+            future.result()
+
     mab_driver.pause_training()
 
-# If you're going to change the number of turns set restart to True for the first training session
-# start = time.time()
-# train(num_trainings=10, num_turns=30, restart=False)
-# end = time.time()
 
-# print('Time taken (s):', end-start)
+# If you're going to change the number of turns set restart to True for the first training session
+for i in range(100):
+    start = time.time()
+    train(num_trainings=100, num_turns=45, restart=False)
+    end = time.time()
+    print(f'Time taken {i} (s):', end - start)
