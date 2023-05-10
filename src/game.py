@@ -47,7 +47,7 @@ class Game(Thread):
         # Login with the player manager to be able to access game info
         try:
             self.__player_manager.login()
-        except ConnectionError | TimeoutError as err:
+        except (ConnectionError, TimeoutError) as err:
             self.__error = err
             self.over.set()
 
@@ -137,7 +137,7 @@ class Game(Thread):
                 # handshake with players
                 self.__player_manager.handle_player_turns()
 
-        except ConnectionError or TimeoutError as err:
+        except (ConnectionError, TimeoutError) as err:
             # an error happened
             self.over.set()
             self.__error = err

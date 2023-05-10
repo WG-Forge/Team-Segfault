@@ -85,9 +85,7 @@ class Player(Thread, ABC):
 
                 self._make_turn_plays()
 
-            except ConnectionError as err:
-                print(err)
-            except TimeoutError as err:
+            except (ConnectionError, TimeoutError) as err:
                 print(err)
             finally:
                 # notify condition
