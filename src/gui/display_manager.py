@@ -123,7 +123,7 @@ class DisplayManager:
             # draw the map or loading screen if the game started
             if self.__playing and not self.__game.over.is_set():
                 players = self.__game.player_wins_and_info
-                self.__game.game_map.draw(self.__screen) if self.__game.game_map \
+                self.__game.game_map.draw(self.__screen, self.__game.current_round) if self.__game.game_map \
                     else self.__loading_screen.draw(self.__screen)
 
             # check if game has ended

@@ -222,7 +222,8 @@ class Game(Thread):
             player.register_round()
 
         # initialize the game map (now adds tanks to players & game_map too)
-        self.game_map = Map(client_map, game_state, self.__active_players, self.__current_turn)
+        self.game_map = Map(client_map, game_state, self.__active_players, self.num_turns, self.num_rounds,
+                            self.__current_turn)
 
         # pass Map reference to players
         for player in self.__active_players.values():
