@@ -120,6 +120,11 @@ class Game(Thread):
     def player_wins(self) -> dict[int, int]:
         return self.__player_wins
 
+    @property
+    def player_wins_and_info(self) -> list[tuple[str, str | tuple[int, int, int], int]]:
+        return [(self.__active_players[idx].player_name, self.__active_players[idx].color, self.__player_wins[idx])
+                for idx in self.__active_players if idx in self.__player_wins]
+
     """     GAME LOGIC      """
 
     def run(self) -> None:
@@ -272,7 +277,7 @@ class Game(Thread):
         elif not self.__winner and not self.__game_is_draw:
             print("The game was interrupted")
         else:
-            self.__print_game_winner()
+            self.__print_player_wins()
 
         self.__player_manager.logout()
 
@@ -285,35 +290,6 @@ class Game(Thread):
             self.__winner_index = winner.index
             print(f'The round winner is: {winner.player_name}.')
 
-    def __print_game_winner(self) -> None:
-        winner: Player | None = None
-
-        min_wins: int = -1
-        max_wins: int = 0
-
-        print()
+    def __print_player_wins(self) -> None:
         for idx, win_num in self.__player_wins.items():
-            if self.__active_players[idx].is_observer:
-                continue
-
             print(f"{self.__active_players[idx]} wins: {win_num}")
-
-            if max_wins < win_num:
-                winner = self.__active_players[idx]
-                max_wins = win_num
-
-            if min_wins == -1:
-                min_wins = win_num
-            else:
-                min_wins = min(min_wins, win_num)
-
-        print()
-        if len(self.__player_wins) > 1 and min_wins != max_wins:
-            print(f"{winner} is the game winner!")
-        else:
-            print("The game is a draw!")
-
-    @property
-    def player_wins_and_info(self) -> list[tuple[str, str | tuple[int, int, int], int]]:
-        return [(self.__active_players[idx].player_name, self.__active_players[idx].color, self.__player_wins[idx])
-                for idx in self.__active_players if idx in self.__player_wins]

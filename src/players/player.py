@@ -2,7 +2,6 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
 
-from mab.data.data_io import DataIO
 from src.constants import PLAYER_COLORS
 from src.entities.tanks.tank import Tank
 from src.game_map.map import Map
@@ -129,8 +128,6 @@ class Player(Thread, ABC):
         # set and update player index if player is not an observer
         self._player_index = player_index
         self.__player_colour = Player.__possible_colours[player_index]
-
-        self._best_actions = DataIO.load_best_actions()[str(self._player_index)]
 
     """     MISC        """
 

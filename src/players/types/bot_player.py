@@ -2,6 +2,7 @@ import random as rnd
 import time
 from threading import Semaphore, Event
 
+from mab.data.data_io import DataIO
 from src.constants import GAME_SPEED
 from src.entities.entity_enum import Entities
 from src.entities.tanks.tank import Tank
@@ -26,6 +27,9 @@ class BotPlayer(Player):
                          is_observer=is_observer)
 
     def register_round(self) -> None:
+        # reset round actions
+        self._best_actions = None
+
         super().register_round()
 
     def _make_turn_plays(self) -> None:
@@ -48,6 +52,10 @@ class BotPlayer(Player):
         self._game_client.disconnect()
 
     def __place_actions(self) -> None:
+        # set round actions based on first turn order
+        if not self._best_actions:
+            self._best_actions = DataIO.load_best_actions()[str(self._current_turn[0])]
+
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
         if self._best_actions:
             for tank in self._tanks:
