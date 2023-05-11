@@ -139,9 +139,10 @@ class Map:
         for tank in self.__tanks.values():
             feature = self.__map[tank.coord]['feature']
             if not tank.is_destroyed and tank.player_index == self.__previous_player_index:
-                if (isinstance(feature, LightRepair) and tank.type in LightRepair.can_be_used_by
-                        or isinstance(feature, HardRepair) and tank.type in HardRepair.can_be_used_by):
-                    tank.repair()
+                if tank.health_points < tank.max_health_points:
+                    if (isinstance(feature, LightRepair) and tank.type in LightRepair.can_be_used_by
+                            or isinstance(feature, HardRepair) and tank.type in HardRepair.can_be_used_by):
+                        tank.repair()
                 elif isinstance(feature, Catapult) and feature.is_usable('all'):
                     feature.was_used()
                     tank.catapult_bonus = True
