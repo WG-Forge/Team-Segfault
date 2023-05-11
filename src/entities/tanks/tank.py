@@ -10,7 +10,6 @@ class Tank(Entity, ABC):
 
     def __init__(self, tank_id: int, tank_info: dict, color: tuple[int, int, int] | str,
                  player_index: int, image_path: str):
-
         self.__tank_id = tank_id
         self.__health_points: int = tank_info["health"]
         self.__max_health_points: int = self.__health_points
@@ -21,6 +20,7 @@ class Tank(Entity, ABC):
         self.__tank_color = color
         self.__player_index: int = player_index
         self.__destroyed: bool = False
+        self.__used_repair: bool = False
         self._coord: tuple[int, int, int] = (tank_info["position"]["x"],
                                              tank_info["position"]["y"],
                                              tank_info["position"]["z"])
@@ -47,66 +47,92 @@ class Tank(Entity, ABC):
     """     GETTERS AND SETTERS     """
 
     @property
-    def coord(self) -> tuple[int, int, int]: return self._coord
+    def coord(self) -> tuple[int, int, int]:
+        return self._coord
 
     @coord.setter
     def coord(self, new_coord: tuple) -> None:
         self._coord = new_coord
 
     @property
-    def player_index(self) -> int: return self.__player_index
+    def player_index(self) -> int:
+        return self.__player_index
 
     @property
-    def tank_id(self) -> int: return self.__tank_id
+    def tank_id(self) -> int:
+        return self.__tank_id
 
     @property
-    def color(self) -> str | tuple[int, int, int]: return self.__tank_color
+    def color(self) -> str | tuple[int, int, int]:
+        return self.__tank_color
 
     @property
-    def health_points(self) -> int: return self.__health_points
+    def health_points(self) -> int:
+        return self.__health_points
 
     @health_points.setter
-    def health_points(self, hp: int): self.__health_points = hp
+    def health_points(self, hp: int):
+        self.__health_points = hp
 
     @property
-    def max_health_points(self) -> int: return self.__max_health_points
+    def max_health_points(self) -> int:
+        return self.__max_health_points
 
     @property
-    def is_destroyed(self) -> bool: return self.__destroyed
+    def is_destroyed(self) -> bool:
+        return self.__destroyed
 
     @property
-    def capture_points(self) -> int: return self.__capture_points
+    def capture_points(self) -> int:
+        return self.__capture_points
 
     @capture_points.setter
-    def capture_points(self, capture_pts: int): self.__capture_points = capture_pts
+    def capture_points(self, capture_pts: int):
+        self.__capture_points = capture_pts
 
     @property
-    def spawn_coord(self) -> tuple: return self.__spawn_coord
+    def spawn_coord(self) -> tuple:
+        return self.__spawn_coord
 
     @property
     def image_path(self) -> str:
         return self.__image_path
 
     @property
-    def catapult_bonus(self) -> bool: return self._catapult_bonus
+    def catapult_bonus(self) -> bool:
+        return self._catapult_bonus
 
     @catapult_bonus.setter
-    def catapult_bonus(self, catapult_bonus: bool): self._catapult_bonus = catapult_bonus
+    def catapult_bonus(self, catapult_bonus: bool):
+        self._catapult_bonus = catapult_bonus
+
+    @property
+    def used_repair(self) -> bool:
+        return self.__used_repair
+
+    @used_repair.setter
+    def used_repair(self, used_repair: bool) -> None:
+        self.__used_repair = used_repair
 
     """     ABSTRACTS       """
 
     @abstractmethod
-    def shot_moves(self, target: tuple) -> tuple: pass  # sorted coords to where "self" can move to shoot "target"
+    def shot_moves(self, target: tuple) -> tuple:
+        pass  # sorted coords to where "self" can move to shoot "target"
 
     @property
     @abstractmethod
-    def speed(self) -> int: pass
+    def speed(self) -> int:
+        pass
 
     @abstractmethod
-    def coords_in_range(self, is_on_catapult: bool) -> tuple: pass
+    def coords_in_range(self, is_on_catapult: bool) -> tuple:
+        pass
 
     @abstractmethod
-    def td_shooting_coord(self, target: tuple) -> tuple: pass
+    def td_shooting_coord(self, target: tuple) -> tuple:
+        pass
 
     @abstractmethod
-    def fire_corridors(self) -> tuple: pass
+    def fire_corridors(self) -> tuple:
+        pass

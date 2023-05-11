@@ -20,7 +20,7 @@ class Map:
     __max_players_in_base = 2
 
     def __init__(self, client_map: dict, game_state: dict, active_players: dict, num_turns: int, num_rounds: int,
-                 current_turn: list[int] = None, graphics=True):
+                 current_turn: list[int], graphics=True):
 
         HEX_RADIUS_X[0] = SCREEN_WIDTH // ((client_map['size'] - 1) * 2 * 2)
         HEX_RADIUS_Y[0] = SCREEN_HEIGHT // ((client_map['size'] - 1) * 2 * 2)
@@ -28,6 +28,7 @@ class Map:
         self.__players: dict = self.__add_players(active_players)
         self.__players_by_idx: dict = active_players
         self.__num_players: int = len(self.__players)
+
         self.__tanks: dict[int, Tank] = {}
         self.__destroyed: list[Tank] = []
         self.__base_coords: tuple = ()
@@ -42,7 +43,6 @@ class Map:
         self.__make_map(client_map, game_state, active_players)
         self.__path_finding_algorithm: callable = _a_star.a_star
 
-        self.__previous_player_index: int = 0
         self.__current_turn: list[int] = current_turn
         self.__current_round: int = 0
         self.__old_round: int = -1
@@ -138,14 +138,21 @@ class Map:
     def __update_repairs_and_catapult_bonus(self):
         for tank in self.__tanks.values():
             feature = self.__map[tank.coord]['feature']
-            if not tank.is_destroyed and tank.player_index == self.__previous_player_index:
-                if tank.health_points < tank.max_health_points:
-                    if (isinstance(feature, LightRepair) and tank.type in LightRepair.can_be_used_by
-                            or isinstance(feature, HardRepair) and tank.type in HardRepair.can_be_used_by):
+
+            if not tank.is_destroyed:
+                if (isinstance(feature, LightRepair) and feature.is_usable(tank.type)
+                        or isinstance(feature, HardRepair) and feature.is_usable(tank.type)):
+                    # If repair was used, it cannot be used again while on the same hex!
+                    if not tank.used_repair:
                         tank.repair()
-                elif isinstance(feature, Catapult) and feature.is_usable('all'):
+                        tank.used_repair = True
+                else:
+                    tank.used_repair = False
+
+                if isinstance(feature, Catapult) and feature.is_usable():
                     feature.was_used()
                     tank.catapult_bonus = True
+
             if not isinstance(feature, Base) or tank.is_destroyed:
                 tank.capture_points = 0
 
@@ -164,7 +171,6 @@ class Map:
                     tank.capture_points += 1
 
     def __new_turn(self):
-        self.__previous_player_index = self.__current_turn[0]-1 % self.__num_players
         if self.__is_new_round():
             self.__update_capture_points()
         self.__update_repairs_and_catapult_bonus()
@@ -235,7 +241,7 @@ class Map:
 
     def is_catapult_and_usable(self, coord: tuple) -> bool:
         catapult = self.__map[coord]['feature']
-        if isinstance(catapult, Catapult) and catapult.is_usable('any'):
+        if isinstance(catapult, Catapult) and catapult.is_usable():
             return True
         return False
 

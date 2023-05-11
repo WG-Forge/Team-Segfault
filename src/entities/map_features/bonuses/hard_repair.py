@@ -9,8 +9,5 @@ class HardRepair(Feature):
     def __init__(self, coord):
         super().__init__(Entities.HARD_REPAIR, coord, color=EMPTY_COLOR)
 
-    def is_usable(self, tank_type: str) -> bool:
-        if tank_type in self.can_be_used_by:
-            return True
-        else:
-            return False
+    def is_usable(self, tank_type: Entities) -> bool:
+        return tank_type in HardRepair.can_be_used_by
