@@ -1,16 +1,15 @@
 from typing import Dict
 
-from mab.local_game.local_bot import LocalBot
+from data.data_io import DataIO
+from local_game.local_bot import LocalBot
 from src.game_map.map import Map
 
 
 class LocalGame:
     GameActions = dict[int, dict[str, str]]
 
-    def __init__(self, client_map, game_state, game_actions: GameActions, num_turns: int = 15, ) -> None:
+    def __init__(self, game_actions: GameActions, num_turns: int = 15) -> None:
         self.__winners_index = []
-        self.__client_map = client_map
-        self.__game_state = game_state
         self.__run(game_actions, num_turns)
 
     def __run(self, game_actions: GameActions, num_turns: int, num_players=3) -> None:
@@ -22,7 +21,7 @@ class LocalGame:
             for i in range(num_players)
         }
 
-        game_map = Map(self.__client_map, self.__game_state, players, current_turn=current_turn,
+        game_map = Map(DataIO.load_client_map(), DataIO.load_game_state(), players, current_turn=current_turn,
                        graphics=False, num_turns=num_turns, num_rounds=num_turns // num_players)
 
         for player in players.values():
@@ -57,14 +56,14 @@ class LocalGame:
 
         if winner:
             self.__winners_index.append(winner.index)
-            # print(' Winner is player', self.__winners_index[0], win_type)
+            print(' Winner is player', self.__winners_index[0], win_type)
         else:
-            # print(' Draw between players: ', end='')
+            print(' Draw between players: ', end='')
             for player_index in range(num_players):
                 if player_damages[player_index] == max_dp:
                     self.__winners_index.append(player_index)
-                    # print(player_index, end=', ')
-            # print()
+                    print(player_index, end=', ')
+            print()
 
     @property
     def winners_index(self) -> list[int]:

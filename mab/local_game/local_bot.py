@@ -1,4 +1,4 @@
-from mab.local_game.local_player import LocalPlayer
+from local_game.local_player import LocalPlayer
 from src.entities.entity_enum import Entities
 from src.entities.tanks.tank import Tank
 

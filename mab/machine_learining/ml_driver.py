@@ -1,7 +1,6 @@
-from multiprocessing import Lock
 from typing import Type, cast
 
-from mab.data.data_io import DataIO
+from data.data_io import DataIO
 from mab.machine_learining.ml_player import MLPlayer
 
 
@@ -14,12 +13,11 @@ class MLDriver:
     def __init__(self, num_turns: int, restart=False, num_players: int = 3):
         # Player index corresponds to who starts first, so Players[0] plays turn 1
         group_size = self.calc_action_group_size(num_turns)
+        print('group_size', group_size)
         self.__players = {
             agent_index: MLPlayer(num_turns, group_size)
             for agent_index in range(num_players)
         }
-        self.__lock = Lock()
-
         self.__game_num: int = 0
         if not restart:
             self.__continue_training()
@@ -31,21 +29,19 @@ class MLDriver:
         })
 
     def get_game_actions(self) -> GameActions:
-        with self.__lock:
-            return cast(self.GameActions, {
-                player_index: player.get_game_actions()
-                for player_index, player in self.__players.items()
-            })
+        return cast(self.GameActions, {
+            player_index: player.get_game_actions()
+            for player_index, player in self.__players.items()
+        })
 
     def register_winners(self, winners_index: list[int]) -> None:
-        with self.__lock:
-            for player_index, player in self.__players.items():
-                if player_index in winners_index:
-                    player.register_reward(1)
-                else:
-                    player.register_reward(0)
-                player.update_exploring()
-            self.__game_num += 1
+        for player_index, player in self.__players.items():
+            if player_index in winners_index:
+                player.register_reward(1)
+            else:
+                player.register_reward(0)
+            player.update_exploring()
+        self.__game_num += 1
 
     def __continue_training(self) -> None:
         self.__game_num = DataIO.load_num_games()

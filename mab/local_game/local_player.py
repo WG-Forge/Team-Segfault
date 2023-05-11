@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
+from game_map.map import Map
 from src.entities.tanks.tank import Tank
-from src.game_map.map import Map
 
 
 class LocalPlayer:
