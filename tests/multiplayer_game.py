@@ -16,7 +16,7 @@ def multiplayer_game() -> None:
     game.add_local_player(name="Ricardo", is_observer=False)
     game.add_local_player(name="Jovan", is_observer=True)
     game.add_local_player(name="Igor", is_observer=False)
-    game.add_local_player(name="John Doe", is_observer=False)
+    game.add_local_player(name="John Doe", is_observer=True)
 
     # Make sure to only add the game to the display manager after setting everything up
     # since the display manager starts the game thread immediately

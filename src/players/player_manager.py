@@ -1,5 +1,4 @@
 import queue
-import random
 from threading import Semaphore
 
 from src.players.player import Player
@@ -25,7 +24,7 @@ class PlayerManager:
         self.__player_queue: queue = queue.Queue()
 
     def login(self) -> None:
-        self.__shadow_client.login(name=f"{self.__game.game_name}-Team-Segfault-Shadow-{random.randint(0, 100000)}",
+        self.__shadow_client.login(name=f"{self.__game.game_name}-Team-Segfault-Shadow",
                                    game_name=self.__game.game_name,
                                    num_turns=self.__game.num_turns,
                                    num_players=self.__game.max_players,
@@ -34,8 +33,18 @@ class PlayerManager:
 
     def logout(self) -> None:
         # end by logging out of the shadow observer
-        self.__shadow_client.logout()
+        try:
+            self.__shadow_client.logout()
+        except ConnectionError:
+            # ignore the double logout error
+            pass
+
         self.__shadow_client.disconnect()
+
+    def set_players_interrupted(self) -> None:
+        # set interrupted status for all players
+        for player in self.__game.active_players.values():
+            player.interrupted = True
 
     def notify_all_players(self) -> None:
         # release all players using their private semaphores
@@ -59,6 +68,8 @@ class PlayerManager:
         ind: int = 0
         for idx, player in sorted(self.__game.active_players.items(), key=lambda x: x[0]):
             if not player.is_observer:
+                # set the num players parameter and the player index
+                player.num_players = self.__game.max_players
                 player.index = ind
                 ind += 1
 
@@ -90,7 +101,7 @@ class PlayerManager:
                                              is_observer=is_observer,
                                              turn_played_sem=self.__turn_played_sem,
                                              current_player_idx=self.__game.current_player_idx,
-                                             over=self.__game.over,
+                                             over=self.__game.over, game_exited=self.__game.game_exited,
                                              current_turn=self.__current_turn)
 
         self.__player_queue.put(player)
@@ -108,7 +119,7 @@ class PlayerManager:
         player: Player = PlayerFactory.create_player(player_type=PlayerTypes.Remote,
                                                      turn_played_sem=self.__turn_played_sem,
                                                      current_player_idx=self.__game.current_player_idx,
-                                                     over=self.__game.over)
+                                                     over=self.__game.over, game_exited=self.__game.game_exited)
 
         player.add_to_game(user_info, self.__shadow_client)
 
@@ -124,8 +135,5 @@ class PlayerManager:
                                             is_full=self.__game.is_full)
 
         player.add_to_game(user_info, game_client)
-
-        if player.idx in self.__game.active_players.keys():
-            raise ConnectionError("Error: Player you are trying to join with is already in the game!")
 
         self.__game.active_players[player.idx] = player

@@ -6,6 +6,6 @@ class Observer(Player):
         # force next turn
         self._game_client.force_turn()
 
-    def _finalize(self) -> None:
+    def _logout(self) -> None:
         self._game_client.logout()
         self._game_client.disconnect()

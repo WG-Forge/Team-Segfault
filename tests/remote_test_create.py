@@ -7,8 +7,8 @@ from src.gui.display_manager import DisplayManager
 def remote_test_create() -> None:
     # Multiplayer game with a fixed player_name and three bot players
     print("*** Remote game test ***")
-    name: str = "Test game: Remote Test 686"
-    game = Game(game_name=name, max_players=3, num_turns=45, is_full=True)
+    name: str = "Test game: Remote Test 691"
+    game = Game(game_name=name, max_players=3, num_turns=20, is_full=True)
     game.add_local_player(name="Hazel", is_observer=False)
     game.add_local_player(name="Violet", is_observer=True)
     game.add_local_player(name="Green", is_observer=True)

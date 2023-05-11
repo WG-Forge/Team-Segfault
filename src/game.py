@@ -16,6 +16,7 @@ class Game(Thread):
 
         # create an active event
         self.over: Event = Event()
+        self.__game_exited: Event = Event()
 
         self.__num_turns: int | None = num_turns
         self.__max_players: int = max_players
@@ -23,9 +24,12 @@ class Game(Thread):
         self.__num_rounds: int | None = None
         self.__next_round: bool = True
 
-        self.__winner: int | None = None
-        self.__winner_index: int | None = None
+        self.__round_winner_index: int | None = None
+        self.__game_winner_index: int | None = None
         self.__game_is_draw: bool = False
+
+        # The game was interrupted
+        self.__interrupted = False
 
         self.__error: Exception | None = None
 
@@ -121,6 +125,10 @@ class Game(Thread):
         return self.__player_wins
 
     @property
+    def game_exited(self) -> Event:
+        return self.__game_exited
+
+    @property
     def player_wins_and_info(self) -> list[tuple[str, str | tuple[int, int, int], int]]:
         return [(self.__active_players[idx].player_name, self.__active_players[idx].color, self.__player_wins[idx])
                 for idx in self.__active_players if idx in self.__player_wins]
@@ -156,18 +164,18 @@ class Game(Thread):
     def get_winner_index(self) -> int | None:
         # wait for game end event
         self.over.wait()
-        return self.__winner_index
+        return self.__game_winner_index
 
     def __wait_for_full_lobby(self) -> dict | None:
         """ Return game state if the lobby is full, else None if the game was interrupted """
         game_state: dict = self.__shadow_client.get_game_state()
 
+        # connect queued players
+        self.__player_manager.connect_queued_players()
+
         # add initial remote players and observers
         self.__player_manager.add_remote_players(game_state["players"])
         self.__player_manager.add_remote_players(game_state["observers"])
-
-        # connect queued players
-        self.__player_manager.connect_queued_players()
 
         while not self.over.is_set() and game_state["num_players"] != len(game_state["players"]):
             # wait for all the players to join
@@ -197,15 +205,14 @@ class Game(Thread):
         self.__max_players = game_state["num_players"]
         self.__num_rounds = game_state["num_rounds"]
 
+        # set the player win counts
+        self.__set_player_win_counts(game_state)
+
         # add all remote players and observers
         self.__player_manager.add_remote_players(game_state["players"])
 
         # start all player instances
         self.__player_manager.start_players()
-
-        # set the player win counts
-        for idx, wins in game_state["player_result_points"].items():
-            self.__player_wins[int(idx)] = wins
 
         self.__start_next_round()
 
@@ -244,8 +251,10 @@ class Game(Thread):
         print()
         if self.__current_player_idx[0] != 0:
             self.__current_player = self.__active_players[self.__current_player_idx[0]]
+
             # Reset current player attacks
             self.__current_player.register_turn()
+
             print(f"Current turn: {self.__current_turn[0]}, "
                   f"current player: {self.__current_player.player_name}")
         else:
@@ -256,14 +265,16 @@ class Game(Thread):
             self.game_map.update_turn(game_state)
 
         if game_state["finished"]:
-            self.__winner = game_state["winner"]
-            if self.__winner is None:
-                self.__game_is_draw = True
-            else:
-                self.__player_wins[self.__winner] += 1
+            self.__round_winner_index = game_state["winner"]
+
             self.__print_round_winner()
 
+            # set the new player win counts
+            self.__set_player_win_counts(game_state)
+
             if game_state["current_round"] == self.__num_rounds:
+                self.__print_player_wins()
+                self.__determine_game_winner()
                 self.over.set()
             else:
                 self.__next_round = True
@@ -272,24 +283,57 @@ class Game(Thread):
         # Notify all players the game has ended
         self.__player_manager.notify_all_players()
 
+        self.__interrupted = True
         if self.__error:
             print(self.__error)
-        elif not self.__winner and not self.__game_is_draw:
+        elif not self.__game_winner_index and not self.__game_is_draw:
             print("The game was interrupted")
         else:
-            self.__print_player_wins()
+            self.__interrupted = False
 
-        self.__player_manager.logout()
+        # If interrupted set all player statuses to interrupted as well
+        if self.__interrupted:
+            self.__player_manager.set_players_interrupted()
+
+        # Notify players the game exit status was set
+        self.__game_exited.set()
+
+        # If not interrupted then logout, the game is finished
+        if not self.__interrupted:
+            self.__player_manager.logout()
 
     def __print_round_winner(self) -> None:
         print()
-        if self.__game_is_draw:
+        if not self.__round_winner_index:
             print('The round is a draw')
         else:
-            winner = self.__active_players[self.__winner]
-            self.__winner_index = winner.index
-            print(f'The round winner is: {winner.player_name}.')
+            round_winner = self.__active_players[self.__round_winner_index]
+            print(f'The round winner is: {round_winner.player_name}.')
+
+    def __determine_game_winner(self):
+        win_sum: dict = {}
+        max_wins: int = 0
+        winner_idx: int = -1
+        for idx, win_num in self.__player_wins.items():
+            win_sum.setdefault(win_num, 0)
+            win_sum[win_num] += 1
+            if win_num > max_wins:
+                max_wins = win_num
+                winner_idx = idx
+
+        print()
+        if win_sum[max_wins] != 1:
+            print('The game is a draw!')
+            self.__game_is_draw = True
+        else:
+            self.__game_winner_index = winner_idx
+            print(f'The winner is: {self.__active_players[self.__game_winner_index].player_name}')
+
+    def __set_player_win_counts(self, game_state):
+        for idx, wins in game_state["player_result_points"].items():
+            self.__player_wins[int(idx)] = wins
 
     def __print_player_wins(self) -> None:
+        print()
         for idx, win_num in self.__player_wins.items():
             print(f"{self.__active_players[idx]} wins: {win_num}")

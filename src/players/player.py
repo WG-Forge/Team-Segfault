@@ -14,7 +14,8 @@ class Player(Thread, ABC):
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
     __possible_colours = PLAYER_COLORS
 
-    def __init__(self, turn_played_sem: Semaphore, current_player: list[int], current_turn: list[int], over: Event,
+    def __init__(self, turn_played_sem: Semaphore, current_player: list[int], current_turn: list[int],
+                 over: Event, game_exited: Event,
                  name: str | None = None, password: str | None = None,
                  is_observer: bool | None = None):
         super().__init__()
@@ -27,8 +28,13 @@ class Player(Thread, ABC):
         self.next_turn_sem = Semaphore(0)
         self._current_player = current_player
         self._current_turn = current_turn
+        self._num_players: int = 0
         self.__turn_played_sem = turn_played_sem
         self.__over = over
+        self.__game_exited = game_exited
+
+        # Check if player was interrupted
+        self.__interrupted = False
 
         self._game_client: GameClient | None = None
         self._map: Map | None = None
@@ -90,8 +96,11 @@ class Player(Thread, ABC):
                 # notify condition
                 self.__turn_played_sem.release()
 
-        # finalization
-        self._finalize()
+        # wait for the game to finalize
+        self.__game_exited.wait()
+
+        if not self.__interrupted:
+            self._logout()
 
     """     GETTERS AND SETTERS    """
 
@@ -129,6 +138,22 @@ class Player(Thread, ABC):
         self._player_index = player_index
         self.__player_colour = Player.__possible_colours[player_index]
 
+    @property
+    def num_players(self) -> int:
+        return self._num_players
+
+    @num_players.setter
+    def num_players(self, num_players: int) -> None:
+        self._num_players = num_players
+
+    @property
+    def interrupted(self) -> bool:
+        return self.__interrupted
+
+    @interrupted.setter
+    def interrupted(self, interrupted: bool) -> None:
+        self.__interrupted = interrupted
+
     """     MISC        """
 
     def register_shot(self, enemy_index: int) -> None:
@@ -150,9 +175,9 @@ class Player(Thread, ABC):
     """     ABSTRACTS       """
 
     @abstractmethod
-    def _make_turn_plays(self) -> None:
+    def _logout(self) -> None:
         pass
 
     @abstractmethod
-    def _finalize(self) -> None:
+    def _make_turn_plays(self) -> None:
         pass

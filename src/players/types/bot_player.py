@@ -17,12 +17,13 @@ class BotPlayer(Player):
         'spg': False, 'light_tank': False, 'heavy_tank': True, 'medium_tank': True, 'at_spg': True
     }
 
-    def __init__(self, turn_played_sem: Semaphore, current_player: list[int], current_turn: list[int], over: Event,
+    def __init__(self, turn_played_sem: Semaphore, current_player: list[int], current_turn: list[int],
+                 over: Event, game_exited: Event,
                  name: str | None = None, password: str | None = None,
                  is_observer: bool | None = None):
         super().__init__(turn_played_sem=turn_played_sem,
                          current_player=current_player, current_turn=current_turn,
-                         over=over,
+                         over=over, game_exited=game_exited,
                          name=name, password=password,
                          is_observer=is_observer)
 
@@ -46,7 +47,7 @@ class BotPlayer(Player):
             # end your turn
             self._game_client.force_turn()
 
-    def _finalize(self) -> None:
+    def _logout(self) -> None:
         # manage your own connection
         self._game_client.logout()
         self._game_client.disconnect()
@@ -54,7 +55,7 @@ class BotPlayer(Player):
     def __place_actions(self) -> None:
         # set round actions based on first turn order
         if not self._best_actions:
-            self._best_actions = DataIO.load_best_actions()[str(self._current_turn[0])]
+            self._best_actions = DataIO.load_best_actions()[str(self._current_turn[0] % self._num_players)]
 
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
         if self._best_actions:

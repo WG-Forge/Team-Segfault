@@ -24,7 +24,7 @@ class PlayerFactory:
     def create_player(player_type: PlayerTypes,
                       turn_played_sem: Semaphore,
                       current_player_idx: list[int],
-                      over: Event,
+                      over: Event, game_exited: Event,
                       name: str | None = None,
                       password: str | None = None,
                       is_observer: bool | None = None,
@@ -35,5 +35,5 @@ class PlayerFactory:
                             is_observer=is_observer,
                             turn_played_sem=turn_played_sem,
                             current_player=current_player_idx,
-                            over=over,
+                            over=over, game_exited=game_exited,
                             current_turn=current_turn)
