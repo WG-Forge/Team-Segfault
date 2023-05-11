@@ -56,7 +56,7 @@ class EndScreen:
         for i, player in enumerate(players):
             name = self.__scoreboard_font.render(player[0], True, player[1])
             name_rect = name.get_rect()
-            x, y = SCREEN_WIDTH // 2, self.__trophy.get_height() * (1 + 2 * i) // 2
+            x, y = 0, self.__trophy.get_height() * (2 + 2 * i) // 2
             name_rect.topleft = (x, y)
 
             x += longest_name_len

@@ -29,6 +29,7 @@ class Artillery(Tank, ABC):
 
     def shot_moves(self, target: tuple) -> tuple:
         if self._catapult_bonus:
+            self._catapult_bonus = False
             return self.__shot_moves(target, self.__catapult_deltas)
         return self.__shot_moves(target, self.__fire_deltas)
 

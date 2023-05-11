@@ -96,19 +96,20 @@ class BotPlayer(Player):
             # Else if both catapults are occupied or none of them have shots left do action E
             self.__catapult_else_e(tank)
         elif action == 'G':
-            # Do action E, if health points != max health points and closest appropriate repair hex is free move into it
+            # Do action E, if health points == 1 and closest appropriate repair hex is free move into it
             # Do action E. This action only callable for tanks that can repair (at_spg, heavy_tank, medium_tank)
             self.__repair_if_low_hp_else_e(tank)
 
     def __repair_if_low_hp_else_e(self, tank):
-        if tank.max_health_points != tank.health_points and self.__move_return_has_moved('repair', tank):
+        if tank.max_health_points == 1 and self.__tank_names_can_repair[tank.type] \
+                and self.__move_return_has_moved('repair', tank):
             return
         self.__do('E', tank)
 
     def __catapult_else_e(self, tank: Tank) -> None:
         enemies_in_range = self._map.enemies_in_range(tank)
         if enemies_in_range:
-            self.__camp(tank, enemies_in_range)
+            self.__camp(tank, self.__find_best_target(enemies_in_range))
         else:
             if not self.__move_return_has_moved('catapult', tank):
                 if self._map.is_catapult_and_usable(tank.coord):
@@ -143,18 +144,18 @@ class BotPlayer(Player):
         if not self.__move_return_has_moved(where, tank):
             enemies_in_range = self._map.enemies_in_range(tank)
             if enemies_in_range:
-                self.__camp(tank, enemies_in_range)
+                self.__camp(tank, self.__find_best_target(enemies_in_range))
 
     def __shoot_else_move(self, tank: Tank, where: str) -> None:
         enemies_in_range = self._map.enemies_in_range(tank)
-        if enemies_in_range:
-            self.__camp(tank, enemies_in_range)
-        else:
+        if not enemies_in_range:
             self.__move_return_has_moved(where, tank)
+        else:
+            self.__camp(tank, self.__find_best_target(enemies_in_range))
 
-    def __camp(self, tank: Tank, enemies_in_range: list[Tank]) -> None:
+    def __camp(self, tank: Tank, enemy: Tank) -> None:
         if tank.type != Entities.TANK_DESTROYER:
-            self.__update_maps_with_shot(tank, enemies_in_range[0])
+            self.__update_maps_with_shot(tank, enemy)
         else:
             self.__td_camp(tank, self._map.tanks_in_range(tank))
 
@@ -202,3 +203,14 @@ class BotPlayer(Player):
             self._map.local_shoot(tank, enemy)
 
         self._game_client.server_shoot({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
+
+    def __find_best_target(self, enemies_in_range: list[Tank]) -> Tank:
+        """Returns the best tank to shoot from a given list. enemies_in_range must not be empty"""
+        target: Tank | None = None
+        for enemy in enemies_in_range:
+            if enemy.health_points == 1:
+                target = enemy
+                break
+            target = enemy if target is None or target.health_points > enemy.health_points else target
+
+        return target

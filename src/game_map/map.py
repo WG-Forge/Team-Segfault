@@ -138,10 +138,9 @@ class Map:
     def __update_repairs_and_catapult_bonus(self):
         for tank in self.__tanks.values():
             feature = self.__map[tank.coord]['feature']
-            if not tank.is_destroyed:
-                if tank.player_index == self.__previous_player_index and \
-                        (isinstance(feature, LightRepair) and tank.type in LightRepair.can_be_used_by
-                         or isinstance(feature, HardRepair) and tank.type in HardRepair.can_be_used_by):
+            if not tank.is_destroyed and tank.player_index == self.__previous_player_index:
+                if (isinstance(feature, LightRepair) and tank.type in LightRepair.can_be_used_by
+                        or isinstance(feature, HardRepair) and tank.type in HardRepair.can_be_used_by):
                     tank.repair()
                 elif isinstance(feature, Catapult) and feature.is_usable('all'):
                     feature.was_used()
@@ -212,6 +211,7 @@ class Map:
                 target_tank = self.__map[coord]['tank']
                 # Tank that violates neutrality rule or is an allay is skipped
                 if self.is_enemy(td, target_tank):
+                    td.catapult_bonus = False
                     self.local_shoot(td, target_tank)
             else:
                 break
@@ -309,6 +309,7 @@ class Map:
                 target_tank = self.__map[coord]['tank']
                 # Tank that violates neutrality rule or is an allay is skipped
                 if self.is_enemy(td, target_tank):
+                    td.catapult_bonus = False
                     self.local_shoot_no_graphics(td, target_tank)
             else:
                 break
