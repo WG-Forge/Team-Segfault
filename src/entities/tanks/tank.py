@@ -42,7 +42,10 @@ class Tank(Entity, ABC):
         self.repair()
 
     def repair(self) -> None:
-        self.__health_points = self.__max_health_points
+        # If repair was used, it cannot be used again while on the same hex!
+        if not self.__used_repair:
+            self.__used_repair = True
+            self.__health_points = self.__max_health_points
 
     """     GETTERS AND SETTERS     """
 
@@ -52,6 +55,8 @@ class Tank(Entity, ABC):
 
     @coord.setter
     def coord(self, new_coord: tuple) -> None:
+        # Reset this flag when moving
+        self.__used_repair = False
         self._coord = new_coord
 
     @property

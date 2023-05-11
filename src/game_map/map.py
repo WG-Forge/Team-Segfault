@@ -142,12 +142,7 @@ class Map:
             if not tank.is_destroyed:
                 if (isinstance(feature, LightRepair) and feature.is_usable(tank.type)
                         or isinstance(feature, HardRepair) and feature.is_usable(tank.type)):
-                    # If repair was used, it cannot be used again while on the same hex!
-                    if not tank.used_repair:
-                        tank.repair()
-                        tank.used_repair = True
-                else:
-                    tank.used_repair = False
+                    tank.repair()
 
                 if isinstance(feature, Catapult) and feature.is_usable():
                     feature.was_used()
