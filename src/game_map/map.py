@@ -26,7 +26,6 @@ class Map:
         HEX_RADIUS_Y[0] = SCREEN_HEIGHT // ((client_map['size'] - 1) * 2 * 2)
 
         self.__players: dict = self.__add_players(active_players)
-        self.__players_by_idx: dict = active_players
         self.__num_players: int = len(self.__players)
         self.__current_player_index: int = 0
 
@@ -49,6 +48,8 @@ class Map:
         self.__old_round: int = -1
         self.__rounds_in_base_by_player_index = [0 for _ in range(3)]
         self.__player_indexes_who_capped: set = set()
+
+        self.__previous_turn_idx: int | None = None
 
         if graphics:
             self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn,
@@ -79,7 +80,7 @@ class Map:
 
     @staticmethod
     def __add_players(active_players: dict) -> dict:
-        return {player.index: player for player in active_players.values() if not player.is_observer}
+        return {player.idx: player for player in active_players.values() if not player.is_observer}
 
     """     DRAWING     """
 
@@ -103,10 +104,10 @@ class Map:
             if server_coord != tank.coord:
                 print('server_coord', server_coord, 'tank.coord', tank.coord)
             if server_hp != tank.health_points:
-                print('server_hp', server_hp, 'tank.health_points', tank.health_points, 'tank.player_index'
-                      , tank.type, tank.player_index)
+                print('server_hp', server_hp, 'tank.health_points', tank.health_points, 'tank.player_id'
+                      , tank.type, tank.player_id)
             if server_cp != tank.capture_points:
-                print(tank.type, tank.player_index, 'server_cp', server_cp, 'tank.cp', tank.capture_points)
+                print(tank.type, tank.player_id, 'server_cp', server_cp, 'tank.cp', tank.capture_points)
 
             self.local_move(tank, server_coord) if server_coord != tank.coord else None
 
@@ -115,7 +116,7 @@ class Map:
             tank.capture_points = server_cp
 
         for player_id, points in game_state["win_points"].items():
-            player = self.__players_by_idx[int(player_id)]
+            player = self.__players[int(player_id)]
 
             # capture points and kill points
             server_cp, server_dp = points["capture"], points["kill"]
@@ -131,7 +132,7 @@ class Map:
             tank.respawn()
 
     def __can_capture_base(self) -> bool:
-        player_indexes_in_base = set(tank.player_index for tank in self.__tanks.values()
+        player_indexes_in_base = set(tank.player_id for tank in self.__tanks.values()
                                      if isinstance(self.__map[tank.coord]['feature'], Base)
                                      and not tank.is_destroyed)
         return len(player_indexes_in_base) <= self.__max_players_in_base
@@ -140,7 +141,7 @@ class Map:
         for tank in self.__tanks.values():
             feature = self.__map[tank.coord]['feature']
 
-            if not tank.is_destroyed and tank.player_index == self.__current_player_index:
+            if not tank.is_destroyed:
                 if (isinstance(feature, LightRepair) and feature.is_usable(tank.type)
                         or isinstance(feature, HardRepair) and feature.is_usable(tank.type)):
                     tank.repair()
@@ -167,7 +168,7 @@ class Map:
                     tank.capture_points += 1
 
     def __new_turn(self):
-        self.__current_player_index = self.__current_turn[0] % self.__num_players
+        # self.__current_player_index = self.__current_turn[0] % self.__num_players
         if self.__is_new_round():
             self.__update_capture_points()
         self.__update_repairs_and_catapult_bonus()
@@ -186,7 +187,7 @@ class Map:
 
         if destroyed:
             # update player damage points
-            self.__players[tank.player_index].register_destroyed_vehicle(target)
+            self.__players[tank.player_id].register_destroyed_vehicle(target)
 
             # add explosion
             self.__map_drawer.add_explosion(tank, target)
@@ -195,7 +196,7 @@ class Map:
             self.__destroyed.append(target)
         else:
             self.__map_drawer.add_hitreg(self.__map[target.coord]['feature'].center, target.image_path)
-        self.__players[tank.player_index].register_shot(target.player_index)
+        self.__players[tank.player_id].register_shot(target.player_id)
 
         tank.catapult_bonus = False  # If had catapult bonus remove
 
@@ -220,8 +221,8 @@ class Map:
 
     def is_neutral(self, player_tank: Tank, enemy_tank: Tank) -> bool:
         # Neutrality rule logic implemented here, return True if neutral, False if not neutral
-        player_index, enemy_index = player_tank.player_index, enemy_tank.player_index
-        player_indexes: set = {i for i in range(self.__num_players)}
+        player_index, enemy_index = player_tank.player_id, enemy_tank.player_id
+        player_indexes: set = {i for i in self.__players}
 
         viable_indexes: set = (player_indexes - {player_index, enemy_index})
 
@@ -234,7 +235,7 @@ class Map:
         return not enemy_player.has_shot(player_index) and other_player.has_shot(enemy_index)
 
     def is_enemy(self, friend: Tank, enemy: Tank) -> bool:
-        return enemy and not (friend.player_index == enemy.player_index or
+        return enemy and not (friend.player_id == enemy.player_id or
                               self.is_neutral(friend, enemy) or enemy.is_destroyed)
 
     def __is_usable(self, bonus_coord: tuple, by: Tank) -> bool:
@@ -293,7 +294,7 @@ class Map:
 
     def closest_enemies(self, tank: Tank) -> list[Tank]:
         # Returns a sorted list by distance of enemy tanks
-        friend_index, tank_coord = tank.player_index, tank.coord
+        friend_index, tank_coord = tank.player_id, tank.coord
         enemies = [self.__players[other_index] for other_index in self.__players if other_index != friend_index]
         return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.tanks),
                       key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.coord, tank_coord))
@@ -306,9 +307,9 @@ class Map:
     def local_shoot_no_graphics(self, tank: Tank, target: Tank) -> None:
         destroyed = target.register_hit_return_destroyed()
         if destroyed:
-            self.__players[tank.player_index].register_destroyed_vehicle(target)
+            self.__players[tank.player_id].register_destroyed_vehicle(target)
             self.__destroyed.append(target)
-        self.__players[tank.player_index].register_shot(target.player_index)
+        self.__players[tank.player_id].register_shot(target.player_id)
 
         tank.catapult_bonus = False
 
@@ -332,3 +333,6 @@ class Map:
     def __save(client_map: dict, game_state: dict) -> None:
         DataIO.save_client_map(client_map)
         DataIO.save_game_state(game_state)
+
+    def set_previous_turn_idx(self, idx: int):
+        self.__previous_turn_idx = idx

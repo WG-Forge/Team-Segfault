@@ -70,7 +70,7 @@ class PlayerManager:
             if not player.is_observer:
                 # set the num players parameter and the player index
                 player.num_players = self.__game.max_players
-                player.index = ind
+                player.set_color_index(ind)
                 ind += 1
 
             # do not start remote observers - there is no need

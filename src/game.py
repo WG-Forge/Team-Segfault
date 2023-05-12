@@ -254,6 +254,7 @@ class Game(Thread):
         if not game_state:
             game_state = self.__shadow_client.get_game_state()
 
+        self.game_map.set_previous_turn_idx(self.__current_turn[0])
         self.__current_turn[0] = game_state["current_turn"]
         self.__current_player_idx[0] = game_state["current_player_idx"]
 

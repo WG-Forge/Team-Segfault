@@ -9,7 +9,7 @@ class Tank(Entity, ABC):
     __rounds_to_cap = 1
 
     def __init__(self, tank_id: int, tank_info: dict, color: tuple[int, int, int] | str,
-                 player_index: int, image_path: str):
+                 player_idx: int, image_path: str):
         self.__tank_id = tank_id
         self.__health_points: int = tank_info["health"]
         self.__max_health_points: int = self.__health_points
@@ -18,7 +18,7 @@ class Tank(Entity, ABC):
                                      tank_info["spawn_position"]["y"],
                                      tank_info["spawn_position"]["z"])
         self.__tank_color = color
-        self.__player_index: int = player_index
+        self.__player_idx: int = player_idx
         self.__destroyed: bool = False
         self.__used_repair: bool = False
         self._coord: tuple[int, int, int] = (tank_info["position"]["x"],
@@ -60,8 +60,8 @@ class Tank(Entity, ABC):
         self._coord = new_coord
 
     @property
-    def player_index(self) -> int:
-        return self.__player_index
+    def player_id(self) -> int:
+        return self.__player_idx
 
     @property
     def tank_id(self) -> int:

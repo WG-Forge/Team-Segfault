@@ -42,7 +42,6 @@ class Player(Thread, ABC):
         self._damage_points: int = 0
         self._capture_points: int = 0
         self._tanks: list[Tank] = []
-        self._player_index: int | None = None
         self.__player_color: tuple | None = None
         self.__has_shot: list[int] = []  # Holds a list of enemies this player has shot last turn
 
@@ -130,14 +129,8 @@ class Player(Thread, ABC):
     def damage_points(self, damage_points: int) -> None:
         self._damage_points = damage_points
 
-    @property
-    def index(self) -> int | None:
-        return self._player_index
-
-    @index.setter
-    def index(self, player_index: int) -> None:
+    def set_color_index(self, player_index: int) -> None:
         # set and update player index if player is not an observer
-        self._player_index = player_index
         self.__player_color = PLAYER_COLORS[player_index]
 
     @property

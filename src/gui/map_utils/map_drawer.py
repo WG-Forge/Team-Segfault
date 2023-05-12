@@ -119,7 +119,7 @@ class MapDrawer:
 
     def add_explosion(self, tank: Tank, target: Tank) -> None:
         self.__max_damage_points = \
-            max(self.__max_damage_points, self.__players[tank.player_index].damage_points)
+            max(self.__max_damage_points, self.__players[tank.player_id].damage_points)
 
         self.__explosion_group_buf.put(target.coord)
 

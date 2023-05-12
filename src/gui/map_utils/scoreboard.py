@@ -75,7 +75,7 @@ class Scoreboard:
         for player in self.__players:
             if player is not None:
                 i += 1
-                text = font.render('    player id ' + str(player.index) + ': '
+                text = font.render('    player id ' + str(player.idx) + ': '
                                    + str(player.damage_points), True, player.color)
                 screen.blit(text, dest=(0, screen.get_height() - (4 - i) * (font_size + self.__rad_y_third)))
 
@@ -120,7 +120,7 @@ class Scoreboard:
         for player in self.__players:
             if player is not None:
                 i += 1
-                text = font.render('    player id ' + str(player.index) + ': '
+                text = font.render('    player id ' + str(player.idx) + ': '
                                    + str(player.capture_points), True, player.color)
                 screen.blit(text, dest=(0, i * (font_size + self.__rad_y_third)))
 
