@@ -64,20 +64,21 @@ class BotPlayer(Player):
                 action = self._best_actions[tank.type][self._current_turn[0]]
                 self.__do(action, tank)
         else:
-            for tank in self._tanks:
-                if tank.catapult_bonus:
-                    self.__do('C', tank)
-                else:
-                    self.__do('F', tank)
+            # testing catapult action
+            # for tank in self._tanks:
+            #     if tank.catapult_bonus:
+            #         self.__do('C', tank)
+            #     else:
+            #         self.__do('F', tank)
 
             # testing random actions
-            # for tank in self._tanks:
-            #     action = None
-            #     can_repair = self.__tank_names_can_repair[tank.type]
-            #     possible_actions = self.__actions if can_repair else self.__no_repair_actions
-            #     while action not in possible_actions:
-            #         action = self.__actions[rnd.randint(0, len(possible_actions) - 1)]
-            #     self.__do(action, tank)
+            for tank in self._tanks:
+                action = None
+                can_repair = self.__tank_names_can_repair[tank.type]
+                possible_actions = self.__actions if can_repair else self.__no_repair_actions
+                while action not in possible_actions:
+                    action = self.__actions[rnd.randint(0, len(possible_actions) - 1)]
+                self.__do(action, tank)
 
     def __do(self, action: str, tank: Tank) -> None:
         if action == 'A':
