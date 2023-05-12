@@ -2,6 +2,7 @@ import random as rnd
 import time
 from threading import Semaphore, Event
 
+from game_map.hex import Hex
 from mab.data.data_io import DataIO
 from src.constants import GAME_SPEED
 from src.entities.entity_enum import Entities
@@ -41,6 +42,8 @@ class BotPlayer(Player):
                 if delay > 0:
                     time.sleep(delay)  # comment/uncomment this for a turn delay effect
                 self.__place_actions()
+        except Exception as e:
+            print(e)
         finally:
             # end your turn
             self._game_client.force_turn()
@@ -52,7 +55,7 @@ class BotPlayer(Player):
 
     def __place_actions(self) -> None:
         # set round actions based on first turn order
-        if not self._best_actions:
+        if not self._best_actions and False:
             self._best_actions = DataIO.load_best_actions()[str(self._current_turn[0] % self._num_players)]
 
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
@@ -61,15 +64,20 @@ class BotPlayer(Player):
                 action = self._best_actions[tank.type][self._current_turn[0]]
                 self.__do(action, tank)
         else:
-            # testing random actions
-            print('random')
             for tank in self._tanks:
-                action = None
-                can_repair = self.__tank_names_can_repair[tank.type]
-                possible_actions = self.__actions if can_repair else self.__no_repair_actions
-                while action not in possible_actions:
-                    action = self.__actions[rnd.randint(0, len(possible_actions) - 1)]
-                self.__do(action, tank)
+                if tank.catapult_bonus:
+                    self.__do('C', tank)
+                else:
+                    self.__do('F', tank)
+
+            # testing random actions
+            # for tank in self._tanks:
+            #     action = None
+            #     can_repair = self.__tank_names_can_repair[tank.type]
+            #     possible_actions = self.__actions if can_repair else self.__no_repair_actions
+            #     while action not in possible_actions:
+            #         action = self.__actions[rnd.randint(0, len(possible_actions) - 1)]
+            #     self.__do(action, tank)
 
     def __do(self, action: str, tank: Tank) -> None:
         if action == 'A':
@@ -107,7 +115,7 @@ class BotPlayer(Player):
     def __catapult_else_e(self, tank: Tank) -> None:
         enemies_in_range = self._map.enemies_in_range(tank)
         if enemies_in_range:
-            self.__camp(tank, self.__find_best_target(enemies_in_range))
+            self.__camp(tank, enemies_in_range)
         else:
             if not self.__move_return_has_moved('catapult', tank):
                 if self._map.is_catapult_and_usable(tank.coord):
@@ -142,41 +150,50 @@ class BotPlayer(Player):
         if not self.__move_return_has_moved(where, tank):
             enemies_in_range = self._map.enemies_in_range(tank)
             if enemies_in_range:
-                self.__camp(tank, self.__find_best_target(enemies_in_range))
+                self.__camp(tank, enemies_in_range)
 
     def __shoot_else_move(self, tank: Tank, where: str) -> None:
         enemies_in_range = self._map.enemies_in_range(tank)
         if not enemies_in_range:
             self.__move_return_has_moved(where, tank)
         else:
-            self.__camp(tank, self.__find_best_target(enemies_in_range))
+            self.__camp(tank, enemies_in_range)
 
-    def __camp(self, tank: Tank, enemy: Tank) -> None:
+    def __camp(self, tank: Tank, enemies_in_range: list[Tank]) -> None:
         if tank.type != Entities.TANK_DESTROYER:
-            self.__update_maps_with_shot(tank, enemy)
+            self.__update_maps_with_tank_shot(tank, self.__lowest_hp_enemy(enemies_in_range))
         else:
             self.__td_camp(tank, self._map.tanks_in_range(tank))
 
-    def __td_camp(self, td: Tank, tanks: list[Tank]) -> None:
-        # Get the enemy in the fire corridor with the largest number of enemies and least friends
+    def __td_camp(self, td: Tank, tanks: list[Tank]) -> bool:
+        # Shoot the fire corridor with the largest damage potential, if no damage potential in any get the
+        # corridor with the most enemies, if no enemies return False, is has shot return True
+
+        td_fire_corridors = td.fire_corridors()
         tanks_by_corridor = [
-            [tank for tank in tanks if tank.coord in c]
-            for c in td.fire_corridors()
+            [tank for tank in tanks if tank.coord in corridor]
+            for corridor in td_fire_corridors
         ]
 
-        best_score: float | int = 0
-        best_corridor = None
-        for corridor in tanks_by_corridor:
-            score = sum(
-                [1 if self._map.is_enemy(td, tank) else
-                 -10 if self._map.is_neutral(td, tank) else -1.1
-                 for tank in corridor]
-            )
-            if score > best_score:
-                best_score, best_corridor = score, corridor
+        best_corridor_index, most_enemies, most_damage = None, 0, 0
+        for index, corridor in enumerate(tanks_by_corridor):
+            num_enemies, damage = 0, 0
+            for tank in corridor:
+                if self._map.is_enemy(td, tank):
+                    num_enemies += 1
+                    if tank.health_points == 1:
+                        damage += tank.max_health_points
 
-        if best_corridor and best_score > 0:
-            self.__update_maps_with_shot(td, best_corridor[0], is_td=True)
+                if damage > most_damage:
+                    best_corridor_index, most_damage = index, damage
+                if most_damage == 0 and num_enemies > most_enemies:
+                    best_corridor_index, most_enemies = index, num_enemies
+
+        if best_corridor_index:
+            # Coords in td_fire_corridors ordered from closest to furthest away from td
+            self.__update_maps_with_td_shot(td, td_fire_corridors[best_corridor_index][0])
+            return True
+        return False
 
     def __move_to_if_possible(self, tank: Tank, where: tuple) -> bool:
         next_best = self._map.next_best_available_hex_in_path_to(tank, where)
@@ -191,24 +208,17 @@ class BotPlayer(Player):
         self._map.local_move(tank, action_coord)
         self._game_client.server_move({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
 
-    def __update_maps_with_shot(self, tank: Tank, enemy: Tank, is_td=False) -> None:
-        if is_td:
-            td_shooting_coord = tank.td_shooting_coord(enemy.coord)
-            x, y, z = td_shooting_coord
-            self._map.td_shoot(tank, td_shooting_coord)
-        else:
-            x, y, z = enemy.coord
-            self._map.local_shoot(tank, enemy)
-
+    def __update_maps_with_tank_shot(self, tank: Tank, enemy: Tank) -> None:
+        self._map.local_shoot(tank, enemy)
+        x, y, z = enemy.coord
         self._game_client.server_shoot({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
 
-    def __find_best_target(self, enemies_in_range: list[Tank]) -> Tank:
-        """Returns the best tank to shoot from a given list. enemies_in_range must not be empty"""
-        target: Tank | None = None
-        for enemy in enemies_in_range:
-            if enemy.health_points == 1:
-                target = enemy
-                break
-            target = enemy if target is None or target.health_points > enemy.health_points else target
+    def __update_maps_with_td_shot(self, tank: Tank, td_shooting_coord: tuple) -> None:
+        x, y, z = td_shooting_coord
+        self._map.td_shoot(tank, td_shooting_coord)
+        self._game_client.server_shoot({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
 
-        return target
+    @staticmethod
+    def __lowest_hp_enemy(enemies_in_range: list[Tank]) -> Tank:
+        """Returns the tank with the lowest health points in enemies_in_range"""
+        return min(enemies_in_range, key=lambda enemy: enemy.health_points, default=None)

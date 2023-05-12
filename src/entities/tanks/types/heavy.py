@@ -20,23 +20,19 @@ class HeavyTank(Tank, ABC):
     def __init__(self, tank_id: int, tank_info: dict, colour: tuple, player_index: int):
         super().__init__(tank_id, tank_info, colour, player_index, HT_IMAGE_PATH)
 
-    def coords_in_range(self, is_on_catapult: bool) -> tuple:
-        if is_on_catapult:
-            deltas = self.__all_deltas
-        else:
-            deltas = self.__fire_deltas
+    def coords_in_range(self) -> tuple:
+        # Return all the coords in range of this tank taking into account if it has picked up the catapult bonus
+        deltas = self.__all_deltas if self._catapult_bonus else self.__fire_deltas
         return tuple(Hex.coord_sum(delta, self._coord) for delta in deltas)
 
     def shot_moves(self, target: tuple) -> tuple:
         # returns coords to where "self" can move shoot "target", ordered from closest to furthest away from "self"
-        fire_locs_around_enemy = Hex.possible_shots(target, HeavyTank.__fire_deltas)
+        deltas = self.__all_deltas if self._catapult_bonus else self.__fire_deltas
+        fire_locs_around_enemy = Hex.possible_shots(target, deltas)
         sorted_fire_locs = sorted(fire_locs_around_enemy, key=lambda loc: Hex.manhattan_dist(self._coord, loc))
         return tuple(sorted_fire_locs)
 
     def fire_corridors(self) -> tuple:
-        return ()
-
-    def td_shooting_coord(self, target: tuple) -> tuple:
         return ()
 
     @property

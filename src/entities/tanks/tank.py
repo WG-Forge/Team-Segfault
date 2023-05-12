@@ -131,11 +131,7 @@ class Tank(Entity, ABC):
         pass
 
     @abstractmethod
-    def coords_in_range(self, is_on_catapult: bool) -> tuple:
-        pass
-
-    @abstractmethod
-    def td_shooting_coord(self, target: tuple) -> tuple:
+    def coords_in_range(self) -> tuple:
         pass
 
     @abstractmethod

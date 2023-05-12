@@ -144,7 +144,7 @@ class Map:
                         or isinstance(feature, HardRepair) and feature.is_usable(tank.type)):
                     tank.repair()
 
-                if isinstance(feature, Catapult) and feature.is_usable():
+                if isinstance(feature, Catapult) and feature.is_usable() and not tank.catapult_bonus:
                     feature.was_used()
                     tank.catapult_bonus = True
 
@@ -180,8 +180,8 @@ class Map:
 
     def local_shoot(self, tank: Tank, target: Tank) -> None:
         destroyed = target.register_hit_return_destroyed()
-        self.__map_drawer.add_shot(Hex.make_center(tank.coord), Hex.make_center(target.coord),
-                                   tank.color)
+        self.__map_drawer.add_shot(Hex.make_center(tank.coord), Hex.make_center(target.coord), tank.color)
+
         if destroyed:
             # update player damage points
             self.__players[tank.player_index].register_destroyed_vehicle(target)
@@ -194,6 +194,8 @@ class Map:
         else:
             self.__map_drawer.add_hitreg(self.__map[target.coord]['feature'].center, target.image_path)
         self.__players[tank.player_index].register_shot(target.player_index)
+
+        tank.catapult_bonus = False  # If had catapult bonus remove
 
     def local_shoot_tuple(self, tank: Tank, coord: tuple) -> None:
         entities = self.__map.get(coord)
@@ -213,7 +215,6 @@ class Map:
                 target_tank = self.__map[coord]['tank']
                 # Tank that violates neutrality rule or is an allay is skipped
                 if self.is_enemy(td, target_tank):
-                    td.catapult_bonus = False
                     self.local_shoot(td, target_tank)
             else:
                 break
@@ -255,9 +256,11 @@ class Map:
         return sorted(feature_coords, key=lambda coord: Hex.manhattan_dist(coord, tank.coord))
 
     def closest_usable_repair(self, tank: Tank) -> list[tuple[int, int, int]] | None:
-        feature_coords = self.__hard_repair_coords
         if tank.type == 'medium_tank':
             feature_coords = self.__light_repair_coords
+        else:
+            feature_coords = self.__hard_repair_coords
+
         closest_repair = self.__features_by_dist(tank, feature_coords)[0]
         if self.__is_usable(closest_repair, tank):
             return [closest_repair]
@@ -267,9 +270,9 @@ class Map:
         return [coord for coord in two_closest if self.__is_usable(coord, tank)]
 
     def tanks_in_range(self, tank: Tank) -> list[Tank]:
-        is_on_catapult = isinstance(self.__map[tank.coord]['feature'], Catapult)
+        has_catapult_bonus = tank.catapult_bonus
         return [
-            tank for coord in tank.coords_in_range(is_on_catapult)
+            tank for coord in tank.coords_in_range()
             if (tank := self.__map.get(coord, {}).get('tank')) is not None and not tank.is_destroyed
         ]
 
@@ -291,8 +294,8 @@ class Map:
 
     def closest_enemies(self, tank: Tank) -> list[Tank]:
         # Returns a sorted list by distance of enemy tanks
-        tank_idx, tank_coord = tank.player_index, tank.coord
-        enemies = [self.__players[player] for player in self.__players if player != tank_idx]
+        friend_index, tank_coord = tank.player_index, tank.coord
+        enemies = [self.__players[other_index] for other_index in self.__players if other_index != friend_index]
         return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.tanks),
                       key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.coord, tank_coord))
 
@@ -308,6 +311,8 @@ class Map:
             self.__destroyed.append(target)
         self.__players[tank.player_index].register_shot(target.player_index)
 
+        tank.catapult_bonus = False
+
     def td_shoot_no_graphics(self, td: Tank, target: tuple) -> None:
         firing_range: int = 3
         if td.catapult_bonus:
@@ -319,7 +324,6 @@ class Map:
                 target_tank = self.__map[coord]['tank']
                 # Tank that violates neutrality rule or is an allay is skipped
                 if self.is_enemy(td, target_tank):
-                    td.catapult_bonus = False
                     self.local_shoot_no_graphics(td, target_tank)
             else:
                 break

@@ -24,32 +24,24 @@ class TankDestroyer(Tank, ABC):
     def __init__(self, tank_id: int, tank_info: dict, colour: tuple, player_index: int):
         super().__init__(tank_id, tank_info, colour, player_index, TD_IMAGE_PATH)
 
-    def coords_in_range(self, is_on_catapult: bool) -> tuple:
-        if is_on_catapult:
-            deltas = self.__all_deltas
-        else:
-            deltas = self.__fire_deltas
+    def coords_in_range(self) -> tuple:
+        # Return all the coords in range of this tank taking into account if it has picked up the catapult bonus
+        deltas = self.__all_deltas if self._catapult_bonus else self.__fire_deltas
         return tuple(Hex.coord_sum(delta, self._coord) for delta in deltas)
 
     def shot_moves(self, target: tuple) -> tuple:
         # returns coords to where "self" can move shoot "target", ordered from closest to furthest away from "self"
-        fire_locs_around_enemy = Hex.possible_shots(target, TankDestroyer.__fire_deltas)
+        deltas = self.__all_deltas if self._catapult_bonus else self.__fire_deltas
+        fire_locs_around_enemy = Hex.possible_shots(target, deltas)
         sorted_fire_locs = sorted(fire_locs_around_enemy, key=lambda loc: Hex.manhattan_dist(self._coord, loc))
         return tuple(sorted_fire_locs)
 
-    def possible_shots(self) -> tuple:
-        x, y, z = self._coord
-        return tuple([(dx + x, dy + y, dz + z) for (dx, dy, dz) in TankDestroyer.__fire_deltas])
-
     def fire_corridors(self) -> tuple:
-        return tuple([tuple([Hex.coord_sum(self._coord, delta) for delta in corridor_deltas]) for corridor_deltas in
-                      TankDestroyer.__fire_corridor_deltas])
-
-    def td_shooting_coord(self, target: tuple) -> tuple:
-        # Returns the coord where the TD needs to fire to, to hit the tank in 'target' ('target' is in TD fire pattern)
-        distance = Hex.manhattan_dist(self._coord, target)
-        if distance == 1: return target
-        return Hex.coord_sum(target, Hex.coord_mult(Hex.dir_vec(target, self._coord), distance - 1))
+        deltas_by_corridor = self.__catapult_corridor_deltas if self._catapult_bonus else self.__fire_corridor_deltas
+        return tuple([
+            tuple([
+                Hex.coord_sum(self._coord, delta) for delta in corridor_deltas]
+            ) for corridor_deltas in deltas_by_corridor])
 
     @property
     def speed(self) -> int:
