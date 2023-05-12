@@ -2,7 +2,6 @@ import random as rnd
 import time
 from threading import Semaphore, Event
 
-from game_map.hex import Hex
 from mab.data.data_io import DataIO
 from src.constants import GAME_SPEED
 from src.entities.entity_enum import Entities
@@ -162,7 +161,7 @@ class BotPlayer(Player):
 
     def __camp(self, tank: Tank, enemies_in_range: list[Tank]) -> None:
         if tank.type != Entities.TANK_DESTROYER:
-            self.__update_maps_with_tank_shot(tank, self.__lowest_hp_enemy(enemies_in_range))
+            self.__update_maps_with_tank_shot(tank, self.__best_shooting_target(enemies_in_range))
         else:
             self.__td_camp(tank, self._map.enemies_in_range(tank))
 
@@ -214,6 +213,11 @@ class BotPlayer(Player):
         self._game_client.server_shoot({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
 
     @staticmethod
-    def __lowest_hp_enemy(enemies_in_range: list[Tank]) -> Tank:
-        """Returns the tank with the lowest health points in enemies_in_range"""
-        return min(enemies_in_range, key=lambda enemy: enemy.health_points, default=None)
+    def __best_shooting_target(enemies_in_range: list[Tank]) -> Tank:
+        """Returns the tank with the lowest health points and the most max health points in enemies_in_range"""
+        target: Tank | None = None
+        for tank in enemies_in_range:
+            if target is None or tank.health_points < target.health_points or \
+                    (tank.health_points == target.health_points and target.max_health_points < tank.max_health_points):
+                target = tank
+        return target

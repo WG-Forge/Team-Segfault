@@ -13,7 +13,6 @@ from src.remote.game_client import GameClient
 class Player(Thread, ABC):
     """ Abstract base player class """
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
-    __possible_colours = PLAYER_COLORS
 
     def __init__(self, turn_played_sem: Semaphore, current_player: list[int], current_turn: list[int],
                  over: Event, game_exited: Event,
@@ -44,7 +43,7 @@ class Player(Thread, ABC):
         self._capture_points: int = 0
         self._tanks: list[Tank] = []
         self._player_index: int | None = None
-        self.__player_colour: tuple | None = None
+        self.__player_color: tuple | None = None
         self.__has_shot: list[int] = []  # Holds a list of enemies this player has shot last turn
 
         # Game actions loaded from ML
@@ -109,7 +108,7 @@ class Player(Thread, ABC):
 
     @property
     def color(self) -> tuple:
-        return self.__player_colour
+        return self.__player_color
 
     @property
     def tanks(self) -> list[Tank]:
@@ -139,7 +138,7 @@ class Player(Thread, ABC):
     def index(self, player_index: int) -> None:
         # set and update player index if player is not an observer
         self._player_index = player_index
-        self.__player_colour = Player.__possible_colours[player_index]
+        self.__player_color = PLAYER_COLORS[player_index]
 
     @property
     def num_players(self) -> int:
