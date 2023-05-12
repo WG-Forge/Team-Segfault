@@ -20,7 +20,7 @@ class Map:
     __max_players_in_base = 2
 
     def __init__(self, client_map: dict, game_state: dict, active_players: dict, num_turns: int, num_rounds: int,
-                 current_turn: list[int], current_player_idx: list[int], graphics=True):
+                 current_turn: list[int], graphics=True):
 
         HEX_RADIUS_X[0] = SCREEN_WIDTH // ((client_map['size'] - 1) * 2 * 2)
         HEX_RADIUS_Y[0] = SCREEN_HEIGHT // ((client_map['size'] - 1) * 2 * 2)
@@ -28,7 +28,7 @@ class Map:
         self.__players: dict = self.__add_players(active_players)
         self.__players_by_idx: dict = active_players
         self.__num_players: int = len(self.__players)
-        self.__current_player_idx = current_player_idx
+        self.__current_player_index: int = 0
 
         self.__tanks: dict[int, Tank] = {}
         self.__destroyed: list[Tank] = []
@@ -140,7 +140,7 @@ class Map:
         for tank in self.__tanks.values():
             feature = self.__map[tank.coord]['feature']
 
-            if not tank.is_destroyed:
+            if not tank.is_destroyed and tank.player_index == self.__current_player_index:
                 if (isinstance(feature, LightRepair) and feature.is_usable(tank.type)
                         or isinstance(feature, HardRepair) and feature.is_usable(tank.type)):
                     tank.repair()
@@ -167,6 +167,7 @@ class Map:
                     tank.capture_points += 1
 
     def __new_turn(self):
+        self.__current_player_index = self.__current_turn[0] % self.__num_players
         if self.__is_new_round():
             self.__update_capture_points()
         self.__update_repairs_and_catapult_bonus()
