@@ -212,7 +212,7 @@ class Map:
             entities = self.__map.get(coord)
             if entities and not isinstance(entities['feature'], Obstacle):
                 target_tank = self.__map[coord]['tank']
-                # Tank that violates neutrality rule or is an allay or is not a tank is skipped
+                # Tank that violates neutrality rule or is an ally or is not a tank is skipped
                 if self.is_enemy(td, target_tank):
                     self.local_shoot(td, target_tank)
             else:
