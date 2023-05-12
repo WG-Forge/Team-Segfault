@@ -164,36 +164,30 @@ class BotPlayer(Player):
         if tank.type != Entities.TANK_DESTROYER:
             self.__update_maps_with_tank_shot(tank, self.__lowest_hp_enemy(enemies_in_range))
         else:
-            self.__td_camp(tank, self._map.tanks_in_range(tank))
+            self.__td_camp(tank, self._map.enemies_in_range(tank))
 
-    def __td_camp(self, td: Tank, tanks: list[Tank]) -> bool:
+    def __td_camp(self, td: Tank, enemy_tanks: list[Tank]) -> bool:
         # Shoot the fire corridor with the largest damage potential, if no damage potential in any get the
         # corridor with the most enemies, if no enemies return False, is has shot return True
-
         td_fire_corridors = td.fire_corridors()
         tanks_by_corridor = [
-            [tank for tank in tanks if tank.coord in corridor]
-            for corridor in td_fire_corridors
-        ]
+            [tank for tank in enemy_tanks if tank.coord in corridor]
+            for corridor in td_fire_corridors]
 
-        best_corridor_index, most_enemies, most_damage = None, 0, 0
-        for index, corridor in enumerate(tanks_by_corridor):
-            num_enemies, damage = 0, 0
-            for tank in corridor:
-                if self._map.is_enemy(td, tank):
-                    num_enemies += 1
-                    if tank.health_points == 1:
-                        damage += tank.max_health_points
+        most_damage_index, most_damage_potential = max(
+            ((i, sum(tank.max_health_points for tank in corridor if tank.health_points == 1))
+             for i, corridor in enumerate(tanks_by_corridor)), key=lambda x: x[1], default=(None, 0))
 
-                if damage > most_damage:
-                    best_corridor_index, most_damage = index, damage
-                if most_damage == 0 and num_enemies > most_enemies:
-                    best_corridor_index, most_enemies = index, num_enemies
-
-        if best_corridor_index:
-            # Coords in td_fire_corridors ordered from closest to furthest away from td
-            self.__update_maps_with_td_shot(td, td_fire_corridors[best_corridor_index])
+        if most_damage_index:
+            self.__update_maps_with_td_shot(td, td_fire_corridors[most_damage_index])
             return True
+
+        most_enemies_index, most_enemies = max(((i, len(corridor)) for i, corridor in enumerate(tanks_by_corridor)),
+                                               key=lambda x: x[1], default=(None, 0))
+        if most_enemies_index:
+            self.__update_maps_with_td_shot(td, td_fire_corridors[most_enemies_index])
+            return True
+
         return False
 
     def __move_to_if_possible(self, tank: Tank, where: tuple) -> bool:

@@ -269,7 +269,7 @@ class Map:
         return [coord for coord in two_closest if self.__is_usable(coord, tank)]
 
     def tanks_in_range(self, tank: Tank) -> list[Tank]:
-        has_catapult_bonus = tank.catapult_bonus
+        # Returns all tanks, enemies and friends in range of 'tank' taking into account if 'tank' has catapult bonus
         return [
             tank for coord in tank.coords_in_range()
             if (tank := self.__map.get(coord, {}).get('tank')) is not None and not tank.is_destroyed
