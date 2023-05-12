@@ -22,7 +22,8 @@ class Game(Thread):
         self.__max_players: int = max_players
         self.__is_full: bool = is_full
         self.__num_rounds: int | None = None
-        self.__next_round: bool = True
+        self.__next_round: bool = False
+        self.__next_turn: bool = False
 
         self.__round_winner_index: int | None = None
         self.__game_winner_index: int | None = None
@@ -140,15 +141,18 @@ class Game(Thread):
             self.__init_game_state()
 
             while not self.over.is_set():
-                # start next round if need be
                 if self.__next_round:
+                    # start next round if need be
                     self.__start_next_round()
-
-                # start the next turn
-                self.__start_next_turn()
+                elif self.__next_turn:
+                    # just start the next turn
+                    self.__start_next_turn()
 
                 # handshake with players
                 self.__player_manager.handle_player_turns()
+
+                # set next turn
+                self.__next_turn = True
 
         except (ConnectionError, TimeoutError) as err:
             # an error happened
@@ -205,25 +209,24 @@ class Game(Thread):
         self.__max_players = game_state["num_players"]
         self.__num_rounds = game_state["num_rounds"]
 
-        # set the player win counts
-        self.__set_player_win_counts(game_state)
-
-        # add all remote players and observers
-        self.__player_manager.add_remote_players(game_state["players"])
-
         # start all player instances
         self.__player_manager.start_players()
 
-        self.__start_next_round()
+        # set the player win counts
+        self.__set_player_win_counts(game_state)
 
         # output the game info to console
         print(self)
 
-    def __start_next_round(self) -> None:
+        # start first round
+        self.__start_next_round(game_state)
+
+    def __start_next_round(self, game_state: dict = None) -> None:
         # start the next round
         self.__next_round = False
 
-        game_state: dict = self.__shadow_client.get_game_state()
+        if not game_state:
+            game_state = self.__shadow_client.get_game_state()
 
         self.__current_round = game_state["current_round"]
 
@@ -241,9 +244,15 @@ class Game(Thread):
         for player in self.__active_players.values():
             player.add_map(self.game_map)
 
-    def __start_next_turn(self) -> None:
+        # start the first turn
+        self.__start_next_turn(game_state)
+
+    def __start_next_turn(self, game_state: dict = None) -> None:
+        self.__next_turn = False
+
         # start the next turn
-        game_state = self.__shadow_client.get_game_state()
+        if not game_state:
+            game_state = self.__shadow_client.get_game_state()
 
         self.__current_turn[0] = game_state["current_turn"]
         self.__current_player_idx[0] = game_state["current_player_idx"]
@@ -336,4 +345,4 @@ class Game(Thread):
     def __print_player_wins(self) -> None:
         print()
         for idx, win_num in self.__player_wins.items():
-            print(f"{self.__active_players[idx]} wins: {win_num}")
+            print(f"{self.__active_players[idx]} win points: {win_num}")
