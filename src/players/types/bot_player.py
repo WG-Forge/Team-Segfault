@@ -191,7 +191,7 @@ class BotPlayer(Player):
 
         if best_corridor_index:
             # Coords in td_fire_corridors ordered from closest to furthest away from td
-            self.__update_maps_with_td_shot(td, td_fire_corridors[best_corridor_index][0])
+            self.__update_maps_with_td_shot(td, td_fire_corridors[best_corridor_index])
             return True
         return False
 
@@ -213,9 +213,9 @@ class BotPlayer(Player):
         x, y, z = enemy.coord
         self._game_client.server_shoot({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
 
-    def __update_maps_with_td_shot(self, tank: Tank, td_shooting_coord: tuple) -> None:
-        x, y, z = td_shooting_coord
-        self._map.td_shoot(tank, td_shooting_coord)
+    def __update_maps_with_td_shot(self, tank: Tank, td_fire_corridor: list[tuple]) -> None:
+        x, y, z = td_fire_corridor[0]
+        self._map.td_shoot(tank, td_fire_corridor)
         self._game_client.server_shoot({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
 
     @staticmethod

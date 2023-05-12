@@ -20,7 +20,7 @@ class Map:
     __max_players_in_base = 2
 
     def __init__(self, client_map: dict, game_state: dict, active_players: dict, num_turns: int, num_rounds: int,
-                 current_turn: list[int], graphics=True):
+                 current_turn: list[int], current_player_idx: list[int], graphics=True):
 
         HEX_RADIUS_X[0] = SCREEN_WIDTH // ((client_map['size'] - 1) * 2 * 2)
         HEX_RADIUS_Y[0] = SCREEN_HEIGHT // ((client_map['size'] - 1) * 2 * 2)
@@ -28,6 +28,7 @@ class Map:
         self.__players: dict = self.__add_players(active_players)
         self.__players_by_idx: dict = active_players
         self.__num_players: int = len(self.__players)
+        self.__current_player_idx = current_player_idx
 
         self.__tanks: dict[int, Tank] = {}
         self.__destroyed: list[Tank] = []
@@ -198,22 +199,19 @@ class Map:
         tank.catapult_bonus = False  # If had catapult bonus remove
 
     def local_shoot_tuple(self, tank: Tank, coord: tuple) -> None:
+        # Used to place remote player shots
         entities = self.__map.get(coord)
         if entities and not isinstance(entities['feature'], Obstacle):
             enemy = self.__map[coord]['tank']
             if self.is_enemy(tank, enemy):
                 self.local_shoot(tank, enemy)
 
-    def td_shoot(self, td: Tank, target: tuple) -> None:
-        firing_range: int = 3
-        if td.catapult_bonus:
-            firing_range += 1
-        danger_zone = Hex.danger_zone(td.coord, target, firing_range)
-        for coord in danger_zone:
+    def td_shoot(self, td: Tank, target_corridor: list[tuple]) -> None:
+        for coord in target_corridor:
             entities = self.__map.get(coord)
             if entities and not isinstance(entities['feature'], Obstacle):
                 target_tank = self.__map[coord]['tank']
-                # Tank that violates neutrality rule or is an allay is skipped
+                # Tank that violates neutrality rule or is an allay or is not a tank is skipped
                 if self.is_enemy(td, target_tank):
                     self.local_shoot(td, target_tank)
             else:
@@ -313,16 +311,12 @@ class Map:
 
         tank.catapult_bonus = False
 
-    def td_shoot_no_graphics(self, td: Tank, target: tuple) -> None:
-        firing_range: int = 3
-        if td.catapult_bonus:
-            firing_range += 1
-        danger_zone = Hex.danger_zone(td.coord, target, firing_range)
-        for coord in danger_zone:
+    def td_shoot_no_graphics(self, td: Tank, target_corridor: list[tuple]) -> None:
+        for coord in target_corridor:
             entities = self.__map.get(coord)
             if entities and not isinstance(entities['feature'], Obstacle):
                 target_tank = self.__map[coord]['tank']
-                # Tank that violates neutrality rule or is an allay is skipped
+                # Tank that violates neutrality rule or is an allay or no tank there is skipped
                 if self.is_enemy(td, target_tank):
                     self.local_shoot_no_graphics(td, target_tank)
             else:

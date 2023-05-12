@@ -14,15 +14,6 @@ class Hex:
         return tuple([tuple([Hex.coord_mult(move, m) for m in range(1, max_range + 1)]) for move in Hex.moves])
 
     @staticmethod
-    def danger_zone(td: tuple, target: tuple, firing_range: int) -> tuple:
-        # returns the coords of all the hexes that could be affected by a TD shooting from 'td' to 'target'
-        target_dir = Hex.dir_vec(td, target)
-        danger_zone = [Hex.coord_sum(td, target_dir)]
-        for _ in range(firing_range - 1):
-            danger_zone.append(Hex.coord_sum(danger_zone[-1], target_dir))
-        return tuple(danger_zone)
-
-    @staticmethod
     def possible_shots(tank_coord: tuple, fire_deltas: tuple) -> tuple:
         x, y, z = tank_coord
         return tuple([(dx + x, dy + y, dz + z) for (dx, dy, dz) in fire_deltas])
