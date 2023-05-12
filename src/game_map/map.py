@@ -221,7 +221,15 @@ class Map:
     def is_neutral(self, player_tank: Tank, enemy_tank: Tank) -> bool:
         # Neutrality rule logic implemented here, return True if neutral, False if not neutral
         player_index, enemy_index = player_tank.player_index, enemy_tank.player_index
-        other_index = next(iter({0, 1, 2} - {player_index, enemy_index}))
+        player_indexes: set = {i for i in range(self.__num_players)}
+
+        viable_indexes: set = (player_indexes - {player_index, enemy_index})
+
+        # Set is empty
+        if not viable_indexes:
+            return False
+
+        other_index = next(iter(viable_indexes))
         other_player, enemy_player = self.__players[other_index], self.__players[enemy_index]
         return not enemy_player.has_shot(player_index) and other_player.has_shot(enemy_index)
 

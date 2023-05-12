@@ -1,3 +1,4 @@
+import traceback
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from threading import Thread, Semaphore, Event
@@ -92,6 +93,8 @@ class Player(Thread, ABC):
 
             except (ConnectionError, TimeoutError) as err:
                 print(err)
+            except Exception:
+                traceback.print_exc()
             finally:
                 # notify condition
                 self.__turn_played_sem.release()

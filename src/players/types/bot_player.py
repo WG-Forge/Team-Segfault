@@ -41,8 +41,6 @@ class BotPlayer(Player):
                 if delay > 0:
                     time.sleep(delay)  # comment/uncomment this for a turn delay effect
                 self.__place_actions()
-        except Exception as e:
-            print(e)
         finally:
             # end your turn
             self._game_client.force_turn()
