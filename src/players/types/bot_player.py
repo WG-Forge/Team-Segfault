@@ -26,6 +26,7 @@ class BotPlayer(Player):
                          over=over, game_exited=game_exited,
                          name=name, password=password,
                          is_observer=is_observer)
+        self.__order = None
 
     def register_round(self) -> None:
         # reset round actions
@@ -53,6 +54,10 @@ class BotPlayer(Player):
         self._game_client.disconnect()
 
     def __place_actions(self) -> None:
+        if self._current_turn[0] <= self._num_players:
+            self._map.set_order_by_idx(self._current_turn[0], self.idx)
+            self.__order = self._current_turn[0]
+
         # set round actions based on first turn order
         if not self._best_actions and False:
             self._best_actions = DataIO.load_best_actions()[str(self._current_turn[0] % self._num_players)]

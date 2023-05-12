@@ -27,7 +27,8 @@ class Map:
 
         self.__players: dict = self.__add_players(active_players)
         self.__num_players: int = len(self.__players)
-        self.__current_player_index: int = 0
+        self.__player_order: int = 0
+        self.__max_players_in_base = self.__num_players - 1
 
         self.__tanks: dict[int, Tank] = {}
         self.__destroyed: list[Tank] = []
@@ -42,14 +43,8 @@ class Map:
         self.__map_size = client_map['size']
         self.__make_map(client_map, game_state, active_players)
         self.__path_finding_algorithm: callable = _a_star.a_star
-
         self.__current_turn: list[int] = current_turn
-        self.__current_round: int = 0
-        self.__old_round: int = -1
-        self.__rounds_in_base_by_player_index = [0 for _ in range(3)]
-        self.__player_indexes_who_capped: set = set()
-
-        self.__previous_turn_idx: int | None = None
+        self.__player_order_by_idx: dict = {}
 
         if graphics:
             self.__map_drawer: MapDrawer = MapDrawer(client_map["size"], self.__players, self.__map, current_turn,
@@ -125,26 +120,23 @@ class Map:
             player.damage_points = server_dp
             player.capture_points = server_cp
 
-    def __respawn_destroyed_tanks(self) -> None:
-        while self.__destroyed:
-            tank = self.__destroyed.pop()
-            self.local_move(tank, tank.spawn_coord)
-            tank.respawn()
-
-    def __can_capture_base(self) -> bool:
-        player_indexes_in_base = set(tank.player_id for tank in self.__tanks.values()
-                                     if isinstance(self.__map[tank.coord]['feature'], Base)
-                                     and not tank.is_destroyed)
-        return len(player_indexes_in_base) <= self.__max_players_in_base
-
     def __update_repairs_and_catapult_bonus(self):
         for tank in self.__tanks.values():
             feature = self.__map[tank.coord]['feature']
 
-            if not tank.is_destroyed:
-                if (isinstance(feature, LightRepair) and feature.is_usable(tank.type)
-                        or isinstance(feature, HardRepair) and feature.is_usable(tank.type)):
-                    tank.repair()
+            if not tank.is_destroyed and tank.player_id == self.__player_order_by_idx.get(self.__player_order):
+
+                if isinstance(feature, LightRepair):
+                    if feature.is_usable(tank.type):
+                        tank.repair()  # Repairs and sets can_repair to False
+                elif tank.type in LightRepair.can_be_used_by:
+                    tank.can_repair = True
+
+                if isinstance(feature, HardRepair):
+                    if feature.is_usable(tank.type):
+                        tank.repair()  # Repairs and sets can_repair to False
+                elif tank.type in HardRepair.can_be_used_by:
+                    tank.can_repair = True
 
                 if isinstance(feature, Catapult) and feature.is_usable() and not tank.catapult_bonus:
                     feature.was_used()
@@ -153,26 +145,33 @@ class Map:
             if not isinstance(feature, Base) or tank.is_destroyed:
                 tank.capture_points = 0
 
-    def __is_new_round(self) -> int:
-        new_round = self.__current_turn[0] // self.__num_players
-        if new_round != self.__current_round:
-            self.__current_round = new_round
-            return True
-        return False
+    def __can_capture_base(self) -> bool:
+        player_ids_in_base = set(tank.player_id for tank in self.__tanks.values()
+                                 if isinstance(self.__map[tank.coord]['feature'], Base)
+                                 and not tank.is_destroyed)
+        return len(player_ids_in_base) <= self.__max_players_in_base
 
     def __update_capture_points(self):
-        if self.__can_capture_base():
-            for coord in self.__base_coords:
-                tank = self.__map[coord]['tank']
-                if tank and not tank.is_destroyed:
-                    tank.capture_points += 1
+        for coord in self.__base_coords:
+            tank = self.__map[coord]['tank']
+            if tank and not tank.is_destroyed:
+                tank.capture_points += 1
+
+    def __respawn_destroyed_tanks(self) -> None:
+        while self.__destroyed:
+            tank = self.__destroyed.pop()
+            self.local_move(tank, tank.spawn_coord)
+            tank.respawn()
 
     def __new_turn(self):
-        # self.__current_player_index = self.__current_turn[0] % self.__num_players
-        if self.__is_new_round():
+        self.__current_player_index = self.__current_turn[0] % self.__num_players
+        if self.__current_player_index == 0 and self.__can_capture_base():
             self.__update_capture_points()
         self.__update_repairs_and_catapult_bonus()
         self.__respawn_destroyed_tanks()
+
+    def set_order_by_idx(self, turn: int, idx: int) -> None:
+        self.__player_order_by_idx[turn] = idx
 
     """     MOVE & FIRE CONTROL        """
 
@@ -256,10 +255,12 @@ class Map:
         return sorted(feature_coords, key=lambda coord: Hex.manhattan_dist(coord, tank.coord))
 
     def closest_usable_repair(self, tank: Tank) -> list[tuple[int, int, int]] | None:
-        if tank.type == 'medium_tank':
+        if tank.type in HardRepair.can_be_used_by:
+            feature_coords = self.__hard_repair_coords
+        elif tank.type in LightRepair.can_be_used_by:
             feature_coords = self.__light_repair_coords
         else:
-            feature_coords = self.__hard_repair_coords
+            return None
 
         closest_repair = self.__features_by_dist(tank, feature_coords)[0]
         if self.__is_usable(closest_repair, tank):
@@ -333,6 +334,3 @@ class Map:
     def __save(client_map: dict, game_state: dict) -> None:
         DataIO.save_client_map(client_map)
         DataIO.save_game_state(game_state)
-
-    def set_previous_turn_idx(self, idx: int):
-        self.__previous_turn_idx = idx
