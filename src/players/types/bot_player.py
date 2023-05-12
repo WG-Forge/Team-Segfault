@@ -59,7 +59,7 @@ class BotPlayer(Player):
             self.__order = self._current_turn[0]
 
         # set round actions based on first turn order
-        if not self._best_actions and False:
+        if not self._best_actions:
             self._best_actions = DataIO.load_best_actions()[str(self._current_turn[0] % self._num_players)]
 
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
