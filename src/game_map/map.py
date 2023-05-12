@@ -124,21 +124,14 @@ class Map:
         for tank in self.__tanks.values():
             feature = self.__map[tank.coord]['feature']
 
-            if not tank.is_destroyed and tank.player_id == self.__player_order_by_idx.get(self.__player_order):
-
-                if isinstance(feature, LightRepair):
-                    if feature.is_usable(tank.type):
-                        tank.repair()  # Repairs and sets can_repair to False
-                elif tank.type in LightRepair.can_be_used_by:
-                    tank.can_repair = True
-
-                if isinstance(feature, HardRepair):
-                    if feature.is_usable(tank.type):
-                        tank.repair()  # Repairs and sets can_repair to False
-                elif tank.type in HardRepair.can_be_used_by:
-                    tank.can_repair = True
+            if not tank.is_destroyed:
+                if (isinstance(feature, LightRepair) or isinstance(feature, HardRepair)) \
+                        and feature.is_usable(tank.type):
+                    # the repair won't happen if the tank is stationary
+                    tank.repair()
 
                 if isinstance(feature, Catapult) and feature.is_usable() and not tank.catapult_bonus:
+                    # the feature won't be used again if the tank has the bonus applied
                     feature.was_used()
                     tank.catapult_bonus = True
 
