@@ -99,7 +99,7 @@ class BotPlayer(Player):
             self.__repair_if_low_hp_else_e(tank)
 
     def __repair_if_low_hp_else_e(self, tank):
-        if tank.max_health_points == 1 and self.__tank_names_can_repair[tank.type] \
+        if tank.health_points == 1 and self.__tank_names_can_repair[tank.type] \
                 and self.__move_return_has_moved('repair', tank):
             return
         self.__do('E', tank)
