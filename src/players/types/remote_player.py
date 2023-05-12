@@ -53,7 +53,11 @@ class RemotePlayer(Player):
 
             if action == Action.SHOOT:
                 if tank.type == Entities.TANK_DESTROYER:
-                    self._map.td_shoot(tank, target)
+                    fire_corridors: tuple[list[tuple]] = tank.fire_corridors()
+                    for fire_corridor in fire_corridors:
+                        if target == fire_corridor[0]:
+                            self._map.td_shoot(tank, fire_corridor)
+                            break
                 else:
                     self._map.local_shoot_tuple(tank, target)
             else:
