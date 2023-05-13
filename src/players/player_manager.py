@@ -83,7 +83,8 @@ class PlayerManager:
             if player["idx"] not in self.__game.active_players:
                 self.__add_remote_player(player)
 
-    def add_local_player(self, name: str, password: str | None, is_observer: bool | None, action_file: str) -> None:
+    def add_local_player(self, name: str, password: str | None, is_observer: bool | None, is_backup: bool,
+                         action_file: str) -> None:
         """
         Will connect the local bot player to the game if a player with the same id is not connected.
         """
@@ -93,6 +94,8 @@ class PlayerManager:
         player_type: PlayerTypes
         if is_observer:
             player_type = PlayerTypes.Observer
+        elif is_backup:
+            player_type = PlayerTypes.BackupBot
         else:
             player_type = PlayerTypes.Bot
 

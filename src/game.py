@@ -164,8 +164,9 @@ class Game(Thread):
             self.__end_game()
 
     def add_local_player(self, name: str, password: str | None = None, is_observer: bool | None = None,
+                         is_backup: bool = False,
                          action_file: str = DEFAULT_ACTION_FILE) -> None:
-        self.__player_manager.add_local_player(name, password, is_observer, action_file)
+        self.__player_manager.add_local_player(name, password, is_observer, is_backup, action_file)
 
     def get_winner_index(self) -> int | None:
         # wait for game end event
