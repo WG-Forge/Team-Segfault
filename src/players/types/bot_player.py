@@ -166,7 +166,7 @@ class BotPlayer(Player):
 
     def __camp(self, tank: Tank, enemies_in_range: list[Tank]) -> None:
         if tank.type != Entities.TANK_DESTROYER:
-            self.__update_maps_with_tank_shot(tank, self.__best_shooting_target(enemies_in_range))
+            self.__update_maps_with_tank_shot(tank, self.__highest_damage_potential_enemy(enemies_in_range))
         else:
             self.__td_camp(tank, self._map.enemies_in_range(tank))
 
@@ -218,11 +218,19 @@ class BotPlayer(Player):
         self._game_client.server_shoot({"vehicle_id": tank.tank_id, "target": {"x": x, "y": y, "z": z}})
 
     @staticmethod
-    def __best_shooting_target(enemies_in_range: list[Tank]) -> Tank:
-        """Returns the tank with the lowest health points and the most max health points in enemies_in_range"""
-        target: Tank | None = None
-        for tank in enemies_in_range:
-            if target is None or tank.health_points < target.health_points or \
-                    (tank.health_points == target.health_points and target.max_health_points < tank.max_health_points):
-                target = tank
+    def __highest_damage_potential_enemy(enemies_in_range: list[Tank]) -> Tank:
+        """Out of the tanks with the lowest health return the tank with the highest max health"""
+        enemies_by_health = sorted(enemies_in_range, key=lambda e: e.health_points)
+
+        target = enemies_by_health[0]
+        min_health = target.health_points
+        max_damage_potential = 0
+
+        for enemy in enemies_by_health:
+            if enemy.health_points > min_health:
+                break
+            elif enemy.max_health_points > max_damage_potential:
+                target = enemy
+                max_damage_potential = enemy.max_health_points
+
         return target
