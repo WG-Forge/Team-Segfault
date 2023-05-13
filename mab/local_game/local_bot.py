@@ -4,7 +4,7 @@ from src.entities.tanks.tank import Tank
 
 
 class LocalBot(LocalPlayer):
-    __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
+    __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O')
     __no_repair_actions = ('A', 'B', 'C', 'D', 'E', 'F')
     __num_actions = len(__actions)
     __tank_names_can_repair = {
@@ -41,33 +41,66 @@ class LocalBot(LocalPlayer):
         elif action == 'E':
             # If there are enemies in range shoot them, else, move towards the closest free hex adjacent to the base
             self.__shoot_else_move(tank, 'close to base')
-        elif action == 'F':
-            # Shoot enemies in range if no enemies in range move towards the closest of the two catapults
-            # that is usable. If on the catapult, stay.
-            # Else if both catapults are occupied or none of them have shots left do action E
-            self.__catapult_else_e(tank)
-        elif action == 'G':
-            # Do action E, if health points == 1 and closest appropriate repair hex is free move into it
-            # Do action E. This action only callable for tanks that can repair (at_spg, heavy_tank, medium_tank)
-            self.__repair_if_low_hp_else_e(tank)
 
-    def __repair_if_low_hp_else_e(self, tank):
+        # Shoot enemies in range, if none & has catapult bonus do action. If no bonus move to usable catapult,
+        #  if none do repair action if can repair else do non repair action.
+        elif action == 'F':
+            if self.__tank_names_can_repair[tank.type]:
+                self.__catapult_else(tank, 'K')
+            else:
+                self.__catapult_else(tank, 'A')
+        elif action == 'G':
+            if self.__tank_names_can_repair[tank.type]:
+                self.__catapult_else(tank, 'L')
+            else:
+                self.__catapult_else(tank, 'B')
+        elif action == 'H':
+            if self.__tank_names_can_repair[tank.type]:
+                self.__catapult_else(tank, 'M')
+            else:
+                self.__catapult_else(tank, 'C')
+        elif action == 'I':
+            if self.__tank_names_can_repair[tank.type]:
+                self.__catapult_else(tank, 'N')
+            else:
+                self.__catapult_else(tank, 'D')
+        elif action == 'J':
+            if self.__tank_names_can_repair[tank.type]:
+                self.__catapult_else(tank, 'O')
+            else:
+                self.__catapult_else(tank, 'E')
+
+        # Do actions, if health points == 1 and closest appropriate repair is free & can repair move there
+        elif action == 'K':
+            self.__repair_if_low_hp_else(tank, 'A')
+        elif action == 'L':
+            self.__repair_if_low_hp_else(tank, 'B')
+        elif action == 'M':
+            self.__repair_if_low_hp_else(tank, 'C')
+        elif action == 'N':
+            self.__repair_if_low_hp_else(tank, 'D')
+        elif action == 'O':
+            self.__repair_if_low_hp_else(tank, 'E')
+
+    def __repair_if_low_hp_else(self, tank: Tank, action: str) -> None:
         if tank.health_points == 1 and self.__tank_names_can_repair[tank.type] \
                 and self.__move_return_has_moved('repair', tank):
             return
-        self.__do('E', tank)
+        self.__do(action, tank)
 
-    def __catapult_else_e(self, tank: Tank) -> None:
+    def __catapult_else(self, tank: Tank, action: str) -> None:
         enemies_in_range = self._map.enemies_in_range(tank)
         if enemies_in_range:
             self.__camp(tank, enemies_in_range)
         else:
-            if not self.__move_return_has_moved('catapult', tank):
+            if tank.catapult_bonus:
+                self.__do(action, tank)
+            elif not self.__move_return_has_moved('catapult', tank):
                 if self._map.is_catapult_and_usable(tank.coord):
                     return
                 cats = self._map.two_closest_catapults_if_usable(tank)
                 if len(cats) == 0:
-                    self.__do('E', tank)
+                    self.__do(action, tank)
 
     def __move_return_has_moved(self, where: str, who: Tank) -> bool:
         who_coord, go_to = who.coord, None
@@ -106,7 +139,7 @@ class LocalBot(LocalPlayer):
 
     def __camp(self, tank: Tank, enemies_in_range: list[Tank]) -> None:
         if tank.type != Entities.TANK_DESTROYER:
-            self.__update_maps_with_tank_shot(tank, self.__highest_damage_potential_enemy(enemies_in_range))
+            self.__update_maps_with_tank_shot(tank, self.__best_shooting_target(enemies_in_range))
         else:
             self.__td_camp(tank, self._map.enemies_in_range(tank))
 
@@ -152,19 +185,12 @@ class LocalBot(LocalPlayer):
         self._map.td_shoot_no_graphics(tank, td_fire_corridor)
 
     @staticmethod
-    def __highest_damage_potential_enemy(enemies_in_range: list[Tank]) -> Tank:
-        """Out of the tanks with the lowest health return the tank with the highest max health"""
-        enemies_by_health = sorted(enemies_in_range, key=lambda e: e.health_points)
-
-        target = enemies_by_health[0]
-        min_health = target.health_points
-        max_damage_potential = 0
-
-        for enemy in enemies_by_health:
-            if enemy.health_points > min_health:
-                break
-            elif enemy.max_health_points > max_damage_potential:
-                target = enemy
-                max_damage_potential = enemy.max_health_points
-
+    def __best_shooting_target(enemies_in_range: list[Tank]) -> Tank:
+        """Returns the tank with the lowest health points and the most max health points in enemies_in_range"""
+        target: Tank | None = None
+        for tank in enemies_in_range:
+            if target is None or tank.health_points < target.health_points or \
+                    (tank.health_points == target.health_points and target.max_health_points < tank.max_health_points):
+                target = tank
         return target
+

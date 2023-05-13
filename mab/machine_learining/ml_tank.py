@@ -4,7 +4,7 @@ import statistics
 
 class MLTank:
     # Shorthand for arms to save on dict size:
-    __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
+    __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O')
     __action_num = len(__actions)
 
     def __init__(self, num_rounds: int, group_size: int, can_repair: bool):
@@ -16,10 +16,13 @@ class MLTank:
         if self.__num_groups * group_size < num_rounds:
             self.__num_groups += 1
 
+        ''' CHANGE IF MORE REPAIR ACTIONS ADDED, ALWAYS ADD REPAIR ACTIONS TO THE END   '''
+        repair_action_num = 5
+
         if can_repair:
             self.__max_action_index: int = self.__action_num - 1
         else:
-            self.__max_action_index: int = self.__action_num - 2
+            self.__max_action_index: int = self.__action_num - 1 - repair_action_num
 
     def register_reward(self, reward: int) -> None:
         # If the combination of arms used in this turn has never been used create a new entry in
