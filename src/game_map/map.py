@@ -297,6 +297,15 @@ class Map:
     def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> tuple | None:
         return self.__path_finding_algorithm(self.__map, tank, finish)
 
+    def get_safe_hexes(self, player_idx: int) -> dict:
+        # coordinate -> times that it can be attacked
+        safe_hexes: dict[tuple[int, int, int], int] = {}
+        for tank in self.__tanks.values():
+            if tank.player_id != player_idx:
+                for coord in tank.coords_in_range():
+                    safe_hexes[coord] = 1 if coord not in safe_hexes else 1 + safe_hexes[coord]
+        return safe_hexes
+
     """     NO GRAPHICS METHODS     """
 
     def local_shoot_no_graphics(self, tank: Tank, target: Tank) -> None:

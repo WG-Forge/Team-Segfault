@@ -12,6 +12,6 @@ def online_game(game_name: str, player_name: str, num_players: int = 1, num_turn
     game = Game(game_name=game_name, max_players=num_players, num_turns=num_turns,
                 is_full=is_full)
 
-    game.add_local_player(name=player_name, password=password, is_observer=is_observer)
+    game.add_local_player(name=player_name, password=password, is_observer=is_observer, is_backup=True)
 
     return game

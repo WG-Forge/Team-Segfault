@@ -28,6 +28,7 @@ class BackupBot(Player):
                          over=over, game_exited=game_exited,
                          name=name, password=password,
                          is_observer=is_observer)
+        self.__safe_hexes: dict | None = None
 
     def register_round(self) -> None:
         super().register_round()
@@ -39,6 +40,7 @@ class BackupBot(Player):
                 delay = 1.0 - GAME_SPEED[0]
                 if delay > 0:
                     time.sleep(delay)  # comment/uncomment this for a turn delay effect
+                # self.__safe_hexes = self._map.get_safe_hexes(self.idx)
                 self.__place_actions()
         except Exception as e:
             print(e)
@@ -67,19 +69,22 @@ class BackupBot(Player):
 
     def __move_return_has_moved(self, where: Callout, who: Tank) -> bool:
         """Tries to move the to the 'where' callout, returns True on success"""
-        who_coord, go_to = who.coord, None
+        who_coord = who.coord
+        go_to: list[tuple[int, int, int]] = []
         match where:
             case Callout.CLOSE_TO_BASE:
-                go_to = self._map.closest_free_base_adjacents(who_coord)
+                go_to += self._map.closest_free_base_adjacents(who_coord)
             case Callout.INSIDE_BASE:
-                go_to = self._map.closest_free_bases(who_coord)
+                go_to += self._map.closest_free_bases(who_coord)
             case Callout.CLOSEST_ENEMY:
-                if self._map.closest_enemies(who):
-                    go_to = who.shot_moves(self._map.closest_enemies(who)[0].coord)
+                closest = self._map.closest_enemies(who)
+                if closest:
+                    for enemy in closest:
+                        go_to.append(who.shot_moves(enemy.coord))
             case Callout.REPAIR:
-                go_to = self._map.closest_usable_repair(who)
+                go_to += self._map.closest_usable_repair(who)
             case Callout.CATAPULT:
-                go_to = self._map.two_closest_catapults_if_usable(who)
+                go_to += self._map.two_closest_catapults_if_usable(who)
 
         if go_to:
             for coord in go_to:
@@ -138,7 +143,7 @@ class BackupBot(Player):
         """Tries to move 'tank' to given coordinate 'where', returns True on success"""
         next_best = self._map.next_best_available_hex_in_path_to(tank, where)
 
-        if next_best is not None:
+        if next_best is not None:  # and next_best not in self.__safe_hexes:
             self.__update_maps_with_move(tank, next_best)
             return True
         return False
