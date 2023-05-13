@@ -297,7 +297,7 @@ class Map:
     def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> tuple | None:
         return self.__path_finding_algorithm(self.__map, tank, finish)
 
-    def get_safe_hexes(self, player_idx: int) -> dict:
+    def get_unsafe_hexes(self, player_idx: int) -> dict:
         # coordinate -> times that it can be attacked
         safe_hexes: dict[tuple[int, int, int], int] = {}
         for tank in self.__tanks.values():
