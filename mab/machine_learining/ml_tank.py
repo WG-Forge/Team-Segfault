@@ -7,13 +7,13 @@ class MLTank:
     __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
     __action_num = len(__actions)
 
-    def __init__(self, num_turns: int, group_size: int, can_repair: bool):
+    def __init__(self, num_rounds: int, group_size: int, can_repair: bool):
         self.__tank_results_table: dict[str, list[int]] = {}  # {arm combo player_name: [list of rewards]}
         self.__game_action_combo: str = ''  # String representing actions taken in this turn
-        self.__num_turns = num_turns
+        self.__num_rounds = num_rounds
         self.__group_size: int = group_size
-        self.__num_groups: int = num_turns // group_size
-        if self.__num_groups * group_size < num_turns:
+        self.__num_groups: int = num_rounds // group_size
+        if self.__num_groups * group_size < num_rounds:
             self.__num_groups += 1
 
         if can_repair:
@@ -30,7 +30,7 @@ class MLTank:
 
         # If the list of rewards associated with this arm has more than 20 items, remove the first item
         # such that results when the enemies have not been trained are not taken into account
-        if len(action_rewards) > 20:
+        if len(action_rewards) > 50:
             action_rewards.pop(0)
 
     def get_explore_actions(self) -> str:

@@ -45,9 +45,6 @@ class Player(Thread, ABC):
         self.__player_color: tuple | None = None
         self.__has_shot: list[int] = []  # Holds a list of enemies this player has shot last turn
 
-        # Game actions loaded from ML
-        self._best_actions: dict[str, str] | None = None
-
     def __hash__(self):
         return super.__hash__(self)
 

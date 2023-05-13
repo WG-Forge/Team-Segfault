@@ -12,17 +12,17 @@ class MLPlayer:
     __min_explore_prob = 0.03  # Minimum exploration probability -> 3 %
     __decay_per_game = 0.00001  # Minimum exploration ratio reached after about 100 000 games
 
-    def __init__(self, num_turns: int, group_size: int):
-        self.__tanks: dict[str, MLTank] = self.__make_tanks(num_turns, group_size)
+    def __init__(self, num_rounds: int, group_size: int):
+        self.__tanks: dict[str, MLTank] = self.__make_tanks(num_rounds, group_size)
         self.__explore_prob: float = self.__max_explore_prob
 
     def update_exploring(self) -> None:
         if self.__explore_prob > self.__min_explore_prob:
             self.__explore_prob -= self.__decay_per_game
 
-    def __make_tanks(self, num_turns: int, group_size: int) -> dict[str, MLTank]:
+    def __make_tanks(self, num_rounds: int, group_size: int) -> dict[str, MLTank]:
         return {
-            name: MLTank(num_turns, group_size, can_repair)
+            name: MLTank(num_rounds, group_size, can_repair)
             for name, can_repair in self.__tank_names_can_repair.items()
         }
 

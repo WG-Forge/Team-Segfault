@@ -11,7 +11,8 @@ class RemotePlayer(Player):
     def __init__(self, turn_played_sem: Semaphore, current_player: list[int], current_turn: list[int],
                  over: Event, game_exited: Event,
                  name: str | None = None, password: str | None = None,
-                 is_observer: bool | None = None):
+                 is_observer: bool | None = None,
+                 best_actions: dict = None):
         super().__init__(turn_played_sem=turn_played_sem,
                          current_player=current_player, current_turn=current_turn,
                          over=over, game_exited=game_exited,

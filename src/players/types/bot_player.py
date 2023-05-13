@@ -20,18 +20,20 @@ class BotPlayer(Player):
     def __init__(self, turn_played_sem: Semaphore, current_player: list[int], current_turn: list[int],
                  over: Event, game_exited: Event,
                  name: str | None = None, password: str | None = None,
-                 is_observer: bool | None = None):
+                 is_observer: bool | None = None,
+                 best_actions: dict | None = None):
+
+        self.__best_actions: dict | None = best_actions
+        self.__order = None
+
         super().__init__(turn_played_sem=turn_played_sem,
                          current_player=current_player, current_turn=current_turn,
                          over=over, game_exited=game_exited,
                          name=name, password=password,
                          is_observer=is_observer)
-        self.__order = None
 
     def register_round(self) -> None:
         # reset round actions
-        self._best_actions = None
-
         super().register_round()
 
     def _make_turn_plays(self) -> None:
@@ -54,19 +56,16 @@ class BotPlayer(Player):
         self._game_client.disconnect()
 
     def __place_actions(self) -> None:
-        if self._current_turn[0] <= self._num_players:
+        if self._current_turn[0] < self._num_players:
             self._map.set_order_by_idx(self._current_turn[0], self.idx)
             self.__order = self._current_turn[0]
 
-        # set round actions based on first turn order
-        if not self._best_actions:
-            self._best_actions = DataIO.load_best_actions()[str(self._current_turn[0] % self._num_players)]
-
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
-        if self._best_actions:
+        if self.__best_actions is not None:
+            this_bots_actions = self.__best_actions.get(str(self.__order))
             for tank in self._tanks:
-                action = self._best_actions[tank.type][self._current_turn[0]]
-                self.__do(action, tank)
+                this_rounds_action = this_bots_actions[tank.type][self._current_turn[0]//self._num_players]
+                self.__do(this_rounds_action, tank)
         else:
             # testing catapult action
             # for tank in self._tanks:

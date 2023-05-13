@@ -1,24 +1,24 @@
 from typing import Dict
 
 from data.data_io import DataIO
-from local_game.local_bot import LocalBot
+from mab.local_game.local_bot import LocalBot
 from src.game_map.map import Map
 
 
 class LocalGame:
     GameActions = dict[int, dict[str, str]]
 
-    def __init__(self, game_actions: GameActions, num_turns: int = 15) -> None:
+    def __init__(self, game_actions: GameActions, num_turns: int = 45, num_players: int = 3) -> None:
         self.__winners_index = []
-        self.__run(game_actions, num_turns)
+        self.__run(game_actions, num_turns, num_players)
 
-    def __run(self, game_actions: GameActions, num_turns: int, num_players=3) -> None:
+    def __run(self, game_actions: GameActions, num_turns: int, num_players: int) -> None:
         current_turn: list[int] = [0]
         current_round: list[int] = [0]
 
         players: Dict[int, LocalBot] = {
-            i: LocalBot(i, game_actions[i], current_turn)
-            for i in range(num_players)
+            player_idx: LocalBot(player_idx, game_actions[player_idx], current_round)
+            for player_idx in range(num_players)
         }
 
         game_map = Map(DataIO.load_client_map(), DataIO.load_game_state(), players, num_turns=num_turns,
@@ -39,7 +39,9 @@ class LocalGame:
             if player.has_capped():
                 winner = player
                 win_type = 'captured the base'
+
             current_turn[0] += 1
+            current_round[0] = current_turn[0] // num_turns
 
         max_dp = -1
         player_damages = []
@@ -55,7 +57,7 @@ class LocalGame:
                     winner = None
 
         if winner:
-            self.__winners_index.append(winner.index)
+            self.__winners_index.append(winner.idx)
             print(' Winner is player', self.__winners_index[0], win_type)
         else:
             print(' Draw between players: ', end='')

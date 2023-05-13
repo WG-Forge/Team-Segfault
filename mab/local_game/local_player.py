@@ -5,23 +5,23 @@ from src.entities.tanks.tank import Tank
 
 
 class LocalPlayer:
+    """ Abstract base player class """
     __type_order = ('spg', 'light_tank', 'heavy_tank', 'medium_tank', 'at_spg')
 
-    def __init__(self, player_index: int):
+    def __init__(self, player_idx: int):
+        super().__init__()
 
-        self.idx: int = -1
+        self.idx: int = player_idx
         self._map: Map | None = None
 
-        self._damage_points = 0
-        self._tanks: list[Tank] = []
-        self._tank_map: dict[int, Tank] = {}
-        self._player_index: int = player_index
-        self.__player_colour: tuple | None = None
-        self.__has_shot: list[int] = []  # Holds a list of enemies this player has shot last turn
-        self.__is_observer: bool = False
+        self._damage_points: int = 0
+        self._capture_points: int = 0
 
-        self._game_actions: dict | None = None
-        self._turn_actions: dict | None = None
+        self._tanks: list[Tank] = []
+        self.__has_shot: list[int] = []  # Holds a list of enemies this player has shot last turn
+
+        self.is_observer = False
+        self.color = 'none'
 
     def add_tank(self, new_tank: Tank) -> None:
         # Adds the tank in order of who gets priority movement
@@ -42,43 +42,39 @@ class LocalPlayer:
     """     GETTERS AND SETTERS    """
 
     @property
-    def color(self) -> tuple:
-        return self.__player_colour
-
-    @property
     def tanks(self) -> list[Tank]:
         return self._tanks
+
+    @property
+    def capture_points(self) -> int:
+        return sum([tank.capture_points for tank in self._tanks])
+
+    @capture_points.setter
+    def capture_points(self, capture_points: int) -> None:
+        self._capture_points = capture_points
 
     @property
     def damage_points(self) -> int:
         return self._damage_points
 
-    @property
-    def turn_actions(self) -> dict | None:
-        return self._turn_actions
-
-    @turn_actions.setter
-    def turn_actions(self, actions: dict) -> None:
-        self._turn_actions = actions
+    @damage_points.setter
+    def damage_points(self, damage_points: int) -> None:
+        self._damage_points = damage_points
 
     @property
-    def index(self) -> int | None:
-        return self._player_index
-
-    @index.setter
-    def index(self, player_index: int) -> None:
-        self._player_index = player_index
-
-    @property
-    def is_observer(self) -> bool:
-        return self.__is_observer
+    def num_players(self) -> int:
+        return self._num_players
 
     """     MISC        """
 
     def register_shot(self, enemy_index: int) -> None:
         self.__has_shot.append(enemy_index)
 
-    def register_turn(self) -> None:  # Call this for every player at the beginning of every turn
+    def register_round(self) -> None:
+        self._damage_points = 0
+        self._tanks = []
+
+    def register_turn(self) -> None:
         self.__has_shot = []
 
     def register_destroyed_vehicle(self, tank: Tank) -> None:

@@ -20,7 +20,7 @@ def multiplayer_game() -> None:
 
     # Make sure to only add the game to the display manager after setting everything up
     # since the display manager starts the game thread immediately
-    displayManager = DisplayManager(game)
+    displayManager = DisplayManager(game, file_name='one_action')
     displayManager.run()
 
     print()

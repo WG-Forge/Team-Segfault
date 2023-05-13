@@ -12,7 +12,7 @@ def remote_test_join() -> None:
     game.add_local_player(name="Blue", is_observer=False)
     game.add_local_player(name="Maroon", is_observer=False)
 
-    displayManager = DisplayManager(game)
+    displayManager = DisplayManager(game, file_name='one_action')
     displayManager.run()
 
     print()

@@ -10,13 +10,14 @@ from src.remote.game_client import GameClient
 class PlayerManager:
     """" Manages player connections and synchronization """
 
-    def __init__(self, game):
+    def __init__(self, game, file_name: str):
         # game container
         self.__game = game
         self.__shadow_client = self.__game.shadow_client
 
         self.__num_players: int = 0
         self.__current_turn: list[int] = self.__game.current_turn
+        self.__file_name: str = file_name
 
         self.__turn_played_sem: Semaphore = Semaphore(0)
 
@@ -102,7 +103,8 @@ class PlayerManager:
                                              turn_played_sem=self.__turn_played_sem,
                                              current_player_idx=self.__game.current_player_idx,
                                              over=self.__game.over, game_exited=self.__game.game_exited,
-                                             current_turn=self.__current_turn)
+                                             current_turn=self.__current_turn,
+                                             file_name=self.__file_name)
 
         self.__player_queue.put(player)
 
@@ -119,7 +121,8 @@ class PlayerManager:
         player: Player = PlayerFactory.create_player(player_type=PlayerTypes.Remote,
                                                      turn_played_sem=self.__turn_played_sem,
                                                      current_player_idx=self.__game.current_player_idx,
-                                                     over=self.__game.over, game_exited=self.__game.game_exited)
+                                                     over=self.__game.over, game_exited=self.__game.game_exited,
+                                                     file_name='none')
 
         player.add_to_game(user_info, self.__shadow_client)
 

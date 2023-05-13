@@ -8,7 +8,7 @@ def single_player_game() -> None:
     game = Game(game_name="Test single player", max_players=1, num_turns=15)
     game.add_local_player(name="The guy", is_observer=False)
 
-    displayManager = DisplayManager(game)
+    displayManager = DisplayManager(game, file_name='one_action')
     displayManager.run()
 
     print()
