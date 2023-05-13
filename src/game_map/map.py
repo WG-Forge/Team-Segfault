@@ -43,6 +43,7 @@ class Map:
         self.__map_size = client_map['size']
         self.__make_map(client_map, game_state, active_players)
         self.__path_finding_algorithm: callable = _a_star.a_star
+
         self.__current_turn: list[int] = current_turn
         self.__player_order_by_idx: dict = {}
 

@@ -2,6 +2,7 @@ from enum import Enum
 from threading import Semaphore, Event
 
 from src.players.player import Player
+from src.players.types.backup_bot import BackupBot
 from src.players.types.bot_player import BotPlayer
 from src.players.types.observer import Observer
 from src.players.types.remote_player import RemotePlayer
@@ -11,13 +12,15 @@ class PlayerTypes(Enum):
     Remote = 1
     Bot = 2
     Observer = 3
+    BackupBot = 4
 
 
 class PlayerFactory:
     __CLASS_MAPPING = {
         PlayerTypes.Remote: RemotePlayer,
         PlayerTypes.Bot: BotPlayer,
-        PlayerTypes.Observer: Observer
+        PlayerTypes.Observer: Observer,
+        PlayerTypes.BackupBot: BackupBot
     }
 
     @staticmethod
