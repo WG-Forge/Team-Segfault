@@ -1,5 +1,6 @@
 from threading import Thread, Event
 
+from src.constants import DEFAULT_ACTION_FILE
 from src.game_map.map import Map
 from src.players.player import Player
 from src.players.player_manager import PlayerManager
@@ -8,8 +9,7 @@ from src.remote.game_client import GameClient
 
 class Game(Thread):
     def __init__(self, game_name: str | None = None, num_turns: int | None = None,
-                 max_players: int = 1, is_full: bool = False, use_ml_actions: bool = True,
-                 file_name: str = 'default') -> None:
+                 max_players: int = 1, is_full: bool = False, use_ml_actions: bool = True) -> None:
         super().__init__()
 
         self.game_map: Map | None = None
@@ -48,7 +48,7 @@ class Game(Thread):
 
         self.__use_ml_actions = use_ml_actions
 
-        self.__player_manager: PlayerManager = PlayerManager(self, file_name)
+        self.__player_manager: PlayerManager = PlayerManager(self)
 
         # Login with the player manager to be able to access game info
         try:
@@ -163,8 +163,9 @@ class Game(Thread):
         finally:
             self.__end_game()
 
-    def add_local_player(self, name: str, password: str | None = None, is_observer: bool | None = None) -> None:
-        self.__player_manager.add_local_player(name, password, is_observer)
+    def add_local_player(self, name: str, password: str | None = None, is_observer: bool | None = None,
+                         action_file: str = DEFAULT_ACTION_FILE) -> None:
+        self.__player_manager.add_local_player(name, password, is_observer, action_file)
 
     def get_winner_index(self) -> int | None:
         # wait for game end event

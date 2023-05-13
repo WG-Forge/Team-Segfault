@@ -17,7 +17,7 @@ os.environ['SDL_VIDEO_CENTERED'] = '1'  # window at center
 
 class DisplayManager:
 
-    def __init__(self, game=None, file_name: str = 'default'):
+    def __init__(self, game=None):
         pygame.init()
         pygame.display.set_icon(pygame.image.load(GUI_ICON_PATH))
 
@@ -52,8 +52,6 @@ class DisplayManager:
             self.__playing = True
             self.__game.start()
 
-        self.__file_name: str = file_name
-
     def __start_the_game(self, game_type: GameType, is_full: bool, num_players: int = 1,
                          num_turns: int | None = None) -> None:
         del self.__game
@@ -66,13 +64,13 @@ class DisplayManager:
 
         if game_type == GameType.LOCAL:
             self.__game = local_game(num_players=num_players, is_full=is_full,
-                                     num_turns=num_turns, file_name=self.__file_name)
+                                     num_turns=num_turns)
         else:
             PLAYER_NAMES[0] = self.__menu.player_name
             GAME_NAME[0] = self.__menu.game_name
             self.__game = online_game(game_name=GAME_NAME[0], player_name=PLAYER_NAMES[0], num_players=num_players,
                                       num_turns=num_turns, is_full=is_full, is_observer=self.__menu.observer,
-                                      password=self.__menu.password, file_name=self.__file_name)
+                                      password=self.__menu.password)
 
         self.__playing = True
         self.__game.start()

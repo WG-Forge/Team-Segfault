@@ -1,7 +1,6 @@
 from enum import Enum
 from threading import Semaphore, Event
 
-from data.data_io import DataIO
 from src.players.player import Player
 from src.players.types.bot_player import BotPlayer
 from src.players.types.observer import Observer
@@ -21,7 +20,6 @@ class PlayerFactory:
         PlayerTypes.Observer: Observer
     }
 
-
     @staticmethod
     def create_player(player_type: PlayerTypes,
                       turn_played_sem: Semaphore,
@@ -30,13 +28,8 @@ class PlayerFactory:
                       name: str | None = None,
                       password: str | None = None,
                       is_observer: bool | None = None,
-                      current_turn: list[int] = None,
-                      file_name: str = 'default') -> Player:
+                      current_turn: list[int] = None) -> Player:
         player_class = PlayerFactory.__CLASS_MAPPING[player_type]
-
-        best_actions = None
-        if player_type == PlayerTypes.Bot:
-            best_actions = DataIO.load_best_actions(file_name)
 
         return player_class(name=name,
                             password=password,
@@ -44,5 +37,4 @@ class PlayerFactory:
                             turn_played_sem=turn_played_sem,
                             current_player=current_player_idx,
                             over=over, game_exited=game_exited,
-                            current_turn=current_turn,
-                            best_actions=best_actions)
+                            current_turn=current_turn)

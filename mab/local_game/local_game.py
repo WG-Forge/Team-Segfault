@@ -1,6 +1,6 @@
 from typing import Dict
 
-from data.data_io import DataIO
+from mab.data.data_io import DataIO
 from mab.local_game.local_bot import LocalBot
 from src.game_map.map import Map
 

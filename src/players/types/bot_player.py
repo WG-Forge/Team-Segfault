@@ -20,17 +20,19 @@ class BotPlayer(Player):
     def __init__(self, turn_played_sem: Semaphore, current_player: list[int], current_turn: list[int],
                  over: Event, game_exited: Event,
                  name: str | None = None, password: str | None = None,
-                 is_observer: bool | None = None,
-                 best_actions: dict | None = None):
-
-        self.__best_actions: dict | None = best_actions
-        self.__order = None
+                 is_observer: bool | None = None):
 
         super().__init__(turn_played_sem=turn_played_sem,
                          current_player=current_player, current_turn=current_turn,
                          over=over, game_exited=game_exited,
                          name=name, password=password,
                          is_observer=is_observer)
+
+        self.__best_actions: dict | None = None
+        self.__order = None
+
+    def set_actions(self, action_file: str):
+        self.__best_actions: dict = DataIO.load_best_actions(action_file)
 
     def register_round(self) -> None:
         # reset round actions
@@ -44,8 +46,6 @@ class BotPlayer(Player):
                 if delay > 0:
                     time.sleep(delay)  # comment/uncomment this for a turn delay effect
                 self.__place_actions()
-        except Exception as e:
-            print(e)
         finally:
             # end your turn
             self._game_client.force_turn()
@@ -64,7 +64,7 @@ class BotPlayer(Player):
         if self.__best_actions is not None:
             this_bots_actions = self.__best_actions.get(str(self.__order))
             for tank in self._tanks:
-                this_rounds_action = this_bots_actions[tank.type][self._current_turn[0]//self._num_players]
+                this_rounds_action = this_bots_actions[tank.type][self._current_turn[0] // self._num_players]
                 self.__do(this_rounds_action, tank)
         else:
             # testing catapult action

@@ -1,7 +1,7 @@
 from math import ceil
 from typing import Type, cast
 
-from data.data_io import DataIO
+from mab.data.data_io import DataIO
 from mab.machine_learining.ml_player import MLPlayer
 
 

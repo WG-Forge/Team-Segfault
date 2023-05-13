@@ -13,7 +13,7 @@ def remote_test_create() -> None:
     game.add_local_player(name="Violet", is_observer=True)
     game.add_local_player(name="Green", is_observer=True)
 
-    displayManager = DisplayManager(game, file_name='one_action')
+    displayManager = DisplayManager(game=game)
     displayManager.run()
 
     print()
