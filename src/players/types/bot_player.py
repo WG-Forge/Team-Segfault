@@ -11,7 +11,6 @@ from src.players.player import Player
 
 class BotPlayer(Player):
     __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
-    __num_actions = len(__actions)
     __tank_names_can_repair = {
         'spg': False, 'light_tank': False, 'heavy_tank': True, 'medium_tank': True, 'at_spg': True
     }

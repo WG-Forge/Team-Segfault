@@ -5,13 +5,11 @@ from mab.machine_learning.ml_tank import MLTank
 
 
 class MLPlayer:
-    __tank_names_can_repair = {
-        's': False, 'l': False, 'h': True, 'm': True, 'a': True
-    }
+    __tank_shorts = ('s', 'l', 'h', 'm', 'a')
 
     __max_explore_prob = 1.0  # Maximum exploration probability -> 100 %
-    __min_explore_prob = 0.03  # Minimum exploration probability -> 3 %
-    __decay_per_game = 0.0  # Minimum exploration ratio reached after about 10 000 games
+    __min_explore_prob = 0.25  # Minimum exploration probability -> 3 %
+    __decay_per_game = 0.0000375  # Minimum exploration ratio reached after about 20 000 games
 
     def __init__(self, num_rounds: int, group_size: int):
         self.__tanks: dict[str, MLTank] = self.__make_tanks(num_rounds, group_size)
@@ -25,20 +23,20 @@ class MLPlayer:
 
     def __make_tanks(self, num_rounds: int, group_size: int) -> dict[str, MLTank]:
         return {
-            name: MLTank(num_rounds, group_size, can_repair)
-            for name, can_repair in self.__tank_names_can_repair.items()
+            name: MLTank(num_rounds, group_size)
+            for name in self.__tank_shorts
         }
 
     def register_reward(self, reward: int) -> None:
         # If the combination of arms used in this turn has never been used create a new entry in
-        # bandit_Q with a string that represents the combination of arms as the key and a list of
+        # results with a string that represents the combination of tank-actions as the key and a list of
         # the rewards associated with this combo. Append this reward to this list.
         action_rewards = self.__results.setdefault(self.__game_tank_action_combos, [])
         action_rewards.append(reward)
 
-        # If the list of rewards associated with this arm has more than 50 items, remove the first item
+        # If the list of rewards associated with this arm has many items, remove the first item
         # such that results when the enemies have not been trained are not taken into account
-        if len(action_rewards) > 50:
+        if len(action_rewards) > 30:
             action_rewards.pop(0)
 
     def get_explore_actions(self) -> str:
