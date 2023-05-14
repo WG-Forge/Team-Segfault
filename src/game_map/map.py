@@ -212,24 +212,22 @@ class Map:
             else:
                 break
 
-    def is_neutral(self, player_tank: Tank, enemy_tank: Tank) -> bool:
+    def is_neutral(self, player_id: int, enemy_id: int) -> bool:
         # Neutrality rule logic implemented here, return True if neutral, False if not neutral
-        player_index, enemy_index = player_tank.player_id, enemy_tank.player_id
-        player_indexes: set = {i for i in self.__players}
-
-        viable_indexes: set = (player_indexes - {player_index, enemy_index})
+        player_ids: set = {i for i in self.__players}
+        viable_indexes: set = (player_ids - {player_id, enemy_id})
 
         # Set is empty
         if not viable_indexes:
             return False
 
         other_index = next(iter(viable_indexes))
-        other_player, enemy_player = self.__players[other_index], self.__players[enemy_index]
-        return not enemy_player.has_shot(player_index) and other_player.has_shot(enemy_index)
+        other_player, enemy_player = self.__players[other_index], self.__players[enemy_id]
+        return not enemy_player.has_shot(player_id) and other_player.has_shot(enemy_id)
 
     def is_enemy(self, friend: Tank, enemy: Tank) -> bool:
         return enemy and not (friend.player_id == enemy.player_id or
-                              self.is_neutral(friend, enemy) or enemy.is_destroyed)
+                              self.is_neutral(friend.player_id, enemy.player_id) or enemy.is_destroyed)
 
     def __is_usable(self, bonus_coord: tuple, by: Tank) -> bool:
         coord_dict = self.__map[bonus_coord]
@@ -290,7 +288,10 @@ class Map:
     def closest_enemies(self, tank: Tank) -> list[Tank]:
         # Returns a sorted list by distance of enemy tanks
         friend_index, tank_coord = tank.player_id, tank.coord
-        enemies = [self.__players[other_index] for other_index in self.__players if other_index != friend_index]
+        enemies = [
+            self.__players[other_index] for other_index in self.__players
+            if other_index != friend_index and not self.is_neutral(friend_index, other_index)
+        ]
         return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.tanks),
                       key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.coord, tank_coord))
 

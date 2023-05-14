@@ -11,7 +11,7 @@ class MLPlayer:
 
     __max_explore_prob = 1.0  # Maximum exploration probability -> 100 %
     __min_explore_prob = 0.03  # Minimum exploration probability -> 3 %
-    __decay_per_game = 0.0001  # Minimum exploration ratio reached after about 10 000 games
+    __decay_per_game = 0.0  # Minimum exploration ratio reached after about 10 000 games
 
     def __init__(self, num_rounds: int, group_size: int):
         self.__tanks: dict[str, MLTank] = self.__make_tanks(num_rounds, group_size)
