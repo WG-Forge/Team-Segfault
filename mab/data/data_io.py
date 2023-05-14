@@ -8,8 +8,7 @@ class DataIO:
     __client_map_path = "mab\\data\\server_data\\client_map"
     __game_state_path = "mab\\data\\server_data\\game_state"
 
-    ResultsTable = Type[dict[int, dict[str, dict[str, list[int]]]]]
-    GameActions = Type[dict[int, dict[str, str]]]
+    ResultsTable = Type[dict[int, dict[str, list[int]]]]
 
     """     FORMATTING      """
 
@@ -32,7 +31,7 @@ class DataIO:
     """     SAVING      """
 
     @staticmethod
-    def save_session_data(results_table: ResultsTable, game_num: int, exploit_actions: GameActions, file_name: str):
+    def save_session_data(results_table: ResultsTable, game_num: int, exploit_actions: dict[int, str], file_name: str):
         DataIO.__save_results_table(results_table, file_name)
         DataIO.__save_num_games(game_num, file_name)
         DataIO.__save_best_actions(exploit_actions, file_name)
@@ -43,7 +42,7 @@ class DataIO:
             json.dump(what, file)
 
     @staticmethod
-    def __save_best_actions(best_actions: GameActions, file_name: str) -> None:
+    def __save_best_actions(best_actions: dict[int, str], file_name: str) -> None:
         DataIO.__save(best_actions, DataIO.__training_data_path + file_name + '_best_actions')
 
     @staticmethod
@@ -74,7 +73,7 @@ class DataIO:
         return DataIO.__load(DataIO.__training_data_path + save_file + '_num_games')
 
     @staticmethod
-    def load_best_actions(save_file: str) -> dict[str, dict[str, str]]:
+    def load_best_actions(save_file: str) -> dict[int, str]:
         return DataIO.__load(DataIO.__training_data_path + save_file + '_best_actions')
 
     @staticmethod

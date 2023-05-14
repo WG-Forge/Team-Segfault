@@ -5,16 +5,16 @@ from mab.data.results_eval import results_eval
 
 
 if __name__ == '__main__':
-    # display_manager = DisplayManager()
-    # display_manager.run()
+    display_manager = DisplayManager()
+    display_manager.run()
 
     # multiplayer_game()
 
-    results_eval()
+    # results_eval()
 
-    # train(num_trainings=25_000,
+    # train(num_trainings=10_000,
     #       num_rounds=15,
-    #       restart=False,
+    #       restart=True,
     #       num_players=3,
-    #       num_actions=1,
-    #       save_file='many_actions')
+    #       num_actions=3,
+    #       save_file='new_model')

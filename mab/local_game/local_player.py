@@ -61,10 +61,6 @@ class LocalPlayer:
     def damage_points(self, damage_points: int) -> None:
         self._damage_points = damage_points
 
-    @property
-    def num_players(self) -> int:
-        return self._num_players
-
     """     MISC        """
 
     def register_shot(self, enemy_index: int) -> None:

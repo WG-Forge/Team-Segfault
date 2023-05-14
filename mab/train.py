@@ -1,5 +1,5 @@
 from mab.local_game.local_game import LocalGame
-from mab.machine_learining.ml_driver import MLDriver
+from mab.machine_learning.ml_driver import MLDriver
 
 
 # Takes about 0.2s per game: 2hrs -> 36 000 games

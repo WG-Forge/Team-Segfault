@@ -8,16 +8,16 @@ from src.game_map.map import Map
 class LocalGame:
     GameActions = dict[int, dict[str, str]]
 
-    def __init__(self, game_actions: GameActions, num_turns: int = 45, num_players: int = 3) -> None:
+    def __init__(self, game_actions: dict[int, str], num_turns: int = 45, num_players: int = 3) -> None:
         self.__winners_index = []
         self.__run(game_actions, num_turns, num_players)
 
-    def __run(self, game_actions: GameActions, num_turns: int, num_players: int) -> None:
+    def __run(self, game_actions: dict[int, str], num_turns: int, num_players: int) -> None:
         current_turn: list[int] = [0]
         current_round: list[int] = [0]
 
         players: Dict[int, LocalBot] = {
-            player_idx: LocalBot(player_idx, game_actions[player_idx], current_round)
+            player_idx: LocalBot(player_idx, game_actions, current_round)
             for player_idx in range(num_players)
         }
 

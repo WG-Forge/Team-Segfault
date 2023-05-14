@@ -10,11 +10,13 @@ from src.players.player import Player
 
 
 class BotPlayer(Player):
-    __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O')
-    __no_repair_actions = ('A', 'B', 'C', 'D', 'E', 'F')
+    __actions = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
     __num_actions = len(__actions)
     __tank_names_can_repair = {
         'spg': False, 'light_tank': False, 'heavy_tank': True, 'medium_tank': True, 'at_spg': True
+    }
+    __short_by_longs = {
+        's': 'spg', 'l': 'light_tank', 'h': 'heavy_tank', 'm': 'medium_tank', 'a': 'at_spg'
     }
 
     def __init__(self, turn_played_sem: Semaphore, current_player: list[int], current_turn: list[int],
@@ -28,11 +30,26 @@ class BotPlayer(Player):
                          name=name, password=password,
                          is_observer=is_observer)
 
-        self.__best_actions: dict | None = None
+        self.__actions: dict[int, dict[str, list[str]]] | None = None
         self.__order = None
 
+    def __format_actions(self, actions: dict[int, str]) -> dict[int, dict[str, list[str]]]:
+        formatted_actions = {i: {name: [] for name in self.__tank_names_can_repair} for i in range(len(actions))}
+
+        for player_index, tank_action_combo in actions.items():
+            current_name = None
+            for letter in tank_action_combo:
+                tank_name = self.__short_by_longs.get(letter)
+                if tank_name:
+                    current_name = tank_name
+                elif current_name:
+                    formatted_actions[int(player_index)][current_name].append(letter)
+
+        return formatted_actions
+
     def set_actions(self, action_file: str):
-        self.__best_actions: dict = DataIO.load_best_actions(action_file)
+        actions: dict[int, str] = DataIO.load_best_actions(action_file)
+        self.__actions: dict[int, dict[str, list[str]]] = self.__format_actions(actions)
 
     def register_round(self) -> None:
         # reset round actions
@@ -61,8 +78,9 @@ class BotPlayer(Player):
             self.__order = self._current_turn[0]
 
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
-        if self.__best_actions is not None:
-            this_bots_actions = self.__best_actions.get(str(self.__order))
+        if self.__actions is not None:
+            this_bots_actions = self.__actions.get(self.__order)
+
             for tank in self._tanks:
                 this_rounds_action = this_bots_actions[tank.type][self._current_turn[0] // self._num_players]
                 self.__do(this_rounds_action, tank)
@@ -84,62 +102,51 @@ class BotPlayer(Player):
                 self.__do(action, tank)
 
     def __do(self, action: str, tank: Tank) -> None:
+        # ML actions
         if action == 'A':
+            base_action = 'move and camp in base'
+            self.__repair_else_base(base_action, tank)
+        elif action == 'B':
+            base_action = 'move and camp close to base'
+            self.__repair_else_base(base_action, tank)
+        elif action == 'C':
+            base_action = 'shoot else move close to enemy'
+            self.__repair_else_base(base_action, tank)
+        elif action == 'D':
+            base_action = 'shoot else move in base'
+            self.__repair_else_base(base_action, tank)
+        elif action == 'E':
+            base_action = 'shoot else move close to base'
+            self.__repair_else_base(base_action, tank)
+        elif action == 'F':
+            base_action = 'shoot else move close to enemy'
+            self.__catapult_else(tank, base_action)
+        elif action == 'G':
+            base_action = 'shoot else move close to base'
+            self.__catapult_else(tank, base_action)
+
+        # Base actions
+        elif action == 'move and camp in base':
             # Move into the closest free base and from then on shoot enemies in range without moving
             self.__move_and_camp(tank, 'in base')
-        elif action == 'B':
+        elif action == 'move and camp close to base':
             # Move into the closest free hex adjacent to the base and shoot enemies in range
             self.__move_and_camp(tank, 'close to base')
-        elif action == 'C':
-            # If there are enemies in range shoot them, else move towards
-            # a position where this tank can shoot the closest enemy
+        elif action == 'shoot else move close to enemy':
+            # Shoot enemies in range, else move in range
             self.__shoot_else_move(tank, 'close enemy')
-        elif action == 'D':
+        elif action == 'shoot else move in base':
             # If there are enemies in range shoot them, else, move towards the closest free base
             self.__shoot_else_move(tank, 'in base')
-        elif action == 'E':
+        elif action == 'shoot else move close to base':
             # If there are enemies in range shoot them, else, move towards the closest free hex adjacent to the base
             self.__shoot_else_move(tank, 'close to base')
 
-        # Shoot enemies in range, if none & has catapult bonus do action. If no bonus move to usable catapult,
-        #  if none do repair action if can repair else do non repair action.
-        elif action == 'F':
-            if self.__tank_names_can_repair[tank.type]:
-                self.__catapult_else(tank, 'K')
-            else:
-                self.__catapult_else(tank, 'A')
-        elif action == 'G':
-            if self.__tank_names_can_repair[tank.type]:
-                self.__catapult_else(tank, 'L')
-            else:
-                self.__catapult_else(tank, 'B')
-        elif action == 'H':
-            if self.__tank_names_can_repair[tank.type]:
-                self.__catapult_else(tank, 'M')
-            else:
-                self.__catapult_else(tank, 'C')
-        elif action == 'I':
-            if self.__tank_names_can_repair[tank.type]:
-                self.__catapult_else(tank, 'N')
-            else:
-                self.__catapult_else(tank, 'D')
-        elif action == 'J':
-            if self.__tank_names_can_repair[tank.type]:
-                self.__catapult_else(tank, 'O')
-            else:
-                self.__catapult_else(tank, 'E')
-
-        # Do actions, if health points == 1 and closest appropriate repair is free & can repair move there
-        elif action == 'K':
-            self.__repair_if_low_hp_else(tank, 'A')
-        elif action == 'L':
-            self.__repair_if_low_hp_else(tank, 'B')
-        elif action == 'M':
-            self.__repair_if_low_hp_else(tank, 'C')
-        elif action == 'N':
-            self.__repair_if_low_hp_else(tank, 'D')
-        elif action == 'O':
-            self.__repair_if_low_hp_else(tank, 'E')
+    def __repair_else_base(self, base_action: str, tank: Tank) -> None:
+        if self.__tank_names_can_repair[tank.type]:
+            self.__repair_if_low_hp_else(tank, base_action)
+        else:
+            self.__do(base_action, tank)
 
     def __repair_if_low_hp_else(self, tank: Tank, action: str) -> None:
         if tank.health_points == 1 and self.__tank_names_can_repair[tank.type] \
