@@ -60,10 +60,15 @@ class BackupBot(Player):
         for tank in self._tanks:
             locations: list[Callout] = []
 
-            if tank.health_points == 1 and (tank.type == Entities.HEAVY_TANK or tank.type == Entities.TANK_DESTROYER or
-                                            tank.type == Entities.MEDIUM_TANK):
+            if self._map.base_is_being_captured(self.idx):
+                locations += [Callout.INSIDE_BASE]
+
+            if tank.health_points == 1 and (
+                    tank.type == Entities.HEAVY_TANK or tank.type == Entities.TANK_DESTROYER or
+                    tank.type == Entities.MEDIUM_TANK):
                 locations += [Callout.REPAIR]
-            if tank.type == Entities.LIGHT_TANK and not tank.catapult_bonus:
+
+            if (tank.type == Entities.LIGHT_TANK or tank.type == Entities.ARTILLERY) and not tank.catapult_bonus:
                 locations += [Callout.CATAPULT]
 
             locations += [Callout.INSIDE_BASE, Callout.CLOSEST_ENEMY, Callout.CLOSE_TO_BASE, Callout.RANDOM_ENEMY]
@@ -99,7 +104,9 @@ class BackupBot(Player):
 
         if go_to:
             for coord in go_to:
-                if coord != tank.coord and self.__move_to_if_possible(tank, coord):
+                if coord == tank.coord:
+                    return False
+                if self.__move_to_if_possible(tank, coord):
                     return True
 
         return False

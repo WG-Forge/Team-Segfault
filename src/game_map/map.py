@@ -328,6 +328,15 @@ class Map:
             else:
                 break
 
+    """     MAP INFO       """
+
+    def base_is_being_captured(self, player_idx: int) -> bool:
+        for player in self.__players.values():
+            if player.idx != player_idx and player.capture_points > 3:
+                return True
+
+        return False
+
     """     RUNNING LOCALLY      """
 
     def register_new_turn(self) -> None:
