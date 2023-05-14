@@ -63,12 +63,11 @@ class BackupBot(Player):
             if self._map.base_is_being_captured(self.idx):
                 locations += [Callout.INSIDE_BASE]
 
-            if tank.health_points == 1 and (
-                    tank.type == Entities.HEAVY_TANK or tank.type == Entities.TANK_DESTROYER or
-                    tank.type == Entities.MEDIUM_TANK):
+            if tank.health_points == 1 and \
+                    tank.type in [Entities.MEDIUM_TANK, Entities.LIGHT_TANK, Entities.TANK_DESTROYER]:
                 locations += [Callout.REPAIR]
 
-            if (tank.type == Entities.LIGHT_TANK or tank.type == Entities.ARTILLERY) and not tank.catapult_bonus:
+            if tank.type in [Entities.LIGHT_TANK, Entities.ARTILLERY] and not tank.catapult_bonus:
                 locations += [Callout.CATAPULT]
 
             locations += [Callout.INSIDE_BASE, Callout.CLOSEST_ENEMY, Callout.CLOSE_TO_BASE, Callout.RANDOM_ENEMY]
@@ -76,16 +75,15 @@ class BackupBot(Player):
 
     def __move_return_has_moved(self, locations: list[Callout], tank: Tank) -> bool:
         """Tries to move the to the 'where' callout, returns True on success"""
-        tank_coord = tank.coord
         # list of coordinates a vehicle could move to, sorted in
         go_to: list[tuple[int, int, int]] = []
         for location in locations:
             matches = []
             match location:
                 case Callout.CLOSE_TO_BASE:
-                    matches = self._map.closest_free_base_adjacents(tank_coord)
+                    matches = self._map.closest_free_base_adjacents(tank.coord)
                 case Callout.INSIDE_BASE:
-                    matches = self._map.closest_free_bases(tank_coord)
+                    matches = self._map.closest_free_bases(tank.coord)
                 case Callout.CLOSEST_ENEMY:
                     closest = self._map.closest_enemies(tank)
                     if closest:
@@ -156,7 +154,7 @@ class BackupBot(Player):
         return False
 
     def __move_to_if_possible(self, tank: Tank, where: tuple) -> bool:
-        """Tries to move 'tank' to given coordinate 'where', returns True on success"""
+        """Tries to move 'tank' towards a given coordinate 'where', returns True on success"""
         next_best = self._map.next_best_available_hex_in_path_to(tank, where)
 
         if next_best is not None:

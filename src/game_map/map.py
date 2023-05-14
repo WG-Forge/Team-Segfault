@@ -296,16 +296,6 @@ class Map:
     def next_best_available_hex_in_path_to(self, tank: Tank, finish: tuple) -> tuple | None:
         return self.__path_finding_algorithm(self.__map, tank, finish)
 
-    def get_unsafe_hexes(self, player_idx: int) -> dict:
-        # coordinate -> list of player ids who can attack that coordinate
-        safe_hexes: dict[tuple[int, int, int], list[int]] = {}
-        for tank in self.__tanks.values():
-            enemy_id = tank.player_id
-            if enemy_id != player_idx:
-                for coord in tank.coords_in_range():
-                    safe_hexes[coord] = [enemy_id] if coord not in safe_hexes else safe_hexes[coord] + [enemy_id]
-        return safe_hexes
-
     """     NO GRAPHICS METHODS     """
 
     def local_shoot_no_graphics(self, tank: Tank, target: Tank) -> None:
@@ -336,6 +326,16 @@ class Map:
                 return True
 
         return False
+
+    def get_unsafe_hexes(self, player_idx: int) -> dict:
+        # coordinate -> list of player ids who can attack that coordinate
+        safe_hexes: dict[tuple[int, int, int], list[int]] = {}
+        for tank in self.__tanks.values():
+            enemy_id = tank.player_id
+            if enemy_id != player_idx:
+                for coord in tank.coords_in_range():
+                    safe_hexes[coord] = [enemy_id] if coord not in safe_hexes else safe_hexes[coord] + [enemy_id]
+        return safe_hexes
 
     """     RUNNING LOCALLY      """
 
