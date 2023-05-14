@@ -212,18 +212,19 @@ class Map:
             else:
                 break
 
-    def is_neutral(self, player_id: int, enemy_id: int) -> bool:
+    def is_neutral(self, player_index: int, enemy_index: int) -> bool:
         # Neutrality rule logic implemented here, return True if neutral, False if not neutral
-        player_ids: set = {i for i in self.__players}
-        viable_indexes: set = (player_ids - {player_id, enemy_id})
+        player_indexes: set = {i for i in self.__players}
+
+        viable_indexes: set = (player_indexes - {player_index, enemy_index})
 
         # Set is empty
         if not viable_indexes:
             return False
 
         other_index = next(iter(viable_indexes))
-        other_player, enemy_player = self.__players[other_index], self.__players[enemy_id]
-        return not enemy_player.has_shot(player_id) and other_player.has_shot(enemy_id)
+        other_player, enemy_player = self.__players[other_index], self.__players[enemy_index]
+        return not enemy_player.has_shot(player_index) and other_player.has_shot(enemy_index)
 
     def is_enemy(self, friend: Tank, enemy: Tank) -> bool:
         return enemy and not (friend.player_id == enemy.player_id or
@@ -288,10 +289,7 @@ class Map:
     def closest_enemies(self, tank: Tank) -> list[Tank]:
         # Returns a sorted list by distance of enemy tanks
         friend_index, tank_coord = tank.player_id, tank.coord
-        enemies = [
-            self.__players[other_index] for other_index in self.__players
-            if other_index != friend_index
-        ]
+        enemies = [self.__players[other_index] for other_index in self.__players if other_index != friend_index]
         return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.tanks),
                       key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.coord, tank_coord))
 
@@ -299,12 +297,13 @@ class Map:
         return self.__path_finding_algorithm(self.__map, tank, finish)
 
     def get_unsafe_hexes(self, player_idx: int) -> dict:
-        # coordinate -> times that it can be attacked
-        safe_hexes: dict[tuple[int, int, int], int] = {}
+        # coordinate -> list of player ids who can attack that coordinate
+        safe_hexes: dict[tuple[int, int, int], list[int]] = {}
         for tank in self.__tanks.values():
-            if tank.player_id != player_idx:
+            enemy_id = tank.player_id
+            if enemy_id != player_idx:
                 for coord in tank.coords_in_range():
-                    safe_hexes[coord] = 1 if coord not in safe_hexes else 1 + safe_hexes[coord]
+                    safe_hexes[coord] = [enemy_id] if coord not in safe_hexes else safe_hexes[coord] + [enemy_id]
         return safe_hexes
 
     """     NO GRAPHICS METHODS     """

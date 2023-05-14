@@ -1,3 +1,4 @@
+import random
 import time
 from enum import IntEnum
 from threading import Semaphore, Event
@@ -12,8 +13,9 @@ class Callout(IntEnum):
     CLOSE_TO_BASE = 0
     INSIDE_BASE = 1
     CLOSEST_ENEMY = 2
-    CATAPULT = 3
-    REPAIR = 4
+    RANDOM_ENEMY = 3
+    CATAPULT = 4
+    REPAIR = 5
 
 
 class BackupBot(Player):
@@ -40,10 +42,8 @@ class BackupBot(Player):
                 delay = 1.0 - GAME_SPEED[0]
                 if delay > 0:
                     time.sleep(delay)  # comment/uncomment this for a turn delay effect
-                # self.__unsafe_hexes = self._map.get_unsafe_hexes(self.idx)
+                self.__unsafe_hexes = self._map.get_unsafe_hexes(self.idx)
                 self.__place_actions()
-        except Exception as e:
-            print(e)
         finally:
             # end your turn
             self._game_client.force_turn()
@@ -58,54 +58,63 @@ class BackupBot(Player):
             self._map.set_order_by_idx(self._current_turn[0], self.idx)
 
         for tank in self._tanks:
-            location = Callout.INSIDE_BASE
+            locations: list[Callout] = []
 
             if tank.health_points == 1 and (tank.type == Entities.HEAVY_TANK or tank.type == Entities.TANK_DESTROYER or
                                             tank.type == Entities.MEDIUM_TANK):
-                location = Callout.REPAIR
+                locations += [Callout.REPAIR]
             if tank.type == Entities.LIGHT_TANK and not tank.catapult_bonus:
-                location = Callout.CATAPULT
+                locations += [Callout.CATAPULT]
 
-            self.__shoot_else_move(tank, location)
+            locations += [Callout.INSIDE_BASE, Callout.CLOSEST_ENEMY, Callout.CLOSE_TO_BASE, Callout.RANDOM_ENEMY]
+            self.__shoot_else_move(tank, locations)
 
-    def __move_return_has_moved(self, where: Callout, who: Tank) -> bool:
+    def __move_return_has_moved(self, locations: list[Callout], tank: Tank) -> bool:
         """Tries to move the to the 'where' callout, returns True on success"""
-        who_coord = who.coord
-        go_to = None
-        match where:
-            case Callout.CLOSE_TO_BASE:
-                go_to = self._map.closest_free_base_adjacents(who_coord)
-            case Callout.INSIDE_BASE:
-                go_to = self._map.closest_free_bases(who_coord)
-            case Callout.CLOSEST_ENEMY:
-                closest = self._map.closest_enemies(who)
-                if closest:
-                    go_to = who.shot_moves(closest[0].coord)
-            case Callout.REPAIR:
-                go_to = self._map.closest_usable_repair(who)
-            case Callout.CATAPULT:
-                go_to = self._map.two_closest_catapults_if_usable(who)
+        tank_coord = tank.coord
+        # list of coordinates a vehicle could move to, sorted in
+        go_to: list[tuple[int, int, int]] = []
+        for location in locations:
+            matches = []
+            match location:
+                case Callout.CLOSE_TO_BASE:
+                    matches = self._map.closest_free_base_adjacents(tank_coord)
+                case Callout.INSIDE_BASE:
+                    matches = self._map.closest_free_bases(tank_coord)
+                case Callout.CLOSEST_ENEMY:
+                    closest = self._map.closest_enemies(tank)
+                    if closest:
+                        matches = tank.shot_moves(closest[0].coord)
+                case Callout.RANDOM_ENEMY:
+                    closest = self._map.closest_enemies(tank)
+                    if closest:
+                        matches = tank.shot_moves(closest[random.randint(0, len(closest) - 1)].coord)
+                case Callout.REPAIR:
+                    matches = self._map.closest_usable_repair(tank)
+                case Callout.CATAPULT:
+                    matches = self._map.two_closest_catapults_if_usable(tank)
+
+            if matches:
+                go_to += matches
 
         if go_to:
             for coord in go_to:
-                if who_coord == coord:
-                    return False
-                if self.__move_to_if_possible(who, coord):
+                if coord != tank.coord and self.__move_to_if_possible(tank, coord):
                     return True
 
         return False
 
-    def __move_else_shoot(self, tank: Tank, where: Callout) -> None:
+    def __move_else_shoot(self, tank: Tank, locations: list[Callout]) -> None:
         """Moves the tank to designated position if possible, otherwise it shoots an enemy in range (if any)"""
-        if not self.__move_return_has_moved(where, tank):
+        if not self.__move_return_has_moved(locations, tank):
             enemies_in_range = self._map.enemies_in_range(tank)
             if enemies_in_range:
                 self.__shoot(tank, enemies_in_range)
 
-    def __shoot_else_move(self, tank: Tank, where: Callout) -> None:
+    def __shoot_else_move(self, tank: Tank, locations: list[Callout]) -> None:
         enemies_in_range = self._map.enemies_in_range(tank)
         if not enemies_in_range:
-            self.__move_return_has_moved(where, tank)
+            self.__move_return_has_moved(locations, tank)
         else:
             self.__shoot(tank, enemies_in_range)
 
@@ -143,9 +152,14 @@ class BackupBot(Player):
         """Tries to move 'tank' to given coordinate 'where', returns True on success"""
         next_best = self._map.next_best_available_hex_in_path_to(tank, where)
 
-        if next_best is not None:  # and next_best not in self.__unsafe_hexes:
-            self.__update_maps_with_move(tank, next_best)
-            return True
+        if next_best is not None:
+            # move if hex is safe, or tank's hp is greater than number of vehicles attacking that hex,
+            # or if tank is neutral
+            if next_best not in self.__unsafe_hexes or len(self.__unsafe_hexes[next_best]) < tank.health_points or \
+                    all(neutral for neutral in [self._map.is_neutral(self.idx, enemy_idx)
+                                                for enemy_idx in self.__unsafe_hexes[next_best]]):
+                self.__update_maps_with_move(tank, next_best)
+                return True
         return False
 
     def __update_maps_with_move(self, tank: Tank, action_coord: tuple) -> None:

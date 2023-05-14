@@ -18,7 +18,8 @@ def local_game(num_players: int = 3, num_turns: int = DEFAULT_NUM_TURNS,
     game = Game(game_name=game_name, max_players=num_players, num_turns=num_turns,
                 is_full=is_full)
 
-    for i in range(num_players):
+    game.add_local_player(name=f"Backup bot {seed}", is_observer=False, is_backup=True)
+    for i in range(1, num_players):
         game.add_local_player(name=f"{PLAYER_NAMES[i + 1]}-{seed + i}", is_observer=False)
 
     return game
