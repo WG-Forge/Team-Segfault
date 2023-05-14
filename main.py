@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     train(num_trainings=5_000,
           num_rounds=15,
-          restart=True,
+          restart=False,
           num_players=3,
           num_actions=1,
           save_file='rnd1')

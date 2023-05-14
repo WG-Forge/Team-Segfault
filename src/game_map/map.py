@@ -290,7 +290,7 @@ class Map:
         friend_index, tank_coord = tank.player_id, tank.coord
         enemies = [
             self.__players[other_index] for other_index in self.__players
-            if other_index != friend_index and not self.is_neutral(friend_index, other_index)
+            if other_index != friend_index
         ]
         return sorted((enemy_tank for enemy in enemies for enemy_tank in enemy.tanks),
                       key=lambda enemy_tank: Hex.manhattan_dist(enemy_tank.coord, tank_coord))
