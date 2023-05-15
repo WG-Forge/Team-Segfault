@@ -64,7 +64,7 @@ class BackupBot(Player):
                 locations += [Callout.INSIDE_BASE]
 
             if tank.health_points == 1 and \
-                    tank.type in [Entities.MEDIUM_TANK, Entities.LIGHT_TANK, Entities.TANK_DESTROYER]:
+                    tank.type in [Entities.MEDIUM_TANK, Entities.HEAVY_TANK, Entities.TANK_DESTROYER]:
                 locations += [Callout.REPAIR]
 
             if tank.type in [Entities.LIGHT_TANK, Entities.ARTILLERY] and not tank.catapult_bonus:
