@@ -79,26 +79,26 @@ class BotPlayer(Player):
         # Types: spg, light_tank, heavy_tank, medium_tank, at_spg
         if self.__actions is not None:
             this_bots_actions = self.__actions.get(self.__order)
+        else:
+            this_bots_actions = None
 
+        if this_bots_actions is not None:
             for tank in self._tanks:
                 this_rounds_action = this_bots_actions[tank.type][self._current_turn[0] // self._num_players]
                 self.__do(this_rounds_action, tank)
         else:
-            # testing catapult action
-            # for tank in self._tanks:
-            #     if tank.catapult_bonus:
-            #         self.__do('C', tank)
-            #     else:
-            #         self.__do('F', tank)
-
-            # testing random actions
+            # Default model just in case
             for tank in self._tanks:
-                action = None
-                can_repair = self.__tank_names_can_repair[tank.type]
-                possible_actions = self.__actions if can_repair else self.__no_repair_actions
-                while action not in possible_actions:
-                    action = self.__actions[rnd.randint(0, len(possible_actions) - 1)]
-                self.__do(action, tank)
+                if tank.type == 'spg':
+                    self.__do('E', tank)
+                elif tank.type == 'light_tank':
+                    self.__do('D', tank)
+                elif tank.type == 'heavy_tank':
+                    self.__do('D', tank)
+                elif tank.type == 'medium_tank':
+                    self.__do('A', tank)
+                elif tank.type == 'at_spg':
+                    self.__do('D', tank)
 
     def __do(self, action: str, tank: Tank) -> None:
         # ML actions
