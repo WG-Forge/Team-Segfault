@@ -1,4 +1,4 @@
-from gui.display_manager import DisplayManager
+from src.gui.display_manager import DisplayManager
 
 if __name__ == '__main__':
     display_manager = DisplayManager()

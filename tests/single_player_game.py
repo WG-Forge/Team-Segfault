@@ -1,5 +1,5 @@
-from game.game import Game
-from gui.display_manager import DisplayManager
+from src.game import Game
+from src.gui.display_manager import DisplayManager
 
 
 def single_player_game() -> None:
